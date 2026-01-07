@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ba32496173d42948bd26b255e35f1ef, type: 3}
+  m_Name: PlayerMovementConfig
+  m_EditorClassIdentifier: 
+  <WalkSpeed>k__BackingField: 3
+  <SprintSpeed>k__BackingField: 6
+  <CrouchSpeed>k__BackingField: 1.5
+  <StandingHeight>k__BackingField: 1.8
+  <CrouchingHeight>k__BackingField: 0.8
+  <CrouchCheckMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 0
+  <JumpHeight>k__BackingField: 1.2
+  <Gravity>k__BackingField: 9.81
+  <Sensitivity>k__BackingField: 1
