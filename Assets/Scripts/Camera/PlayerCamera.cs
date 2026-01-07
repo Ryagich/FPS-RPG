@@ -50,7 +50,7 @@ namespace Camera
         {
             var direction = lookDelta * playerMovementConfig.Sensitivity;
             XRotation -= direction.y;
-            XRotation = Mathf.Clamp(XRotation, -90f, 90f);
+            XRotation = Mathf.Clamp(XRotation, playerMovementConfig.cameraYClamp.x,playerMovementConfig.cameraYClamp.y);
             
             cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * direction.x);

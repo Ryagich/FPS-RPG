@@ -17,5 +17,6 @@ namespace Player
         [field: SerializeField] public float Gravity { get; private set; } = 9.81f;
         [field: Header("Camera Settings")]
         [field: SerializeField] public float Sensitivity { get; private set; } = 100f;
+        [field: SerializeField] public Vector2 cameraYClamp { get; private set; } = new(-80.0f,80.0f);
     }
 }
