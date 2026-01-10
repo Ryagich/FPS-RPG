@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <WalkSpeed>k__BackingField: 3
   <SprintSpeed>k__BackingField: 6
+  <Acceleration>k__BackingField: 8
+  <Deceleration>k__BackingField: 12
   <CrouchSpeed>k__BackingField: 1.5
   <StandingHeight>k__BackingField: 1.8
   <CrouchingHeight>k__BackingField: 0.8
   <CrouchCheckMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 0
-  <JumpHeight>k__BackingField: 1.2
-  <Gravity>k__BackingField: 9.81
+  <JumpHeight>k__BackingField: 3
   <Sensitivity>k__BackingField: 1
+  <cameraYClamp>k__BackingField: {x: -80, y: 80}

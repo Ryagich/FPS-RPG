@@ -10,33 +10,38 @@ namespace Player
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly Transform playerTransform;
-        private readonly CharacterController controller;
+        private readonly CharacterController characterController;
 
         private Vector2 direction;
+        private Vector3 currentVelocity;
 
         public PlayerMovement
             (
                 PlayerMovementConfig playerMovementConfig,
                 Transform playerTransform,
-                CharacterController controller,
+                CharacterController characterController,
                 ISubscriber<PlayerMoveMessage> playerMoveMessageSubscriber
             )
         {
             this.playerMovementConfig = playerMovementConfig;
             this.playerTransform = playerTransform;
-            this.controller = controller;
+            this.characterController = characterController;
 
             playerMoveMessageSubscriber.Subscribe(OnMove);
         }
-        
+
         public void Tick()
         {
-            if (direction is { x: 0, y: 0 })
-            {
-                return;
-            }
-            var move = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right   * direction.x, 1f);
-            controller.Move(move * playerMovementConfig.WalkSpeed * Time.deltaTime);
+            var input = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right * direction.x, 1f);
+            var targetVelocity = input * playerMovementConfig.WalkSpeed;
+            var accel = input.sqrMagnitude > 0.001f
+                            ? playerMovementConfig.Acceleration
+                            : playerMovementConfig.Deceleration;
+            currentVelocity = Vector3.MoveTowards(currentVelocity,
+                                                  targetVelocity,
+                                                  accel * Time.deltaTime);
+
+            characterController.Move(currentVelocity * Time.deltaTime);
         }
 
         private void OnMove(PlayerMoveMessage msg)

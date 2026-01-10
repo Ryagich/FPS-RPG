@@ -1,5 +1,4 @@
 using Camera;
-using Movement;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -17,9 +16,14 @@ namespace Player
             builder.RegisterInstance(transform).AsSelf();
             builder.RegisterInstance(CameraParentTransform).Keyed("CameraParentTransform");
 
+            // builder.Register<PlayerGravity>(Lifetime.Scoped);
+            // builder.Register<PlayerJump>(Lifetime.Scoped);
+            
+            builder.RegisterEntryPoint<PlayerGravity>().AsSelf();
+            builder.RegisterEntryPoint<PlayerJump>().AsSelf();
             builder.RegisterEntryPoint<PlayerMovement>().AsSelf();
             builder.RegisterEntryPoint<PlayerCamera>().AsSelf();
-            builder.RegisterEntryPoint<PlayerGravity>().AsSelf();
+            // builder.RegisterEntryPoint<PlayerMotor>().AsSelf();
         }
     }
 }

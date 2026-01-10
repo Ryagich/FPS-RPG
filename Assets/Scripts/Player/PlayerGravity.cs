@@ -2,7 +2,7 @@
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Movement
+namespace Player
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class PlayerGravity : IFixedTickable

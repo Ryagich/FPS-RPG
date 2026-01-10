@@ -12,17 +12,20 @@ namespace Input
         private readonly InputConfig inputConfig;
         private readonly IPublisher<PlayerMoveMessage> playerMovePublisher;
         private readonly IPublisher<LookDeltaMessage> lookDeltaMessagePublisher;
+        private readonly IPublisher<JumpMessage> jumpMessagePublisher;
 
         private InputHandler
             (
                 InputConfig inputConfig,
                 IPublisher<PlayerMoveMessage> playerMovePublisher,
-                IPublisher<LookDeltaMessage> lookDeltaMessagePublisher
+                IPublisher<LookDeltaMessage> lookDeltaMessagePublisher,
+                IPublisher<JumpMessage> jumpMessagePublisher
             )
         {
             this.inputConfig = inputConfig;
             this.playerMovePublisher = playerMovePublisher;
             this.lookDeltaMessagePublisher = lookDeltaMessagePublisher;
+            this.jumpMessagePublisher = jumpMessagePublisher;
         }
 
         public void Start()
@@ -33,6 +36,9 @@ namespace Input
             inputConfig.LookInput.action.performed += OnLookDelta;
             // inputConfig.LookInput.action.started += OnLookDelta;
             // inputConfig.LookInput.action.canceled += OnLookDelta;
+            
+            inputConfig.JumpInput.action.started += OnJump;
+
         }
         
         private void OnMove(InputAction.CallbackContext context)
@@ -45,6 +51,11 @@ namespace Input
         {
             var delta = context.ReadValue<Vector2>();
             lookDeltaMessagePublisher.Publish(new LookDeltaMessage(delta));
+        }
+        
+        private void OnJump(InputAction.CallbackContext context)
+        {
+            jumpMessagePublisher.Publish(new JumpMessage());
         }
     }
 }
