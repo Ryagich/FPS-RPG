@@ -29,16 +29,17 @@ namespace Player
             playerMoveMessageSubscriber.Subscribe(OnMove);
         }
 
-        public Vector3 GetVelocity()
+        public Vector3 GetVelocity(bool isSprint)
         {
             if (!characterController.isGrounded)
                 return currentVelocity * Time.deltaTime;
-
+            var canSprintForward = isSprint && direction.y > 0f;
+            var currSpeed = canSprintForward ? playerMovementConfig.SprintSpeed : playerMovementConfig.WalkSpeed;
+            var currentAccelerationRate = canSprintForward ? playerMovementConfig.SprintAccelerationRates : playerMovementConfig.WalkAccelerationRates;
             var input = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right * direction.x, 1f);
-            var targetVelocity = input * playerMovementConfig.WalkSpeed;
-            var accel = input.sqrMagnitude > 0.001f
-                            ? playerMovementConfig.Acceleration
-                            : playerMovementConfig.Deceleration;
+            var targetVelocity = input * currSpeed;
+            var accel = input.sqrMagnitude > 0.001f ? currentAccelerationRate.x : currentAccelerationRate.y;
+            
             currentVelocity = Vector3.MoveTowards(currentVelocity,
                                                   targetVelocity,
                                                   accel * Time.deltaTime);

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerMovementConfig
   m_EditorClassIdentifier: 
   <WalkSpeed>k__BackingField: 3
-  <SprintSpeed>k__BackingField: 6
+  <SprintSpeed>k__BackingField: 10
   <Acceleration>k__BackingField: 8
   <Deceleration>k__BackingField: 12
   <CrouchSpeed>k__BackingField: 1.5

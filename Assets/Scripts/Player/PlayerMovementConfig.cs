@@ -8,8 +8,8 @@ namespace Player
         [field: Header("Movement Settings")]
         [field: SerializeField] public float WalkSpeed { get; private set; } = 3.0f;
         [field: SerializeField] public float SprintSpeed { get; private set; } = 6.0f;
-        [field: SerializeField] public float Acceleration { get; private set; } = 20.0f;
-        [field: SerializeField] public float Deceleration { get; private set; } = 40.0f;
+        [field: SerializeField] public Vector2 WalkAccelerationRates { get; private set; } = new (20.0f, 40.0f);
+        [field: SerializeField] public Vector2 SprintAccelerationRates { get; private set; } = new (20.0f, 40.0f);
         [field: Header("Crouch")]
         [field: SerializeField] public float CrouchSpeed { get; private set; } = 1.5f;
         [field: SerializeField] public float StandingHeight { get; private set; } = 1.8f;

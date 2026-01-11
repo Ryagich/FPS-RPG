@@ -24,5 +24,7 @@ namespace Messages
     
     public readonly struct ClickMessage { }
     public readonly struct RightClickMessage { }       
-    public readonly struct JumpMessage { }         
+    public readonly struct JumpMessage { }      
+    public readonly struct StartSprintMessage { }         
+    public readonly struct CancelSprintMessage { }         
 }
