@@ -7,7 +7,7 @@ using VContainer.Unity;
 namespace Player
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class PlayerJump : ITickable
+    public class PlayerJump
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly GravityConfig gravityConfig;
@@ -32,18 +32,17 @@ namespace Player
 
         private void OnJump(JumpMessage msg)
         {
-            Debug.Log($"OnJump isGrounded {controller.isGrounded}");
             if (!controller.isGrounded)
                 return;
 
             verticalVelocity = Mathf.Sqrt(2f * gravityConfig.Gravity * playerMovementConfig.JumpHeight);
         }
 
-        public void Tick()
+        public Vector3 GetVelocity()
         {
-            verticalVelocity += -gravityConfig.Gravity * Time.deltaTime;
-
-            controller.Move(Vector3.up * verticalVelocity * Time.deltaTime);
+            var velocity = Vector3.up * verticalVelocity * Time.deltaTime;
+            verticalVelocity = Mathf.Clamp(verticalVelocity + -gravityConfig.Gravity * Time.deltaTime, .0f, int.MaxValue);
+            return velocity;
         }
     }
 }

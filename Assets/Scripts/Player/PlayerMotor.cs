@@ -4,30 +4,30 @@ using VContainer.Unity;
 namespace Player
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class PlayerMotor //: ITickable
+    public class PlayerMotor : ITickable
     {
-        // private readonly CharacterController controller;
-        // private readonly PlayerGravity gravity;
-        // private readonly PlayerJump jump;
-        //
-        // public PlayerMotor
-        //     (
-        //         CharacterController controller,
-        //         PlayerGravity gravity,
-        //         PlayerJump jump
-        //     )
-        // {
-        //     this.controller = controller;
-        //     this.gravity = gravity;
-        //     this.jump = jump;
-        // }
+        private readonly CharacterController controller;
+        private readonly PlayerGravity gravity;
+        private readonly PlayerJump jump;
+        private readonly PlayerMovement movement;
 
-        // public void Tick()
-        // {
-        //     var grounded = controller.isGrounded;
-        //     var vertical = gravity.Tick(grounded, Time.deltaTime) + jump.Tick(grounded);
-        //
-        //     controller.Move(Vector3.up * vertical * Time.deltaTime);
-        // }
+        public PlayerMotor
+            (
+                CharacterController controller,
+                PlayerGravity gravity,
+                PlayerJump jump,
+                PlayerMovement movement
+            )
+        {
+            this.controller = controller;
+            this.gravity = gravity;
+            this.jump = jump;
+            this.movement = movement;
+        }
+
+        public void Tick()
+        {
+            controller.Move(gravity.GetVelocity() + jump.GetVelocity() + movement.GetVelocity());
+        }
     }
 }

@@ -1,11 +1,10 @@
 ﻿using Gravity;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Player
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class PlayerGravity : IFixedTickable
+    public class PlayerGravity
     {
         private readonly CharacterController controller;
         private readonly GravityConfig config;
@@ -22,21 +21,19 @@ namespace Player
             this.config = config;
         }
 
-        public void FixedTick()
+        public Vector3 GetVelocity()
         {
             if (controller.isGrounded)
             {
                 verticalVelocity = 0f;
-                return;
             }
-
             // v = v0 + g * dt
-            verticalVelocity -= config.Gravity * Time.fixedDeltaTime;
+            verticalVelocity -= config.Gravity * Time.deltaTime;
 
             // Δs = v * dt
-            var displacement = new Vector3(0f, verticalVelocity * Time.fixedDeltaTime, 0f);
-
-            controller.Move(displacement);
+            var velocity = Vector3.up * verticalVelocity * Time.deltaTime;
+            
+            return velocity;
         }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using MessagePipe;
 using Messages;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Player
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class PlayerMovement : ITickable
+    public class PlayerMovement
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly Transform playerTransform;
@@ -30,7 +29,7 @@ namespace Player
             playerMoveMessageSubscriber.Subscribe(OnMove);
         }
 
-        public void Tick()
+        public Vector3 GetVelocity()
         {
             var input = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right * direction.x, 1f);
             var targetVelocity = input * playerMovementConfig.WalkSpeed;
@@ -40,10 +39,9 @@ namespace Player
             currentVelocity = Vector3.MoveTowards(currentVelocity,
                                                   targetVelocity,
                                                   accel * Time.deltaTime);
-
-            characterController.Move(currentVelocity * Time.deltaTime);
+            return currentVelocity * Time.deltaTime;
         }
-
+        
         private void OnMove(PlayerMoveMessage msg)
         {
             direction = msg.Direction;
