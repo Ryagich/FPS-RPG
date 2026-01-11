@@ -31,6 +31,9 @@ namespace Player
 
         public Vector3 GetVelocity()
         {
+            if (!characterController.isGrounded)
+                return currentVelocity * Time.deltaTime;
+
             var input = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right * direction.x, 1f);
             var targetVelocity = input * playerMovementConfig.WalkSpeed;
             var accel = input.sqrMagnitude > 0.001f
