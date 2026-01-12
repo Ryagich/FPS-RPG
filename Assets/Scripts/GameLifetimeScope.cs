@@ -26,8 +26,8 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterMessageBroker<ClickMessage>(options);
         builder.RegisterMessageBroker<RightClickMessage>(options);
         builder.RegisterMessageBroker<JumpMessage>(options);
-        builder.RegisterMessageBroker<StartSprintMessage>(options);
-        builder.RegisterMessageBroker<CancelSprintMessage>(options);
+        builder.RegisterMessageBroker<ChangeSprintStateMessage>(options);
+        builder.RegisterMessageBroker<ChangeCrouchingStateMessage>(options);
             
         // === InputHandler ===
         builder.Register<InputHandler>(Lifetime.Singleton).AsSelf().As<IStartable>();

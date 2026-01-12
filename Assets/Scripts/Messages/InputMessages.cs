@@ -21,10 +21,28 @@ namespace Messages
             Delta = delta;
         }
     }
+
+    public readonly struct ChangeSprintStateMessage
+    {
+        public readonly bool State;
+        
+        public ChangeSprintStateMessage(bool state)
+        {
+            State = state;
+        }
+    }
+
+    public readonly struct ChangeCrouchingStateMessage
+    {
+        public readonly bool State;
+        
+        public ChangeCrouchingStateMessage(bool state)
+        {
+            State = state;
+        }
+    }   
     
     public readonly struct ClickMessage { }
     public readonly struct RightClickMessage { }       
-    public readonly struct JumpMessage { }      
-    public readonly struct StartSprintMessage { }         
-    public readonly struct CancelSprintMessage { }         
+    public readonly struct JumpMessage { }            
 }

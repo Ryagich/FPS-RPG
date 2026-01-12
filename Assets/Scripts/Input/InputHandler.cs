@@ -13,8 +13,8 @@ namespace Input
         private readonly IPublisher<PlayerMoveMessage> playerMovePublisher;
         private readonly IPublisher<LookDeltaMessage> lookDeltaMessagePublisher;
         private readonly IPublisher<JumpMessage> jumpMessagePublisher;
-        private readonly IPublisher<StartSprintMessage> startSprintMessagePublisher;
-        private readonly IPublisher<CancelSprintMessage> canselSprintMessagePublisher;
+        private readonly IPublisher<ChangeSprintStateMessage> changeSprintStateMessagePublisher;
+        private readonly IPublisher<ChangeCrouchingStateMessage> changeCrouchingStateMessagePublisher;
 
         private InputHandler
             (
@@ -22,16 +22,16 @@ namespace Input
                 IPublisher<PlayerMoveMessage> playerMovePublisher,
                 IPublisher<LookDeltaMessage> lookDeltaMessagePublisher,
                 IPublisher<JumpMessage> jumpMessagePublisher,
-                IPublisher<StartSprintMessage> startSprintMessagePublisher,
-                IPublisher<CancelSprintMessage> canselSprintMessagePublisher
+                IPublisher<ChangeSprintStateMessage> changeSprintStateMessagePublisher,
+                IPublisher<ChangeCrouchingStateMessage> changeCrouchingStateMessagePublisher
             )
         {
             this.inputConfig = inputConfig;
             this.playerMovePublisher = playerMovePublisher;
             this.lookDeltaMessagePublisher = lookDeltaMessagePublisher;
             this.jumpMessagePublisher = jumpMessagePublisher;
-            this.startSprintMessagePublisher = startSprintMessagePublisher;
-            this.canselSprintMessagePublisher = canselSprintMessagePublisher;
+            this.changeSprintStateMessagePublisher = changeSprintStateMessagePublisher;
+            this.changeCrouchingStateMessagePublisher = changeCrouchingStateMessagePublisher;
         }
 
         public void Start()
@@ -47,6 +47,9 @@ namespace Input
 
             inputConfig.SprintInput.action.started += OnStartSprint;
             inputConfig.SprintInput.action.canceled += OnCancelSprint;
+            
+            inputConfig.CrouchInput.action.started += OnStartCrouching;
+            inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
         }
         
         private void OnMove(InputAction.CallbackContext context)
@@ -68,12 +71,22 @@ namespace Input
         
         private void OnStartSprint(InputAction.CallbackContext context)
         {
-            startSprintMessagePublisher.Publish(new StartSprintMessage());
+            changeSprintStateMessagePublisher.Publish(new ChangeSprintStateMessage(true));
         }
         
         private void OnCancelSprint(InputAction.CallbackContext context)
         {
-            canselSprintMessagePublisher.Publish(new CancelSprintMessage());
+            changeSprintStateMessagePublisher.Publish(new ChangeSprintStateMessage(false));
+        }
+        
+        private void OnStartCrouching(InputAction.CallbackContext context)
+        {
+            changeCrouchingStateMessagePublisher.Publish(new ChangeCrouchingStateMessage(true));
+        }
+        
+        private void OnCancelCrouching(InputAction.CallbackContext context)
+        {
+            changeCrouchingStateMessagePublisher.Publish(new ChangeCrouchingStateMessage(false));
         }
     }
 }

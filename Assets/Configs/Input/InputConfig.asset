@@ -18,5 +18,5 @@ MonoBehaviour:
   <MoveInput>k__BackingField: {fileID: -6068414772744191294, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <LookInput>k__BackingField: {fileID: -4100025885040081811, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <SprintInput>k__BackingField: {fileID: 2940890243988094034, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
-  <CrouchInput>k__BackingField: {fileID: 0}
+  <CrouchInput>k__BackingField: {fileID: 4810699650447843739, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <JumpInput>k__BackingField: {fileID: 2617688993766685301, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
