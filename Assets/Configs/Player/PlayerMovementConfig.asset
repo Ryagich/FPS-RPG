@@ -17,8 +17,9 @@ MonoBehaviour:
   <CrouchSpeed>k__BackingField: {x: 1.2, y: 0.9, z: 0.55}
   <WalkAccelerationRates>k__BackingField: {x: 10, y: 20}
   <SprintAccelerationRates>k__BackingField: {x: 35, y: 45}
-  <CrouchAccelerationRates>k__BackingField: {x: 2, y: 5}
+  <CrouchAccelerationRates>k__BackingField: {x: 15, y: 20}
   <CrouchingHeight>k__BackingField: 1
+  <CrouchChangedSpeed>k__BackingField: 4
   <CameraPositionInCrouching>k__BackingField: 0.9
   <CrouchCheckMask>k__BackingField:
     serializedVersion: 2

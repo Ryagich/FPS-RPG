@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8becc12279f643989aae3d9a24f41fe0, type: 3}
+  m_Name: Distance To Play Movement Sound Config
+  m_EditorClassIdentifier: 
+  <WalkStepDistance>k__BackingField: 1.5
+  <SprintStepDistance>k__BackingField: 2
+  <CrouchStepDistance>k__BackingField: 1
+  <GroundMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 128
+  <WoodMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 512
+  <RockMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 256
+  <StepOnRockSoundConfig>k__BackingField: {fileID: 11400000, guid: 56bcb0c22d64be240b99cc2ae1fb27d9, type: 2}
+  <StepOnGroundSoundConfig>k__BackingField: {fileID: 11400000, guid: 60a83bb468983de418177018ba27c728, type: 2}
+  <StepOnWoodSoundConfig>k__BackingField: {fileID: 11400000, guid: c028806ae387e604a97381a16f327883, type: 2}
