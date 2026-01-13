@@ -14,11 +14,13 @@ namespace Bot
         public ReactiveProperty<State> CurrentState {get; private set;} = new();
         private BotSettings settings;
 
-        public BotController(BotSettings settings, NavMeshAgent agent, [Key("botGoal")] Transform goal)
+        public BotController(BotSettings settings, NavMeshAgent agent, [Key("botGoal")] Transform goal, [Key("self")] Transform self)
         {
             context = new StateMachineContext();
             context.agent = agent;
             context.goal = goal;
+            context.rotationDamping = settings.botRotationDamping;
+            context.self = self;
             this.settings = settings;
         }
 

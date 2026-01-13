@@ -12,6 +12,7 @@ namespace Bot
 
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterComponentInHierarchy<NavMeshAgent>();
             builder.RegisterInstance(botGoal).Keyed("botGoal");
             builder.RegisterEntryPoint<BotController>().AsSelf();

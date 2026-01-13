@@ -66,7 +66,7 @@ namespace Bot
         public void Tick()
         {
             long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            if(now - lastVisibilityCheck < 500)
+            if(now - lastVisibilityCheck < 100)
             {
                 return;
             }

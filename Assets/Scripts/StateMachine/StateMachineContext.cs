@@ -17,5 +17,9 @@ namespace StateMachine
         public NavMeshAgent agent;
 
         public Transform goal;
+
+        public float rotationDamping;
+
+        public Transform self;
     }
 }
