@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: BotSettings
   m_EditorClassIdentifier: 
   <StateMachineGraph>k__BackingField: {fileID: 11400000, guid: 5827fdfb26b66a09f99b154cfa08b5e2, type: 2}
-  <botRotationDamping>k__BackingField: 10
+  <botRotationDamping>k__BackingField: 100
