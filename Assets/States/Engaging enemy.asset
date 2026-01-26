@@ -21,7 +21,8 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  Behaviours: []
+  Behaviours:
+  - {fileID: 11400000, guid: f7e9a606632b6187db5edba89512ce29, type: 2}
   Transitions:
   - {fileID: 11400000, guid: e715071a2129f19b0bc8bb44432aecb6, type: 2}
   - {fileID: 11400000, guid: 3a21178041df1bf0ab283781111fc022, type: 2}

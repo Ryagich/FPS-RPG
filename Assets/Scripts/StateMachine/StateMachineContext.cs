@@ -21,5 +21,9 @@ namespace StateMachine
         public float rotationDamping;
 
         public Transform self;
+
+        public Transform visionOrigin;
+
+        public Transform spine;
     }
 }

@@ -11,16 +11,18 @@ namespace Bot
     public class BotSight : MonoBehaviour, ITickable
     {
         private IPublisher<BotVisionMessage> botVisionPublisher;
-        [SerializeField] private Transform visionOrigin;
         [SerializeField] private LayerMask obstructionLayers;
+        private Transform visionOrigin;
+
 
         private List<Collider> targetsInRange = new();
         private long lastVisibilityCheck = 0;
 
         [Inject]
-        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher) 
+        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, [Key("visionOrigin")] Transform visionOrigin) 
         {
             this.botVisionPublisher = botVisionPublisher;
+            this.visionOrigin = visionOrigin;
         }
 
 

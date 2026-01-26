@@ -14,11 +14,14 @@ namespace StateMachine.Behaviours
             }
             Vector3 target = context.aggroTarget.Value.target.bounds.center;
 
-            Vector3 lookPos = target - context.self.position;
+            Vector3 lookPos = target - context.visionOrigin.position;
             lookPos.y = 0;
 
             Quaternion rotation = Quaternion.LookRotation(lookPos);
-            context.self.rotation = Quaternion.Slerp(context.self.rotation, rotation, context.DeltaTime * context.rotationDamping);
+            context.visionOrigin.rotation = Quaternion.Slerp(context.visionOrigin.rotation, rotation, context.DeltaTime * context.rotationDamping);
+
+
+            context.spine.rotation = Quaternion.Slerp(context.spine.rotation, rotation, context.DeltaTime * context.rotationDamping);
         }
     }
 }
