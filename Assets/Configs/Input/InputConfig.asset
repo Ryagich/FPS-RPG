@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: InputConfig
   m_EditorClassIdentifier: 
   <PointerPosition>k__BackingField: {fileID: 0}
-  <Click>k__BackingField: {fileID: 0}
-  <RightClick>k__BackingField: {fileID: 0}
+  <Click>k__BackingField: {fileID: -7072240419043293639, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <RightClick>k__BackingField: {fileID: -706196991894719898, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <MoveInput>k__BackingField: {fileID: -6068414772744191294, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <LookInput>k__BackingField: {fileID: -4100025885040081811, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <SprintInput>k__BackingField: {fileID: 2940890243988094034, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <CrouchInput>k__BackingField: {fileID: 4810699650447843739, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <JumpInput>k__BackingField: {fileID: 2617688993766685301, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <FirstWeapon>k__BackingField: {fileID: 2365815839281479674, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <SecondWeapon>k__BackingField: {fileID: 8411847979806114029, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <Reloading>k__BackingField: {fileID: 5277871658054977469, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <FireMode>k__BackingField: {fileID: 2336233423833798957, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}

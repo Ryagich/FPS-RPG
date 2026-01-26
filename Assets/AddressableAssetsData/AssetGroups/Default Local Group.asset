@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 051e0d78a597f6e45a6dad44a356711e
+  m_SerializeEntries:
+  - m_GUID: 38df88441409fc6488ddee175f58e30d
+    m_Address: Assets/Configs/Inventory/Ammo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AmmoConfig
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 8b9df5ef2bcafaf45b0c304b596435ed, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: c515edef0eb3e48479a8ac47fb85da56, type: 2}
+    - {fileID: 11400000, guid: b1d2eb509c5420445b8c936ba090249a, type: 2}

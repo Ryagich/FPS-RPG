@@ -1,0 +1,233 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5218b64e166e4156b8f4b918affa5771, type: 3}
+  m_Name: WeaponConfig 1
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: Weapon ID
+  <DamageSettings>k__BackingField:
+    <Damage>k__BackingField: 10
+    <DistanceChanged>k__BackingField:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  <Role>k__BackingField: 2
+  <Type>k__BackingField: 6
+  <Modes>k__BackingField: 000102
+  <AmmoConfig>k__BackingField: {fileID: 11400000, guid: acf712bfe996d274aadd9b2ab64d37c1, type: 2}
+  <RPM>k__BackingField: 600
+  <MaxAmmo>k__BackingField: 30
+  <ReloadingTime>k__BackingField: 0.2
+  <ShakeSettings>k__BackingField:
+    <duration>k__BackingField: 0.2
+    <amplitude>k__BackingField: 5
+    <frequency>k__BackingField: 20
+    <falloffCurve>k__BackingField:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    <maxShakePower>k__BackingField: 0.5
+    <RecoilMultiplier>k__BackingField: 0.3
+  <RecoilSettings>k__BackingField:
+    <RecoilPower>k__BackingField: {x: 0, y: 0}
+    <MaxRecoilPower>k__BackingField: {x: 0, y: 0}
+    <Spread>k__BackingField: 0.25
+    <RecoilSpreadMultiplier>k__BackingField: 1
+    <SpreadChillCoefficient>k__BackingField: 0.5
+    <RecoilChillCoefficient>k__BackingField: 0.5
+  <AimRecoilSettings>k__BackingField:
+    <RecoilPower>k__BackingField: {x: 0, y: 0}
+    <MaxRecoilPower>k__BackingField: {x: 0, y: 0}
+    <Spread>k__BackingField: 0.25
+    <RecoilSpreadMultiplier>k__BackingField: 1
+    <SpreadChillCoefficient>k__BackingField: 0.5
+    <RecoilChillCoefficient>k__BackingField: 0.5
+  <WeaponAnimationSettings>k__BackingField:
+    <loweredPositionOffset>k__BackingField: {x: 0, y: -0.4, z: 0}
+    <loweredRotationEuler>k__BackingField: {x: 30, y: 0, z: 0}
+    <loweredTransitionTime>k__BackingField: 0.2
+    <KickBackSettings>k__BackingField:
+      <speed>k__BackingField: 5
+      <zKickBack>k__BackingField: -0.05
+      <rotationRecoilX>k__BackingField: 5
+      <rotationRecoilY>k__BackingField: 5
+      <rotationReturnSpeed>k__BackingField: 10
+      <recoilMultiplyX>k__BackingField: 0.025
+      <recoilMultiplyY>k__BackingField: 0.015
+    <AimKickBackSettings>k__BackingField:
+      <speed>k__BackingField: 5
+      <zKickBack>k__BackingField: -0.05
+      <rotationRecoilX>k__BackingField: 5
+      <rotationRecoilY>k__BackingField: 5
+      <rotationReturnSpeed>k__BackingField: 10
+      <recoilMultiplyX>k__BackingField: 0.025
+      <recoilMultiplyY>k__BackingField: 0.015
+    <SwaySettings>k__BackingField:
+      <positionMultiplier>k__BackingField: 0.002
+      <maxPositionOffset>k__BackingField: 0.05
+      <positionSmooth>k__BackingField: 4
+      <rotationMultiplier>k__BackingField: 1.5
+      <maxRotationOffset>k__BackingField: 5
+      <rotationSmooth>k__BackingField: 8
+    <AimSwaySettings>k__BackingField:
+      <positionMultiplier>k__BackingField: 0.002
+      <maxPositionOffset>k__BackingField: 0.05
+      <positionSmooth>k__BackingField: 4
+      <rotationMultiplier>k__BackingField: 1.5
+      <maxRotationOffset>k__BackingField: 5
+      <rotationSmooth>k__BackingField: 8
+    <aimBobbingTransitionTime>k__BackingField: 0.1
+    <BobbingSettings>k__BackingField:
+      <BreatheAmplitude>k__BackingField: 0
+      <BreatheFrequency>k__BackingField: 0
+      <HeartAmplitude>k__BackingField: 0
+      <HeartFrequency>k__BackingField: 0
+      <HeartRotationAngle>k__BackingField: 0
+      <MaxWalkSpeed>k__BackingField: 0
+      <WalkVerticalAmplitude>k__BackingField: 0
+      <WalkHorizontalAmplitude>k__BackingField: 0
+      <WalkFrequency>k__BackingField: 0
+      <StrafeTiltAngle>k__BackingField: 0
+      <WalkSmoothTime>k__BackingField: 0
+      <RotationInfluence>k__BackingField: 0
+      <IsDev>k__BackingField: 0
+    <AimBobbingSettings>k__BackingField:
+      <BreatheAmplitude>k__BackingField: 0
+      <BreatheFrequency>k__BackingField: 0
+      <HeartAmplitude>k__BackingField: 0
+      <HeartFrequency>k__BackingField: 0
+      <HeartRotationAngle>k__BackingField: 0
+      <MaxWalkSpeed>k__BackingField: 0
+      <WalkVerticalAmplitude>k__BackingField: 0
+      <WalkHorizontalAmplitude>k__BackingField: 0
+      <WalkFrequency>k__BackingField: 0
+      <StrafeTiltAngle>k__BackingField: 0
+      <WalkSmoothTime>k__BackingField: 0
+      <RotationInfluence>k__BackingField: 0
+      <IsDev>k__BackingField: 0
+    <RunBobbingSettings>k__BackingField:
+      RunPositionOffset: {x: 0.175, y: -0.07, z: 0.125}
+      RunRotationEuler: {x: -12.5, y: -65, z: 10}
+      RunBobPositionAmplitude: 0.02
+      RunBobRotationAmplitude: 1
+      RunBobFrequency: 2
+      RunTransitionTime: 0.15
+    <JumpBobbingSettings>k__BackingField:
+      JumpThreshold: 0.1
+      FallThreshold: 0.1
+      JumpPositionOffset: {x: 0, y: -0.05, z: -0.05}
+      FallPositionOffset: {x: 0, y: 0.05, z: 0.05}
+      JumpRotationEuler: {x: 10, y: 0, z: 0}
+      FallRotationEuler: {x: -10, y: 0, z: 0}
+      JumpTransitionTime: 0.2
+      FallTransitionTime: 0.2
+    <AimJumpBobbingSettings>k__BackingField:
+      JumpThreshold: 0.1
+      FallThreshold: 0.1
+      JumpPositionOffset: {x: 0, y: -0.05, z: -0.05}
+      FallPositionOffset: {x: 0, y: 0.05, z: 0.05}
+      JumpRotationEuler: {x: 10, y: 0, z: 0}
+      FallRotationEuler: {x: -10, y: 0, z: 0}
+      JumpTransitionTime: 0.2
+      FallTransitionTime: 0.2
+  <CasingProperties>k__BackingField:
+    <ForceRange>k__BackingField: {x: -1.5, y: 2.5}
+    <EjectTorque>k__BackingField: 1
+    <ConeAngle>k__BackingField: 15
+    <ProjectileSpeed>k__BackingField: 400
+    <MovementMultiply>k__BackingField: 1
+  <SoundsConfig>k__BackingField: {fileID: 0}
+  <WeaponPref>k__BackingField: {fileID: 4817156084319588554, guid: e2c51cf23ea99fc4fa04f6a2ff418969, type: 3}
+  <MovementMultiply>k__BackingField: 1
+  <ProjectileSpeed>k__BackingField: 400
+  <AttachmentSections>k__BackingField:
+  - <MainInfo>k__BackingField: {fileID: 11400000, guid: 89536c00cec85f44190072b7ca77820b, type: 2}
+    attachmentInfos:
+    - <BaseInfo>k__BackingField: {fileID: 11400000, guid: 301c6c09c6b763c49808bfd27873e26f, type: 2}
+      <Offset>k__BackingField: {x: 0, y: 0.125, z: 0.2}
+      <Conditions>k__BackingField:
+        <Conditions>k__BackingField: []
+      <ScopesSettings>k__BackingField:
+        <AimPosition>k__BackingField: {x: -1, y: 0.4, z: 0}
+        <aimRotationEuler>k__BackingField: {x: 0, y: 0, z: 0}
+        <AddKickBack>k__BackingField: 0
+  - <MainInfo>k__BackingField: {fileID: 11400000, guid: 56571ec597728114cbeb71ebe43c7e80, type: 2}
+    attachmentInfos:
+    - <BaseInfo>k__BackingField: {fileID: 11400000, guid: 430be436f96cf1649854014079b0b9af, type: 2}
+      <Offset>k__BackingField: {x: 0, y: -0.03, z: 0.2}
+      <Conditions>k__BackingField:
+        <Conditions>k__BackingField: []
+      <ScopesSettings>k__BackingField:
+        <AimPosition>k__BackingField: {x: 0, y: 0, z: 0}
+        <aimRotationEuler>k__BackingField: {x: 0, y: 0, z: 0}
+        <AddKickBack>k__BackingField: 0
+  - <MainInfo>k__BackingField: {fileID: 11400000, guid: ef9e95b22169fc5468265884a21bb47d, type: 2}
+    attachmentInfos:
+    - <BaseInfo>k__BackingField: {fileID: 11400000, guid: 22301e3147c45404da4f7228a1fbd41a, type: 2}
+      <Offset>k__BackingField: {x: 0, y: 0.045, z: 0.5}
+      <Conditions>k__BackingField:
+        <Conditions>k__BackingField: []
+      <ScopesSettings>k__BackingField:
+        <AimPosition>k__BackingField: {x: 0, y: 0, z: 0}
+        <aimRotationEuler>k__BackingField: {x: 0, y: 0, z: 0}
+        <AddKickBack>k__BackingField: 0
+  - <MainInfo>k__BackingField: {fileID: 11400000, guid: ef822966b546a6e48b8912057f4e5843, type: 2}
+    attachmentInfos:
+    - <BaseInfo>k__BackingField: {fileID: 11400000, guid: 100cae4ec1435b249a1e97d71c2b61e1, type: 2}
+      <Offset>k__BackingField: {x: 0, y: -0.025, z: 0.425}
+      <Conditions>k__BackingField:
+        <Conditions>k__BackingField: []
+      <ScopesSettings>k__BackingField:
+        <AimPosition>k__BackingField: {x: 0, y: 0, z: 0}
+        <aimRotationEuler>k__BackingField: {x: 0, y: 0, z: 0}
+        <AddKickBack>k__BackingField: 0
+  <ShootSound>k__BackingField: {fileID: 11400000, guid: 551c3f4d8fc30184191f03060e216b97, type: 2}
+  <EmptyShootSound>k__BackingField: {fileID: 11400000, guid: 09fbbf2f356ed1a4fa3315c246ba4f97, type: 2}

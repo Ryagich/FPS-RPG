@@ -14,6 +14,9 @@ namespace Input
         [field: SerializeField] public InputActionReference SprintInput { get; private set; }
         [field: SerializeField] public InputActionReference CrouchInput { get; private set; }
         [field: SerializeField] public InputActionReference JumpInput { get; private set; }
-        
+        [field: SerializeField] public InputActionReference FirstWeapon { get; private set; }
+        [field: SerializeField] public InputActionReference SecondWeapon { get; private set; }
+        [field: SerializeField] public InputActionReference Reloading { get; private set; }
+        [field: SerializeField] public InputActionReference FireMode { get; private set; }
     }
 }   

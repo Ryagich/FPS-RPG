@@ -1,0 +1,148 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Inventory.Ammo;
+using Inventory.Pools;
+using Inventory.Pools.Impact;
+using UnityEngine;
+using VContainer;
+using VContainer.Unity;
+using Weapon;
+using Weapon.Settings;
+using Object = UnityEngine.Object;
+
+namespace Inventory
+{
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class Inventory : IStartable
+    {
+        //was | now
+        public event Action<Ammo.Ammo, Ammo.Ammo> AmmoChanged;
+        public event Action<InventorySlot, InventorySlot> SlotChanged;
+        public event Action<IEnumerable<InventorySlot>> SlotsCreated;
+
+        private readonly InventoryConfig inventoryConfig;
+        private readonly LifetimeScope playerScope;
+        private readonly AmmoStorage ammoStorage;
+        private readonly Transform parentTransform;
+        private readonly Transform cameraTransform;
+        private readonly IObjectResolver resolver;
+        
+        public List<InventorySlot> Slots { get; } = new();
+        public InventorySlot CurrentSlot { get; private set; } = null!;
+        public Ammo.Ammo CurrentAmmo { get; private set; } = null!;
+
+        // [SuppressMessage("ReSharper", "ParameterHidesMember")]
+        public Inventory
+            (
+               InventoryConfig inventoryConfig,
+               LifetimeScope playerScope,
+               AmmoStorage ammoStorage,
+               [Key("ParentTransformForWeapon")] Transform parentTransform, 
+               [Key("CameraParentTransform")] Transform cameraTransform,
+               IObjectResolver resolver,
+               [Key("TestWeaponConfig1")] WeaponConfig TestWeaponConfig1,
+               [Key("TestWeaponConfig2")] WeaponConfig TestWeaponConfig2
+            )
+        {
+            this.inventoryConfig = inventoryConfig;
+            this.playerScope = playerScope;
+            this.ammoStorage = ammoStorage;
+            this.parentTransform = parentTransform;
+            this.cameraTransform = cameraTransform;
+            this.resolver = resolver;
+
+            var primarySlot = new InventorySlot();
+            Slots.Add(primarySlot);
+
+            var secondarySlot = new InventorySlot();
+            Slots.Add(secondarySlot);
+
+            // SlotsCreated?.Invoke(Slots);
+            
+            CreateWeapon(WeaponRole.Primary, TestWeaponConfig1.WeaponPref);
+            CreateWeapon(WeaponRole.Secondary, TestWeaponConfig2.WeaponPref);
+        }
+        
+        public void Start()
+        {
+            SelectWeapon(WeaponRole.Primary);
+        }
+
+        public void DestroyWeapon(WeaponRole role)
+        {
+            var slot = GetSlot(role);
+            if (slot.Item is Weapon.Weapon weapon)
+            {
+                Object.Destroy(weapon.GameObject);
+            }
+        }
+
+        public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weapon)
+        {
+            var scope = playerScope.CreateChildFromPrefab(weapon);
+            
+            var weaponInstance = scope.Container.Resolve<Weapon.Weapon>();
+            var weaponTrans = scope.transform;
+            var pos = weaponTrans.localPosition;
+            weaponTrans.SetParent(parentTransform);
+            weaponTrans.localPosition = pos;
+
+            var slot = GetSlot(role);
+
+            slot.SetItem(weaponInstance);
+            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(scope.Config.AmmoConfig.ID)));
+            slot.Disable();
+        }
+
+        private InventorySlot GetSlot(WeaponRole role)
+        {
+            var id = role switch
+            {
+                WeaponRole.Primary => 0,
+                WeaponRole.Secondary => 1,
+                _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
+            };
+
+            return Slots[id];
+        }
+
+        public void SelectWeapon(WeaponRole role)
+        {
+            if (CurrentSlot is null)
+            {
+                CurrentSlot = GetSlot(role);
+                CurrentSlot.Activate();
+                CurrentAmmo = ammoStorage.Ammo
+                                         .First(ammo => ammo.AmmoConfig.ID.Equals(((Weapon.Weapon)CurrentSlot.Item).Config.AmmoConfig.ID));
+                
+                SlotChanged?.Invoke(null, CurrentSlot);
+                
+                return;
+            }
+            
+            if (((Weapon.Weapon)CurrentSlot.Item).IsShooting)
+            {
+                return;
+            }
+
+            var was = CurrentSlot;
+            CurrentSlot.Disable();
+
+            CurrentSlot = GetSlot(role);
+            CurrentSlot.Activate();
+
+            ChangeCurrentAmmo(((Weapon.Weapon)CurrentSlot.Item).Config.AmmoConfig);
+            SlotChanged?.Invoke(was, CurrentSlot);
+        }
+
+        private void ChangeCurrentAmmo(AmmoConfig ammoConfig)
+        {
+            var was = CurrentAmmo;
+            var ammo = ammoStorage.Ammo.FirstOrDefault(a => a.AmmoConfig.ID.Equals(ammoConfig.ID));
+
+            CurrentAmmo = ammo ?? throw new ArgumentException("Пришел тип патронов не записанный в инвентарь");
+            AmmoChanged?.Invoke(was, CurrentAmmo);
+        }
+    }
+}

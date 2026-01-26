@@ -1,106 +1,128 @@
-﻿using System.Collections;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 using MessagePipe;
 using Messages;
-using Player;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
-using VContainer;
+using VContainer.Unity;
 
 namespace Sounds
 {
-    public class SoundsManager : MonoBehaviour
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class SoundsManager : IFixedTickable
     {
-        private SoundsConfig soundsConfig;
-        PlayerLifetimeScope playerLifetimeScope;
+        public Transform PlayerTransform;
         
-        private IObjectPool<AudioSource> sourcePool = null!;
-        private float despawnTimer = 2.0f;
-        private GameObject parent;
-      
+        private readonly SoundsConfig soundsConfig;
+        
+        private readonly IObjectPool<AudioSource> sourcePool;
+        private readonly float despawnTimer = 2.0f;
+
+        private readonly GameObject parent;
         private readonly CompositeDisposable disposables = new();
 
-        [Inject]
-        [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        private void Construct
-            (
-                SoundsConfig soundsConfig,
-                ISubscriber<PlaySoundMessage> PlaySoundSubscriber
-            )
-        {
-            this.soundsConfig = soundsConfig;
-            
-            sourcePool = new ObjectPool<AudioSource>(
-                                                     Create, //Метод создания объектов
-                                                     OnGet, //Действие при извлечении из пула
-                                                     OnRelease, //Действие при возврате в пул
-                                                     DestroySource, //Очистка объектов (опционально)
-                                                     false, //Коллекция для отслеживания объектов не используется (опционально)
-                                                     200, //Минимальный размер пула
-                                                     2000 //Максимальный размер пула
-                                                    );
-            parent = new GameObject("Sounds Parent");
+        private readonly List<ActiveSound> activeSounds = new();
 
-            PlaySoundSubscriber.Subscribe(PlaySound).AddTo(disposables);
+        private struct ActiveSound
+        {
+            public AudioSource Source;
+            public float TimeLeft;
         }
 
-        public void SetPlayer
-            (
-                PlayerLifetimeScope playerLifetimeScope
-            )
+        private SoundsManager
+        (
+            SoundsConfig soundsConfig,
+            ISubscriber<PlaySoundMessage> playSoundSubscriber
+        )
         {
-            this.playerLifetimeScope = playerLifetimeScope;
+            this.soundsConfig = soundsConfig;
+
+            sourcePool = new ObjectPool<AudioSource>(
+                                                     Create,
+                                                     OnGet,
+                                                     OnRelease,
+                                                     DestroySource,
+                                                     false,
+                                                     200,
+                                                     2000
+                                                    );
+            parent = new GameObject("Sounds Parent");
+            playSoundSubscriber
+                .Subscribe(PlaySound)
+                .AddTo(disposables);
+        }
+
+        public void FixedTick()
+        {
+            var dt = Time.fixedDeltaTime;
+
+            for (var i = activeSounds.Count - 1; i >= 0; i--)
+            {
+                var sound = activeSounds[i];
+                sound.TimeLeft -= dt;
+
+                if (sound.TimeLeft <= 0f)
+                {
+                    sourcePool.Release(sound.Source);
+                    activeSounds.RemoveAt(i);
+                }
+                else
+                {
+                    activeSounds[i] = sound;
+                }
+            }
         }
 
         private void PlaySound(PlaySoundMessage msg)
         {
-            if (msg.SoundSettings.isUISound || Vector3.Distance(playerLifetimeScope.transform.position, msg.Position) 
-                <= msg.SoundSettings.DistanceToPlay)
+            if (!PlayerTransform)
+                return;
+            if (msg.SoundSettings.isUISound ||
+                Vector3.Distance(PlayerTransform.position, msg.Position)
+             <= msg.SoundSettings.DistanceToPlay)
             {
-                Get(msg.SoundSettings, msg.Position, msg.Parent);
+                Spawn(msg.SoundSettings, msg.Position, msg.Parent);
             }
         }
-        
-        private AudioSource Get(SoundSettings settings, Vector3 position, Transform soundParent, bool needToReturn = true)
+
+        private void Spawn(SoundSettings settings, Vector3 position, Transform soundParent)
         {
             var source = sourcePool.Get();
-            var sourceTrans = source.transform;
+            var trans = source.transform;
 
-            sourceTrans.position = position;
-            if (soundParent)
-            {
-                sourceTrans.SetParent(soundParent);
-            }
-            else
-            {
-                sourceTrans.SetParent(parent.transform);
-            }
+            trans.position = position;
+            trans.SetParent(soundParent ? soundParent : parent.transform);
+
             source.spatialBlend = settings.isUISound ? 0 : 1;
-            source.volume =  Random.Range(settings.volume.x, settings.volume.y);
+            source.volume = Random.Range(settings.volume.x, settings.volume.y);
             source.pitch = Random.Range(settings.pitch.x, settings.pitch.y);
             source.minDistance = settings.MinDistance;
             source.maxDistance = settings.MaxDistance;
+
             var clip = settings.Clips[Random.Range(0, settings.Clips.Count)];
             source.PlayOneShot(clip);
 
-            if (needToReturn)
+            activeSounds.Add(new ActiveSound
             {
-                StartCoroutine(DespawnTimer(source));
-            }
-
-            return source;
+                Source = source,
+                TimeLeft = despawnTimer
+            });
         }
-        
-        private AudioSource Create() => Instantiate(soundsConfig.AudioSourcePrefab);
-        private void OnRelease(AudioSource source) => source.transform.SetParent(parent.transform);
-        private void OnGet(AudioSource source) { }
-        private void DestroySource(AudioSource source) { }
 
-        private IEnumerator DespawnTimer(AudioSource source)
+        private AudioSource Create() =>
+            Object.Instantiate(soundsConfig.AudioSourcePrefab);
+
+        private void OnGet(AudioSource source) { }
+
+        private void OnRelease(AudioSource source)
         {
-            yield return new WaitForSeconds(despawnTimer);
-            sourcePool.Release(source);
+            source.Stop();
+            source.transform.SetParent(parent.transform);
+        }
+
+        private void DestroySource(AudioSource source)
+        {
+            Object.Destroy(source.gameObject);
         }
     }
 }

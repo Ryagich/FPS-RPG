@@ -12,9 +12,9 @@ namespace Camera
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly Transform playerBody;
-        private readonly Transform cameraParentTransform;
+        public readonly Transform cameraParentTransform;
 
-        public float XRotation { get; private set; }
+        private float XRotation { get; set; }
         private Vector2 lookDelta;
         
         public PlayerCamera
@@ -54,6 +54,15 @@ namespace Camera
             
             cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * direction.x);
+        }
+        
+        public void RotateX(Vector2 delta)
+        {
+            XRotation -= delta.y;
+            XRotation = Mathf.Clamp(XRotation, -90f, 90f);
+            
+            cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
+            playerBody.Rotate(Vector3.up * delta.x);
         }
     }
 }

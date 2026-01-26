@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Weapon.Settings;
 
 namespace Messages
 {
@@ -44,5 +45,18 @@ namespace Messages
     
     public readonly struct ClickMessage { }
     public readonly struct RightClickMessage { }       
-    public readonly struct JumpMessage { }            
+    public readonly struct JumpMessage { }
+
+    public readonly struct SwitchWeaponMessage
+    {
+        public readonly WeaponRole Role;
+
+        public SwitchWeaponMessage(WeaponRole role)
+        {
+            Role = role;
+        }
+    }
+    public readonly struct ReloadingMessage { }
+    public readonly struct SwitchFireMode { }
+
 }

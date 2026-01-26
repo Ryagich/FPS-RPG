@@ -1,0 +1,44 @@
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+
+namespace Localization
+{
+    public static class LocalizationHelper
+    {
+        private static readonly Dictionary<long, string> Cache = new();
+
+        public static async Task InvalidateAsync(string language)
+        {
+            await LocalizationSettings.InitializationOperation;
+            var locales = LocalizationSettings.AvailableLocales.Locales;
+
+            // Ищем локаль по коду, например "en", "ru", "de" и т.д.
+            var locale = locales.Find(l => l.Identifier.Code == language);
+
+            if (locale != null)
+            {
+                LocalizationSettings.SelectedLocale = locale;
+            }
+
+            var tablesTask = LocalizationSettings.StringDatabase.GetAllTables();
+            await tablesTask;
+            var tables = tablesTask.Result;
+
+            foreach (var table in tables)
+            {
+                foreach (var entry in table)
+                {
+                    Cache.TryAdd(entry.Key, entry.Value.LocalizedValue);
+                }
+            }
+        }
+
+        public static string GetLocalizedStringCached(this LocalizedString localizedString)
+        {
+            return Cache[localizedString.TableEntryReference.KeyId];
+        }
+    }
+}

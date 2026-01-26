@@ -2,7 +2,6 @@
 using MessagePipe;
 using Messages;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Player
 {

@@ -27,3 +27,30 @@ MonoBehaviour:
   <StepOnRockSoundConfig>k__BackingField: {fileID: 11400000, guid: 56bcb0c22d64be240b99cc2ae1fb27d9, type: 2}
   <StepOnGroundSoundConfig>k__BackingField: {fileID: 11400000, guid: 60a83bb468983de418177018ba27c728, type: 2}
   <StepOnWoodSoundConfig>k__BackingField: {fileID: 11400000, guid: c028806ae387e604a97381a16f327883, type: 2}
+  <StepShakeDuration>k__BackingField: 0.3
+  <StepShakeAmplitude>k__BackingField: 5
+  <StepShakeFrequency>k__BackingField: 0
+  <StepShakeFalloff>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
