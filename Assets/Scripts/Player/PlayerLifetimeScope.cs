@@ -63,6 +63,7 @@ namespace Player
             builder.RegisterEntryPoint<CameraRecoil>().AsSelf();
             builder.RegisterEntryPoint<CameraShaker>().AsSelf();
             builder.RegisterEntryPoint<CameraShakeOnRecoil>().AsSelf();
+            builder.RegisterEntryPoint<CameraStepBobber>().AsSelf();
             
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
             builder.RegisterEntryPoint<PlayerSetterInSoundsManager>().AsSelf();

@@ -32,5 +32,12 @@ namespace Sounds.Movement
         [field: SerializeField, Tooltip("Кривая затухания покачивания шага")]
         public AnimationCurve StepShakeFalloff { get; private set; }
             = AnimationCurve.EaseInOut(0, 1, 1, 0);
+        [field: Header("Camera Step Bob (Up/Down)")]
+        [field: SerializeField, Tooltip("Амплитуда опускания камеры за шаг (в метрах). Камера уйдет вниз и вернется обратно за StepShakeDuration.")]
+        public float StepBobAmplitude { get; private set; } = 0.03f;
+
+        [field: SerializeField, Tooltip("Кривая формы bob'а по времени (0..1). Значение умножается на StepBobAmplitude. Рекомендуется 0→-1→0.")]
+        public AnimationCurve StepBobCurve { get; private set; }
+            = AnimationCurve.EaseInOut(0f, 0f, 1f, 0f);
     }
 }
