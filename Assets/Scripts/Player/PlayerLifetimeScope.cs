@@ -3,6 +3,7 @@ using Camera.Shake;
 using Input;
 using MessagePipe;
 using Messages;
+using Player.Stats;
 using Sounds;
 using Sounds.Movement;
 using UnityEngine;
@@ -38,7 +39,8 @@ namespace Player
             // builder.Register<Inventory.Inventory>(Lifetime.Scoped);
             builder.Register<WeaponProvider>(Lifetime.Scoped);
             builder.Register<CameraShakeOnStep>(Lifetime.Scoped).AsSelf();
- 
+            builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
+            
             // === MessagePipe ===
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<PlayerMoveMessage>(options);
