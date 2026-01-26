@@ -15,7 +15,6 @@ namespace StateMachine.Behaviours
             Vector3 target = context.aggroTarget.Value.target.bounds.center;
 
             Vector3 lookPos = target - context.visionOrigin.position;
-            lookPos.y = 0;
 
             Quaternion rotation = Quaternion.LookRotation(lookPos);
             context.visionOrigin.rotation = Quaternion.Slerp(context.visionOrigin.rotation, rotation, context.DeltaTime * context.rotationDamping);
