@@ -1,6 +1,8 @@
-using Camera;
-using Camera.Shake;
+using CameraScripts;
+using CameraScripts.Shake;
+using CanvasScripts;
 using Input;
+using InteractableScripts;
 using MessagePipe;
 using Messages;
 using Player.Stats;
@@ -21,6 +23,8 @@ namespace Player
         [field: SerializeField] public SoundConfig MovementSoundConfig { get; private set; } = null!;
         [field: SerializeField] public WeaponConfig TestWeaponConfig1 { get; private set; } = null!;
         [field: SerializeField] public WeaponConfig TestWeaponConfig2 { get; private set; } = null!;
+    
+        private CanvasLifetimeScope canvasScope;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -36,7 +40,6 @@ namespace Player
             builder.Register<PlayerGravity>(Lifetime.Scoped);
             builder.Register<PlayerJump>(Lifetime.Scoped);
             builder.Register<PlayerMovement>(Lifetime.Scoped);
-            // builder.Register<Inventory.Inventory>(Lifetime.Scoped);
             builder.Register<WeaponProvider>(Lifetime.Scoped);
             builder.Register<CameraShakeOnStep>(Lifetime.Scoped).AsSelf();
             builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
@@ -53,14 +56,25 @@ namespace Player
             builder.RegisterMessageBroker<SwitchWeaponMessage>(options);
             builder.RegisterMessageBroker<ReloadingMessage>(options);
             builder.RegisterMessageBroker<SwitchFireMode>(options);
+            builder.RegisterMessageBroker<InteractableMessage>(options);
             
             // === InputHandler ===
             // builder.Register<InputHandler>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
+            builder.RegisterBuildCallback(container =>
+                                          {
+                                              // GlobalMessagePipe.SetProvider(container.AsServiceProvider());
+                                              var canvasConfig = container.Resolve<CanvasConfig>();
+
+                                              canvasScope = CreateChildFromPrefab(canvasConfig.CanvasPrefab);
+                                              var canvasScopeT = canvasScope.transform;
+                                              canvasScopeT.SetParent(null);
+                                              canvasScopeT.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                                          });
             
             builder.RegisterEntryPoint<InputHandler>().AsSelf();
-            builder.RegisterEntryPoint<PlayerCamera>().AsSelf();
             builder.RegisterEntryPoint<PlayerMotor>().AsSelf();
             builder.RegisterEntryPoint<MovementSound>().AsSelf();
+            builder.RegisterEntryPoint<PlayerCamera>().AsSelf();
             builder.RegisterEntryPoint<CameraFovController>().AsSelf();
             builder.RegisterEntryPoint<CameraRecoil>().AsSelf();
             builder.RegisterEntryPoint<CameraShaker>().AsSelf();
@@ -68,7 +82,7 @@ namespace Player
             builder.RegisterEntryPoint<CameraStepBobber>().AsSelf();
             
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
-            builder.RegisterEntryPoint<PlayerSetterInSoundsManager>().AsSelf();
+            builder.RegisterEntryPoint<InteractableFounder>().AsSelf();
         }
     }
 }

@@ -24,6 +24,7 @@ namespace Input
         private readonly IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher;
         private readonly IPublisher<ReloadingMessage> reloadingMessagePublisher;
         private readonly IPublisher<SwitchFireMode> switchFireModePublisher;
+        private readonly IPublisher<InteractableMessage> interactableMessagePublisher;
 
         private InputHandler
             (
@@ -38,7 +39,8 @@ namespace Input
                 IPublisher<ClickMessage> clickMessagePublisher,
                 IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher,
                 IPublisher<ReloadingMessage> reloadingMessagePublisher,
-                IPublisher<SwitchFireMode> switchFireModePublisher 
+                IPublisher<SwitchFireMode> switchFireModePublisher,
+                IPublisher<InteractableMessage> interactableMessagePublisher 
             )
         {
             this.inputConfig = inputConfig;
@@ -53,6 +55,7 @@ namespace Input
             this.switchWeaponMessagePublisher = switchWeaponMessagePublisher;
             this.reloadingMessagePublisher = reloadingMessagePublisher;
             this.switchFireModePublisher = switchFireModePublisher;
+            this.interactableMessagePublisher = interactableMessagePublisher;
         }
 
         public void Start()
@@ -79,14 +82,16 @@ namespace Input
             inputConfig.CrouchInput.action.started += OnStartCrouching;
             inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
             
-            inputConfig.CrouchInput.action.started += OnStartCrouching;
-            inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
+            // inputConfig.CrouchInput.action.started += OnStartCrouching;
+            // inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
           
             inputConfig.FirstWeapon.action.started += SwitchToFirstWeapon;
             inputConfig.SecondWeapon.action.started += SwitchToSecondWeapon;
             
             inputConfig.Reloading.action.started += Reloading;
             inputConfig.FireMode.action.started += SwitchShootingMod;
+            
+            inputConfig.Interactable.action.started += Interact;
         }
 
         public void Tick()
@@ -94,10 +99,14 @@ namespace Input
             lookDeltaMessagePublisher.Publish(new LookDeltaMessage(inputConfig.LookInput.action.ReadValue<Vector2>()));
         }
         
+        private void Interact(InputAction.CallbackContext context)
+        {
+            interactableMessagePublisher.Publish(new InteractableMessage());
+        }
+        
         private void SwitchShootingMod(InputAction.CallbackContext context)
         {
             switchFireModePublisher.Publish(new SwitchFireMode());
-            // weaponProvider.TrySwitchShootingMode();
         }
         
         private void Reloading(InputAction.CallbackContext context)
@@ -105,7 +114,7 @@ namespace Input
             reloadingMessagePublisher.Publish(new ReloadingMessage());
         }
         
-        //Нужно зарефакторить. Хендлер - всегда шлет сообщения. А уже сами классы решают что делать с инфой.
+        //Нужно зарефакторить. Хендлер всегда шлет сообщения. А уже сами классы решают что делать с инфой.
         private void UseActiveItem(InputAction.CallbackContext context)
         {
             if (inputConfig.SprintInput.action.IsPressed() && weaponProvider.IsSprint())

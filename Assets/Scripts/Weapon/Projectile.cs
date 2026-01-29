@@ -12,7 +12,6 @@ namespace Weapon
         [HideInInspector] public bool CanInteract;
         [SerializeField, Min(.0f)] private float _timeToDeath = 2.0f;
         [SerializeField, Min(.0f)] private float distanceToUseShotPointRotation = .5f;
-        [SerializeField] private AudioClip[] impactSounds = null!;
         [SerializeField, Min(.0f)] private float trailTime = .2f;
 
         private Coroutine coroutine = null!;
@@ -79,17 +78,6 @@ namespace Weapon
                           : Quaternion.LookRotation(collision.contacts[0].normal);
             impactPools.Get(collision.gameObject.tag ,collision.contacts[0].point, direction);
 
-            // var audioSource = SoundsManager.Instance.Get(new SoundSettings(transform.position));
-            // GlobalMessagePipe.GetPublisher<PlaySoundMessage>().Publish(new PlaySoundMessage());
-            //
-            // audioSource.clip = impactSounds
-            //     [Random.Range(0, impactSounds.Length)];
-            // audioSource.Play();
-            
-            // var particles = impact.GO.GetComponentsInChildren<ParticleSystem>();
-            // foreach (var particle in particles)
-            //     particle.Play();
-            
             projectilesPool.Release(this);
         }
         

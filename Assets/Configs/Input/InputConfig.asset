@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5807e69830744a98f80345ed1ea6927, type: 3}
   m_Name: InputConfig
   m_EditorClassIdentifier: 
-  <PointerPosition>k__BackingField: {fileID: 0}
   <Click>k__BackingField: {fileID: -7072240419043293639, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <RightClick>k__BackingField: {fileID: -706196991894719898, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <MoveInput>k__BackingField: {fileID: -6068414772744191294, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
@@ -24,3 +23,4 @@ MonoBehaviour:
   <SecondWeapon>k__BackingField: {fileID: 8411847979806114029, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <Reloading>k__BackingField: {fileID: 5277871658054977469, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <FireMode>k__BackingField: {fileID: 2336233423833798957, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <Interactable>k__BackingField: {fileID: -137719234405875534, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}

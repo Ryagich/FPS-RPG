@@ -14,45 +14,45 @@ using Random = UnityEngine.Random;
 namespace Weapon
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Weapon : ITickable,IFixedTickable, IItem
+    public class Weapon : ITickable, IFixedTickable, IItem
     {
         public event Action<int> ValueChanged;
         public event Action<ShootingMode> ShootingModChanged;
         public event Action<Vector2> RequestRecoil;
         public event Action Shooted;
         public event Action EmptyShot;
+        
+        public GameObject GameObject { get; set; }
 
         public readonly WeaponConfig Config;
-        public readonly GameObject GameObject;
         private readonly Transform cameraTransform;
         private readonly AttachmentsController attachmentsC;
         private readonly ImpactPools impactPools;
         private readonly ProjectilesPool projectilesPool;
         private readonly IPublisher<RecoilMessage> requestRecoilPublisher;
         private readonly WeaponBobbing bobbing;
-        
+
         private readonly int tracerInterval = 1;
-        private readonly bool isInit; 
         private readonly float timeBetweenShots;
-        
+
         private int interval;
         private int burstShotsLeft;
         private float lastFireTime;
         private Projectile projectile;
         private Vector2 recoil;
-        
+
         public int Value { get; private set; }
         public bool IsShooting { get; private set; }
         public ShootingMode ShootingMode { get; private set; }
         public float CurrentSpread { get; private set; }
-        
+
         public int NeedAmmo() => Config.GetMaxCapacity() - Value;
-        
+
         public Weapon
             (
                 WeaponConfig config,
                 GameObject gameObject,
-                Transform cameraTrans, 
+                Transform cameraTrans,
                 WeaponBobbing bobbing,
                 AttachmentsController attachmentsC,
                 ImpactPools impactPools,
@@ -62,6 +62,7 @@ namespace Weapon
         {
             Config = config;
             GameObject = gameObject;
+            
             this.bobbing = bobbing;
             this.attachmentsC = attachmentsC;
             this.impactPools = impactPools;
@@ -69,25 +70,20 @@ namespace Weapon
             this.requestRecoilPublisher = requestRecoilPublisher;
 
             cameraTransform = cameraTrans;
-            if (isInit)
-            {
-                return;
-            }
             if (config.Modes.Count is 0)
             {
                 throw new AggregateException("The weapon does not have any possible firing modes set.");
             }
-            ShootingMode = config.Modes.Contains(ShootingMode.Auto) 
-                               ? ShootingMode.Auto 
-                               : config.Modes.Contains(ShootingMode.Single) 
-                                   ? ShootingMode.Single 
+            ShootingMode = config.Modes.Contains(ShootingMode.Auto)
+                               ? ShootingMode.Auto
+                               : config.Modes.Contains(ShootingMode.Single)
+                                   ? ShootingMode.Single
                                    : ShootingMode.Burst;
             ShootingModChanged?.Invoke(ShootingMode);
 
             timeBetweenShots = 60.0f / config.GetRPM();
             //CurrentSpread = _config.GetCurrentRecoilSettings(bobbing.isAim).RecoilChillCoefficient; //???
             Value = Config.GetMaxCapacity();
-            isInit = true;
         }
 
         public bool TryChangeValue(int amount)
@@ -125,17 +121,21 @@ namespace Weapon
         public void SetMovementSpeed(Vector3 motion)
         {
             var summ = MathF.Abs(motion.x) + MathF.Abs(motion.z);
-            recoil += new Vector2(summ/2, summ/2) * Config.MovementMultiply;
-            recoil = new Vector2(Mathf.Clamp(recoil.x, .0f,  Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.x),
-                                 Mathf.Clamp(recoil.y, .0f,  Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.y));
+            recoil += new Vector2(summ / 2, summ / 2) * Config.MovementMultiply;
+            recoil =
+                new Vector2(Mathf.Clamp(recoil.x, .0f, Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.x),
+                            Mathf.Clamp(recoil.y, .0f,
+                                        Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.y));
             CurrentSpread = Mathf.Max(
-                                      Config.GetCurrentRecoilSettings(bobbing.isAim).Spread 
-                                    + (recoil.y * Config.GetCurrentRecoilSettings(bobbing.isAim).RecoilSpreadMultiplier),
+                                      Config.GetCurrentRecoilSettings(bobbing.isAim).Spread
+                                    + (recoil.y * Config.GetCurrentRecoilSettings(bobbing.isAim)
+                                                        .RecoilSpreadMultiplier),
                                       Config.GetCurrentRecoilSettings(bobbing.isAim).Spread
                                      );
         }
 
 #region Shooting
+
         public void Tick()
         {
             if (Value > 0)
@@ -150,7 +150,8 @@ namespace Weapon
             CurrentSpread = Mathf.MoveTowards(
                                               CurrentSpread,
                                               Config.GetCurrentRecoilSettings(bobbing.isAim).Spread,
-                                              Config.GetCurrentRecoilSettings(bobbing.isAim).SpreadChillCoefficient * Time.deltaTime
+                                              Config.GetCurrentRecoilSettings(bobbing.isAim).SpreadChillCoefficient *
+                                              Time.deltaTime
                                              );
         }
 
@@ -166,7 +167,7 @@ namespace Weapon
                     if (IsShooting)
                     {
                         Shoot();
-                        StopShoot(); 
+                        StopShoot();
                     }
                     break;
                 case ShootingMode.Burst:
@@ -246,9 +247,11 @@ namespace Weapon
             }
 
             attachmentsC.Muzzle.Effect();
-            GlobalMessagePipe.GetPublisher<PlaySoundMessage>().Publish(new PlaySoundMessage(Config.ShootSound.SoundSettings, attachmentsC.Muzzle.ShotPoint.position, null));
+            GlobalMessagePipe.GetPublisher<PlaySoundMessage>()
+                             .Publish(new PlaySoundMessage(Config.ShootSound.SoundSettings,
+                                                           attachmentsC.Muzzle.ShotPoint.position, null));
             // shootSoundPublisher.Publish(new PlaySoundMessage(Config.ShootSound.SoundSettings, attachmentsC.Muzzle.ShotPoint.position, null));
-                
+
             lastFireTime = Time.time;
             TryChangeValue(-1);
             recoil += recoilSettings.RecoilPower;
@@ -261,12 +264,14 @@ namespace Weapon
             GlobalMessagePipe.GetPublisher<ShootMessage>().Publish(new ShootMessage(this, direction));
             Shooted?.Invoke();
         }
-    
+
         public void StartShoot()
         {
             if (Value <= 0)
             {
-                GlobalMessagePipe.GetPublisher<PlaySoundMessage>().Publish(new PlaySoundMessage(Config.EmptyShootSound.SoundSettings, attachmentsC.Muzzle.ShotPoint.position, null));
+                GlobalMessagePipe.GetPublisher<PlaySoundMessage>()
+                                 .Publish(new PlaySoundMessage(Config.EmptyShootSound.SoundSettings,
+                                                               attachmentsC.Muzzle.ShotPoint.position, null));
                 // shootSoundPublisher.Publish(new PlaySoundMessage(Config.EmptyShootSound.SoundSettings, attachmentsC.Muzzle.ShotPoint.position, null));
                 EmptyShot?.Invoke();
                 return;
@@ -277,19 +282,36 @@ namespace Weapon
             }
             IsShooting = true;
         }
-        
+
         public void StopShoot()
         {
             IsShooting = false;
         }
+
 #endregion
+
+        public void Activate()
+        {
+            GameObject.SetActive(true);
+        }
+
+        public void Disable()
+        {
+            GameObject.SetActive(false);
+        }
+
+        public LifetimeScope GetDropPrefab()
+        {
+            return Config.DropWeaponPref;
+        }
     }
+
     public sealed record PlayerHitMessage(RaycastHit Hit, WeaponConfig WeaponConfig)
     {
         public RaycastHit Hit { get; } = Hit;
         public WeaponConfig WeaponConfig { get; } = WeaponConfig;
     }
-    
+
     public sealed record ShootMessage(Weapon Weapon, Quaternion Quaternion)
     {
         public Weapon Weapon { get; } = Weapon;

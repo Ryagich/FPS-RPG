@@ -4,9 +4,6 @@ using Weapon.Settings;
 
 namespace Messages
 {
-    public sealed record StopWeaponChange;
-    public sealed record ReloadMessage;
-    public sealed record StartWeaponChange;
     public readonly struct AimChangedMessage
     {
         public bool IsAimed { get; }
