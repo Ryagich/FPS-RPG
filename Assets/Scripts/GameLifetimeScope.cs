@@ -53,7 +53,6 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterMessageBroker<LookDeltaMessage>(options);
         builder.RegisterMessageBroker<ClickMessage>(options);
         builder.RegisterMessageBroker<RightClickMessage>(options);
-        builder.RegisterMessageBroker<BotVisionMessage>(options);
         
         builder.Register<AmmoStorage>(Lifetime.Singleton).AsSelf();
         

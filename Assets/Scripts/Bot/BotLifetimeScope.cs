@@ -1,7 +1,9 @@
-using VContainer;
-using VContainer.Unity;
+using MessagePipe;
+using Messages;
 using UnityEngine;
 using UnityEngine.AI;
+using VContainer;
+using VContainer.Unity;
 
 namespace Bot
 {
@@ -11,12 +13,17 @@ namespace Bot
         [SerializeField] private Transform botGoal;
         [SerializeField] private Transform visionOrigin;
         [SerializeField] private Transform spine;
+        [SerializeField] private Collider visibleCollider;
 
         protected override void Configure(IContainerBuilder builder)
         {
+            var options = builder.RegisterMessagePipe();
+            builder.RegisterMessageBroker<BotVisionMessage>(options);
+
             builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterComponentInHierarchy<NavMeshAgent>();
             builder.RegisterInstance(botGoal).Keyed("botGoal");
+            builder.RegisterInstance(visibleCollider).Keyed("collider");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
             builder.RegisterInstance(spine).Keyed("spine");
             builder.RegisterEntryPoint<BotController>().AsSelf();

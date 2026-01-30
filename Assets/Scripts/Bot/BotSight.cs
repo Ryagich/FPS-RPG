@@ -17,12 +17,15 @@ namespace Bot
 
         private List<Collider> targetsInRange = new();
         private long lastVisibilityCheck = 0;
+        private Collider selfRigidbody;
 
         [Inject]
-        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, [Key("visionOrigin")] Transform visionOrigin) 
+        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, 
+            [Key("visionOrigin")] Transform visionOrigin, [Key("collider")] Collider selfRigidbody) 
         {
             this.botVisionPublisher = botVisionPublisher;
             this.visionOrigin = visionOrigin;
+            this.selfRigidbody = selfRigidbody;
         }
 
 
