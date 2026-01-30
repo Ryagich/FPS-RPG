@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <InteractableMask>k__BackingField:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 16384
   <Distance>k__BackingField: 1.8
