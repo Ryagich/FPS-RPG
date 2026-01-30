@@ -17,17 +17,12 @@ namespace Bot
 
         private List<Collider> targetsInRange = new();
         private long lastVisibilityCheck = 0;
-        private Collider selfRigidbody;
-        private Dictionary<Collider, float> lastSeenTime = new();
-        [SerializeField] private float loseSightDelay = 0.3f; // seconds
 
         [Inject]
-        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, 
-            [Key("visionOrigin")] Transform visionOrigin, [Key("collider")] Collider selfRigidbody) 
+        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, [Key("visionOrigin")] Transform visionOrigin)
         {
             this.botVisionPublisher = botVisionPublisher;
             this.visionOrigin = visionOrigin;
-            this.selfRigidbody = selfRigidbody;
         }
 
 
@@ -41,27 +36,26 @@ namespace Bot
 
         void OnTriggerEnter(Collider other)
         {
-            if(other == selfRigidbody)
+            targetsInRange.Add(other);
+            if (IsObstructed(other))
             {
+                Debug.Log("Target is obstructed");
                 return;
             }
-            targetsInRange.Add(other);
-            lastSeenTime[other] = Time.time;
-
-            if (!IsObstructed(other))
-                botVisionPublisher.Publish(new BotVisionMessage(other, true));
+            botVisionPublisher?.Publish(new BotVisionMessage(other, true));
         }
 
         void OnTriggerExit(Collider other)
         {
-            lastSeenTime[other] = Time.time;
+            targetsInRange.Remove(other);
+            botVisionPublisher?.Publish(new BotVisionMessage(other, false));
         }
 
         private void CheckVisibilityOfTargets()
         {
-            for(int i = 0; i < targetsInRange.Count; i++)
+            for (int i = 0; i < targetsInRange.Count; i++)
             {
-                if(IsObstructed(targetsInRange[i]))
+                if (IsObstructed(targetsInRange[i]))
                 {
                     botVisionPublisher?.Publish(new BotVisionMessage(targetsInRange[i], false));
                     continue;
@@ -73,23 +67,13 @@ namespace Bot
 
         public void Tick()
         {
-            for (int i = targetsInRange.Count - 1; i >= 0; i--)
+            long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            if (now - lastVisibilityCheck < 100)
             {
-                var target = targetsInRange[i];
-
-                if (IsObstructed(target))
-                {
-                    if (Time.time - lastSeenTime[target] > loseSightDelay)
-                    {
-                        botVisionPublisher.Publish(new BotVisionMessage(target, false));
-                        targetsInRange.RemoveAt(i);
-                    }
-                    continue;
-                }
-
-                lastSeenTime[target] = Time.time;
-                botVisionPublisher.Publish(new BotVisionMessage(target, true));
+                return;
             }
+
+            CheckVisibilityOfTargets();
         }
     }
 }
