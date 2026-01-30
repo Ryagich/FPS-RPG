@@ -8,6 +8,10 @@ namespace StateMachine.Behaviours
     {
         public override void Enter(StateMachineContext context)
         {
+            if (context.goal == null)
+            {
+                return;
+            }
             Debug.Log("Entered");
             context.agent.isStopped = false;
             context.agent.destination = context.goal.position;
@@ -15,6 +19,10 @@ namespace StateMachine.Behaviours
 
         public override void Exit(StateMachineContext context)
         {
+            if (context.goal == null)
+            {
+                return;
+            }
             Debug.Log("Exited");
             context.agent.isStopped = true;
         }

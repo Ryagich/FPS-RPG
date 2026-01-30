@@ -36,6 +36,7 @@ namespace Bot
 
         void OnTriggerEnter(Collider other)
         {
+            Debug.Log(other.name);
             targetsInRange.Add(other);
             if(IsObstructed(other))
             {
