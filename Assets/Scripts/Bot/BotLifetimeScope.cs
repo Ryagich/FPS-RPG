@@ -14,6 +14,7 @@ namespace Bot
         [SerializeField] private Transform visionOrigin;
         [SerializeField] private Transform spine;
         [SerializeField] private Collider visibleCollider;
+        [SerializeField] private Transform hips;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -28,6 +29,7 @@ namespace Bot
             builder.RegisterInstance(visibleCollider).Keyed("collider");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
             builder.RegisterInstance(spine).Keyed("spine");
+            builder.RegisterInstance(hips).Keyed("hips");
             builder.RegisterEntryPoint<BotController>().AsSelf();
             builder.RegisterComponent(botSight).AsImplementedInterfaces();
             builder.RegisterEntryPoint<BotAggro>().AsSelf();

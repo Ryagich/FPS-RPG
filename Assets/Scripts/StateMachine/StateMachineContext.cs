@@ -25,5 +25,7 @@ namespace StateMachine
         public Transform visionOrigin;
 
         public Transform spine;
+
+        public Transform hips;
     }
 }

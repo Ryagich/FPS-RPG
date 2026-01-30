@@ -18,6 +18,8 @@ namespace Bot
         private List<Collider> targetsInRange = new();
         private long lastVisibilityCheck = 0;
         private Collider selfRigidbody;
+        private Dictionary<Collider, float> lastSeenTime = new();
+        [SerializeField] private float loseSightDelay = 0.3f; // seconds
 
         [Inject]
         public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, 
@@ -39,20 +41,20 @@ namespace Bot
 
         void OnTriggerEnter(Collider other)
         {
-            Debug.Log(other.name);
-            targetsInRange.Add(other);
-            if(IsObstructed(other))
+            if(other == selfRigidbody)
             {
-                Debug.Log("Target is obstructed");
                 return;
             }
-            botVisionPublisher?.Publish(new BotVisionMessage(other, true));
+            targetsInRange.Add(other);
+            lastSeenTime[other] = Time.time;
+
+            if (!IsObstructed(other))
+                botVisionPublisher.Publish(new BotVisionMessage(other, true));
         }
 
         void OnTriggerExit(Collider other)
         {
-            targetsInRange.Remove(other);
-            botVisionPublisher?.Publish(new BotVisionMessage(other, false));
+            lastSeenTime[other] = Time.time;
         }
 
         private void CheckVisibilityOfTargets()
@@ -71,13 +73,23 @@ namespace Bot
 
         public void Tick()
         {
-            long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            if(now - lastVisibilityCheck < 100)
+            for (int i = targetsInRange.Count - 1; i >= 0; i--)
             {
-                return;
-            }
+                var target = targetsInRange[i];
 
-            CheckVisibilityOfTargets();
+                if (IsObstructed(target))
+                {
+                    if (Time.time - lastSeenTime[target] > loseSightDelay)
+                    {
+                        botVisionPublisher.Publish(new BotVisionMessage(target, false));
+                        targetsInRange.RemoveAt(i);
+                    }
+                    continue;
+                }
+
+                lastSeenTime[target] = Time.time;
+                botVisionPublisher.Publish(new BotVisionMessage(target, true));
+            }
         }
     }
 }

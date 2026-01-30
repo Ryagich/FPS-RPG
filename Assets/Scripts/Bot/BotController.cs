@@ -16,7 +16,7 @@ namespace Bot
         private bool started = false;
 
         public BotController(BotSettings settings, NavMeshAgent agent, [Key("botGoal")] Transform goal, 
-            [Key("self")] Transform self, [Key("visionOrigin")] Transform visionOrigin, [Key("spine")] Transform spine)
+            [Key("self")] Transform self, [Key("visionOrigin")] Transform visionOrigin, [Key("spine")] Transform spine, [Key("hips")] Transform hips)
         {
             context = new StateMachineContext();
             context.agent = agent;
@@ -25,6 +25,7 @@ namespace Bot
             context.self = self;
             context.visionOrigin = visionOrigin;
             context.spine = spine;
+            context.hips = hips;
             this.settings = settings;
         }
 
