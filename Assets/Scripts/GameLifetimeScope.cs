@@ -1,5 +1,6 @@
 ﻿using Camera;
 using Cysharp.Threading.Tasks;
+﻿using Bot;
 using Gravity;
 using Input;
 using Inventory;
@@ -29,6 +30,8 @@ public class GameLifetimeScope : LifetimeScope
      
     private PlayerLifetimeScope playerScope;
 
+    [field: SerializeField] public BotSettings settings {get; private set;} = null!;
+    
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterInstance(InputConfig).AsSelf();
@@ -41,6 +44,15 @@ public class GameLifetimeScope : LifetimeScope
        
         var options = builder.RegisterMessagePipe();
         builder.RegisterMessageBroker<PlaySoundMessage>(options);
+        builder.RegisterInstance(settings).AsSelf();
+
+        // === MessagePipe ===
+        var options = builder.RegisterMessagePipe();
+        builder.RegisterMessageBroker<PlayerMoveMessage>(options);
+        builder.RegisterMessageBroker<LookDeltaMessage>(options);
+        builder.RegisterMessageBroker<ClickMessage>(options);
+        builder.RegisterMessageBroker<RightClickMessage>(options);
+        builder.RegisterMessageBroker<BotVisionMessage>(options);
         
         builder.Register<AmmoStorage>(Lifetime.Singleton).AsSelf();
         
