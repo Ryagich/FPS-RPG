@@ -34,6 +34,7 @@ public class GameLifetimeScope : LifetimeScope
     
     protected override void Configure(IContainerBuilder builder)
     {
+
         builder.RegisterInstance(InputConfig).AsSelf();
         builder.RegisterInstance(PlayerMovementConfig).AsSelf();
         builder.RegisterInstance(GravityConfig).AsSelf();
@@ -42,12 +43,12 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterInstance(CameraFovConfig).AsSelf();
         builder.RegisterInstance(InventoryConfig).AsSelf();
        
-        var options = builder.RegisterMessagePipe();
-        builder.RegisterMessageBroker<PlaySoundMessage>(options);
         builder.RegisterInstance(settings).AsSelf();
+
 
         // === MessagePipe ===
         var options = builder.RegisterMessagePipe();
+        builder.RegisterMessageBroker<PlaySoundMessage>(options);
         builder.RegisterMessageBroker<PlayerMoveMessage>(options);
         builder.RegisterMessageBroker<LookDeltaMessage>(options);
         builder.RegisterMessageBroker<ClickMessage>(options);
