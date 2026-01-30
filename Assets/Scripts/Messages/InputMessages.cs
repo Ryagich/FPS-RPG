@@ -58,5 +58,5 @@ namespace Messages
     }
     public readonly struct ReloadingMessage { }
     public readonly struct SwitchFireMode { }
-
+    public readonly struct InteractableMessage { }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using Camera;
+using CameraScripts;
 using Inventory;
 using MessagePipe;
 using Messages;
@@ -82,7 +82,33 @@ namespace Weapon
             else 
                 StopSprint();
         }
-        
+
+        public void TakeNewWeapon(WeaponConfig weaponConfig)
+        {
+            if (weapon is not null)
+            {
+                if (IsShooting())
+                    return;
+                if (IsReloading())
+                    StopReloading();
+                if (lowering.isLowered)
+                    lowering.Lowered -= Lower;
+                
+                inventory.ChangeWeapon(weaponConfig);
+                if (weaponConfig.Role == weapon.Config.Role)
+                {
+                    inventory.SelectWeapon(weaponConfig.Role);
+                    SetWeapon((Weapon)inventory.CurrentSlot.Item);
+                }
+            }
+            else
+            {
+                inventory.ChangeWeapon(weaponConfig);
+                inventory.SelectWeapon(weaponConfig.Role);
+                SetWeapon((Weapon)inventory.CurrentSlot.Item);
+            }
+        }
+
         private void ChangeWeapon(SwitchWeaponMessage msg)
         {
             if (weapon is not null)
@@ -96,28 +122,15 @@ namespace Weapon
                     {
                         lowering.Lowered -= Lower;
                         lowering.Raise();
-                        
-                        var message = new StopWeaponChange();
-                        GlobalMessagePipe.GetPublisher<StopWeaponChange>().Publish(message);
-                        
-                        if (IsShooting())
-                            StopShoot();
-                        if (IsReloading())
-                            StopReloading();
                     }
                 }
                 else
                 {
-                    roleToChange = msg.Role;
-                    lowering.Lower();
-                    
-                    GlobalMessagePipe.GetPublisher<StartWeaponChange>().Publish(new StartWeaponChange());
-                    
-                    if (IsShooting())
-                        StopShoot();
                     if (IsReloading())
                         StopReloading();
                     
+                    roleToChange = msg.Role;
+                    lowering.Lower();
                     lowering.Lowered += Lower;
                 }
             }
@@ -267,7 +280,6 @@ namespace Weapon
 
             reloading.StartReloading();
             Reloading?.Invoke(true);
-            GlobalMessagePipe.GetPublisher<ReloadMessage>().Publish(new ReloadMessage());
 
             return false;
         }

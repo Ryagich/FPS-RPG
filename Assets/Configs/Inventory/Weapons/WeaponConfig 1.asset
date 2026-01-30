@@ -39,17 +39,17 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  <Role>k__BackingField: 2
-  <Type>k__BackingField: 6
+  <Role>k__BackingField: 1
+  <Type>k__BackingField: 0
   <Modes>k__BackingField: 000102
-  <AmmoConfig>k__BackingField: {fileID: 11400000, guid: acf712bfe996d274aadd9b2ab64d37c1, type: 2}
+  <AmmoConfig>k__BackingField: {fileID: 11400000, guid: 213b4084e308fff418bb28a334143c5e, type: 2}
   <RPM>k__BackingField: 600
   <MaxAmmo>k__BackingField: 30
   <ReloadingTime>k__BackingField: 0.2
   <ShakeSettings>k__BackingField:
-    <duration>k__BackingField: 0.2
-    <amplitude>k__BackingField: 5
-    <frequency>k__BackingField: 20
+    <duration>k__BackingField: 0.1
+    <amplitude>k__BackingField: 10
+    <frequency>k__BackingField: 2
     <falloffCurve>k__BackingField:
       serializedVersion: 2
       m_Curve:
@@ -74,18 +74,18 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    <maxShakePower>k__BackingField: 0.5
-    <RecoilMultiplier>k__BackingField: 0.3
+    <maxShakePower>k__BackingField: 10
+    <RecoilMultiplier>k__BackingField: 0.85
   <RecoilSettings>k__BackingField:
-    <RecoilPower>k__BackingField: {x: 0, y: 0}
-    <MaxRecoilPower>k__BackingField: {x: 0, y: 0}
+    <RecoilPower>k__BackingField: {x: 0.42, y: 0.24}
+    <MaxRecoilPower>k__BackingField: {x: 0.32, y: 0.18}
     <Spread>k__BackingField: 0.25
     <RecoilSpreadMultiplier>k__BackingField: 1
     <SpreadChillCoefficient>k__BackingField: 0.5
     <RecoilChillCoefficient>k__BackingField: 0.5
   <AimRecoilSettings>k__BackingField:
-    <RecoilPower>k__BackingField: {x: 0, y: 0}
-    <MaxRecoilPower>k__BackingField: {x: 0, y: 0}
+    <RecoilPower>k__BackingField: {x: 0.42, y: 0.24}
+    <MaxRecoilPower>k__BackingField: {x: 0.32, y: 0.18}
     <Spread>k__BackingField: 0.25
     <RecoilSpreadMultiplier>k__BackingField: 1
     <SpreadChillCoefficient>k__BackingField: 0.5
@@ -126,32 +126,32 @@ MonoBehaviour:
       <rotationSmooth>k__BackingField: 8
     <aimBobbingTransitionTime>k__BackingField: 0.1
     <BobbingSettings>k__BackingField:
-      <BreatheAmplitude>k__BackingField: 0
-      <BreatheFrequency>k__BackingField: 0
-      <HeartAmplitude>k__BackingField: 0
-      <HeartFrequency>k__BackingField: 0
-      <HeartRotationAngle>k__BackingField: 0
-      <MaxWalkSpeed>k__BackingField: 0
-      <WalkVerticalAmplitude>k__BackingField: 0
-      <WalkHorizontalAmplitude>k__BackingField: 0
-      <WalkFrequency>k__BackingField: 0
-      <StrafeTiltAngle>k__BackingField: 0
-      <WalkSmoothTime>k__BackingField: 0
-      <RotationInfluence>k__BackingField: 0
+      <BreatheAmplitude>k__BackingField: 0.0025
+      <BreatheFrequency>k__BackingField: 0.15
+      <HeartAmplitude>k__BackingField: 0.001
+      <HeartFrequency>k__BackingField: 0.25
+      <HeartRotationAngle>k__BackingField: 0.5
+      <MaxWalkSpeed>k__BackingField: 0.75
+      <WalkVerticalAmplitude>k__BackingField: 0.003
+      <WalkHorizontalAmplitude>k__BackingField: 0.005
+      <WalkFrequency>k__BackingField: 1.5
+      <StrafeTiltAngle>k__BackingField: 7.5
+      <WalkSmoothTime>k__BackingField: 0.2
+      <RotationInfluence>k__BackingField: 0.25
       <IsDev>k__BackingField: 0
     <AimBobbingSettings>k__BackingField:
-      <BreatheAmplitude>k__BackingField: 0
-      <BreatheFrequency>k__BackingField: 0
-      <HeartAmplitude>k__BackingField: 0
-      <HeartFrequency>k__BackingField: 0
-      <HeartRotationAngle>k__BackingField: 0
-      <MaxWalkSpeed>k__BackingField: 0
-      <WalkVerticalAmplitude>k__BackingField: 0
-      <WalkHorizontalAmplitude>k__BackingField: 0
-      <WalkFrequency>k__BackingField: 0
-      <StrafeTiltAngle>k__BackingField: 0
-      <WalkSmoothTime>k__BackingField: 0
-      <RotationInfluence>k__BackingField: 0
+      <BreatheAmplitude>k__BackingField: -0.00075
+      <BreatheFrequency>k__BackingField: 0.2
+      <HeartAmplitude>k__BackingField: 0.001
+      <HeartFrequency>k__BackingField: 0.1
+      <HeartRotationAngle>k__BackingField: 0.35
+      <MaxWalkSpeed>k__BackingField: 1
+      <WalkVerticalAmplitude>k__BackingField: 0.002
+      <WalkHorizontalAmplitude>k__BackingField: 0.004
+      <WalkFrequency>k__BackingField: 0.9
+      <StrafeTiltAngle>k__BackingField: 3
+      <WalkSmoothTime>k__BackingField: 0.25
+      <RotationInfluence>k__BackingField: 0.25
       <IsDev>k__BackingField: 0
     <RunBobbingSettings>k__BackingField:
       RunPositionOffset: {x: 0.175, y: -0.07, z: 0.125}
@@ -185,9 +185,10 @@ MonoBehaviour:
     <ProjectileSpeed>k__BackingField: 400
     <MovementMultiply>k__BackingField: 1
   <SoundsConfig>k__BackingField: {fileID: 0}
-  <WeaponPref>k__BackingField: {fileID: 4817156084319588554, guid: e2c51cf23ea99fc4fa04f6a2ff418969, type: 3}
+  <WeaponPref>k__BackingField: {fileID: 4776677401584725820, guid: d6167d7623641b943a1ee01cac3e1788, type: 3}
+  <DropWeaponPref>k__BackingField: {fileID: 3143914964214658811, guid: 89c18945663cdf3448fcd1edda4256e4, type: 3}
   <MovementMultiply>k__BackingField: 1
-  <ProjectileSpeed>k__BackingField: 400
+  <ProjectileSpeed>k__BackingField: 20
   <AttachmentSections>k__BackingField:
   - <MainInfo>k__BackingField: {fileID: 11400000, guid: 89536c00cec85f44190072b7ca77820b, type: 2}
     attachmentInfos:

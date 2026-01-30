@@ -1,8 +1,10 @@
-﻿using Camera;
+﻿using CameraScripts;
+using CanvasScripts;
 using Cysharp.Threading.Tasks;
 ﻿using Bot;
 using Gravity;
 using Input;
+using InteractableScripts;
 using Inventory;
 using Inventory.Ammo;
 using Inventory.Pools;
@@ -26,8 +28,10 @@ public class GameLifetimeScope : LifetimeScope
     [field: SerializeField] public MovementSoundConfig MovementSoundConfig { get; private set; } = null!;
     [field: SerializeField] public CameraFovConfig CameraFovConfig { get; private set; } = null!;
     [field: SerializeField] public InventoryConfig InventoryConfig { get; private set; } = null!;
+    [field: SerializeField] public CanvasConfig CanvasConfig { get; private set; } = null!;
+    [field: SerializeField] public InteractableConfig InteractableConfig { get; private set; } = null!;
     [field: SerializeField] public PlayerLifetimeScope PlayerPrefab { get; private set; } = null!;
-     
+    
     private PlayerLifetimeScope playerScope;
 
     [field: SerializeField] public BotSettings settings {get; private set;} = null!;
@@ -47,6 +51,9 @@ public class GameLifetimeScope : LifetimeScope
 
 
         // === MessagePipe ===
+        builder.RegisterInstance(CanvasConfig).AsSelf();
+        builder.RegisterInstance(InteractableConfig).AsSelf();
+        
         var options = builder.RegisterMessagePipe();
         builder.RegisterMessageBroker<PlaySoundMessage>(options);
         builder.RegisterMessageBroker<PlayerMoveMessage>(options);
@@ -61,6 +68,7 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterInstance(pools.transform).Keyed("PoolsParent");
         builder.Register<ProjectilesPool>(Lifetime.Singleton).AsSelf();
         // builder.Register<ImpactPools>(Lifetime.Singleton).AsSelf();
+        // builder.Register<CasingPool>(Lifetime.Singleton).AsSelf();
         builder.RegisterEntryPoint<ImpactPools>().AsSelf();
         builder.RegisterEntryPoint<CasingPool>().AsSelf();
         // builder.Register<>(Lifetime.Singleton).AsSelf();
@@ -81,13 +89,12 @@ public class GameLifetimeScope : LifetimeScope
                                                            await ammoStorage.WaitUntilReady();
 
                                                            playerScope = CreateChildFromPrefab(PlayerPrefab);
-                                                           // soundsManager.SetPlayer(playerScope);
+                                                           container.Resolve<SoundsManager>().PlayerTransform = playerScope.transform;
                                                        });
                                       });
-        // builder.RegisterEntryPoint<SoundsManager>().AsSelf();
+        builder.RegisterEntryPoint<SoundsManager>().AsSelf();
         builder.RegisterEntryPoint<Bootloader>()
                .AsSelf()
                .As<IStartable>();
-        builder.RegisterEntryPoint<SoundsManager>().AsSelf();
     }
 }

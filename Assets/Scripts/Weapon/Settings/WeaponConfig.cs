@@ -5,6 +5,7 @@ using Inventory.Ammo;
 using Sounds;
 using UnityEngine;
 using Weapon.Attachments;
+using Weapon.Drop;
 
 namespace Weapon.Settings
 {
@@ -23,14 +24,15 @@ namespace Weapon.Settings
         [field: SerializeField] public float ReloadingTime { get; private set; } = 2.0f;
         [field: Space]
         [Tooltip("How far the weapon can fire from the center of the screen.")] 
-        [field: SerializeField] public ShakeSettings ShakeSettings { get; private set; } = null!;
+        [field: SerializeField] public ShakeSettings ShakeSettings { get; private set; }
         [field: Space] 
-        [field: SerializeField] public RecoilSettings RecoilSettings {get; private set;} = null!;
-        [field: SerializeField] public RecoilSettings AimRecoilSettings {get; private set;} = null!;
-        [field: SerializeField] public WeaponAnimationSettings WeaponAnimationSettings { get; private set; } = null!;
-        [field: SerializeField] public CasingProperties CasingProperties { get; private set; } = null!;
-        [field: SerializeField] public SoundsConfig SoundsConfig { get; private set; } = null!;
+        [field: SerializeField] public RecoilSettings RecoilSettings {get; private set;}
+        [field: SerializeField] public RecoilSettings AimRecoilSettings {get; private set;} 
+        [field: SerializeField] public WeaponAnimationSettings WeaponAnimationSettings { get; private set; }
+        [field: SerializeField] public CasingProperties CasingProperties { get; private set; }
+        [field: SerializeField] public SoundsConfig SoundsConfig { get; private set; }
         [field: SerializeField] public WeaponLifetimeScope WeaponPref {get; private set;}
+        [field: SerializeField] public DropWeaponLifetimeScope DropWeaponPref {get; private set;}
         [field: SerializeField] public float MovementMultiply { get; private set; } = 1.0f;
         [field: SerializeField] public float ProjectileSpeed { get; private set; } = 400.0f;
         //Обязательно закидывать хотя бы один дефолтный:

@@ -24,13 +24,13 @@ namespace Inventory
 
         public void Activate()
         {
-            ((Weapon.Weapon)Item).GameObject.SetActive(true);
+            Item.Activate();
             Activated?.Invoke();
         }
 
         public void Disable()
         {
-            ((Weapon.Weapon)Item).GameObject.SetActive(false);
+            Item.Disable();
             Disabled?.Invoke();
         }
 

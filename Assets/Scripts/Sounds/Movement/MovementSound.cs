@@ -1,4 +1,4 @@
-﻿using Camera.Shake;
+﻿using CameraScripts.Shake;
 using MessagePipe;
 using Messages;
 using Player;

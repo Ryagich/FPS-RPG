@@ -6,7 +6,6 @@ namespace Input
     [CreateAssetMenu(fileName = "InputConfig", menuName = "configs/Input/InputConfig")]
     public class InputConfig : ScriptableObject
     {
-        [field: SerializeField] public InputActionReference PointerPosition { get; private set; }
         [field: SerializeField] public InputActionReference Click { get; private set; }
         [field: SerializeField] public InputActionReference RightClick { get; private set; }
         [field: SerializeField] public InputActionReference MoveInput { get; private set; }
@@ -18,5 +17,6 @@ namespace Input
         [field: SerializeField] public InputActionReference SecondWeapon { get; private set; }
         [field: SerializeField] public InputActionReference Reloading { get; private set; }
         [field: SerializeField] public InputActionReference FireMode { get; private set; }
+        [field: SerializeField] public InputActionReference Interactable { get; private set; }
     }
 }   

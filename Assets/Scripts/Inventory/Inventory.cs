@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Inventory.Ammo;
-using Inventory.Pools;
-using Inventory.Pools.Impact;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -69,18 +67,9 @@ namespace Inventory
             SelectWeapon(WeaponRole.Primary);
         }
 
-        public void DestroyWeapon(WeaponRole role)
+        public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weaponPrefab)
         {
-            var slot = GetSlot(role);
-            if (slot.Item is Weapon.Weapon weapon)
-            {
-                Object.Destroy(weapon.GameObject);
-            }
-        }
-
-        public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weapon)
-        {
-            var scope = playerScope.CreateChildFromPrefab(weapon);
+            var scope = playerScope.CreateChildFromPrefab(weaponPrefab);
             
             var weaponInstance = scope.Container.Resolve<Weapon.Weapon>();
             var weaponTrans = scope.transform;
@@ -107,6 +96,20 @@ namespace Inventory
             return Slots[id];
         }
 
+        public void ChangeWeapon(WeaponConfig weaponConfig)
+        {
+            var slot = GetSlot(weaponConfig.Role);
+            if (slot.Item != null)
+            {
+                var itemObjTransform = slot.Item.GameObject.transform;
+                var dropItemPrefab = slot.Item.GetDropPrefab();
+                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
+                Object.Destroy(itemObjTransform.gameObject);
+            }
+            CreateWeapon(weaponConfig.Role, weaponConfig.WeaponPref);
+            // SelectWeapon(weaponConfig.Role);
+        }
+        
         public void SelectWeapon(WeaponRole role)
         {
             if (CurrentSlot is null)
