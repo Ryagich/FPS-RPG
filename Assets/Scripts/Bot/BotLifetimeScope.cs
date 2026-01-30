@@ -20,8 +20,10 @@ namespace Bot
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<BotVisionMessage>(options);
 
+            var agent = GetComponent<NavMeshAgent>();
+
             builder.RegisterInstance(transform).Keyed("self");
-            builder.RegisterComponentInHierarchy<NavMeshAgent>();
+            builder.RegisterInstance(agent).AsSelf();
             builder.RegisterInstance(botGoal).Keyed("botGoal");
             builder.RegisterInstance(visibleCollider).Keyed("collider");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");

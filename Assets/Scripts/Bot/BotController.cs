@@ -8,11 +8,12 @@ using VContainer.Unity;
 
 namespace Bot
 {
-    public class BotController : IFixedTickable, IStartable
+    public class BotController : IStartable, IFixedTickable
     {
         public StateMachineContext context;
         public ReactiveProperty<State> CurrentState {get; private set;} = new();
         private BotSettings settings;
+        private bool started = false;
 
         public BotController(BotSettings settings, NavMeshAgent agent, [Key("botGoal")] Transform goal, 
             [Key("self")] Transform self, [Key("visionOrigin")] Transform visionOrigin, [Key("spine")] Transform spine)
@@ -30,6 +31,10 @@ namespace Bot
 
         public void FixedTick()
         {
+            if(!started)
+            {
+                return;
+            }
             if (CurrentState == null)
             {
                 return;
@@ -91,6 +96,7 @@ namespace Bot
         public void Start()
         {
             SetState(settings.StateMachineGraph.GetEntryState());
+            started = true;
         }
     }
 }

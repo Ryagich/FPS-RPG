@@ -154,10 +154,10 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   botSight: {fileID: 6568030111675869743}
-  botGoal: {fileID: 4268493660238936580}
+  botGoal: {fileID: 0}
   visionOrigin: {fileID: 1596642548385627558}
   spine: {fileID: 8269302637711238978}
-  visibleCollider: {fileID: 0}
+  visibleCollider: {fileID: 7465121335155894356}
 --- !u!195 &8176184849838848579
 NavMeshAgent:
   m_ObjectHideFlags: 0
