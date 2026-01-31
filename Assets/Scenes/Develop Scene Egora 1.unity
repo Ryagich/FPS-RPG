@@ -1340,7 +1340,11 @@ PrefabInstance:
     - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: botGoal
       value: 
-      objectReference: {fileID: 1792836273}
+      objectReference: {fileID: 0}
+    - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+      propertyPath: parentReference.TypeName
+      value: Scopes.GameLifetimeScope
+      objectReference: {fileID: 0}
     - target: {fileID: 2389522154585707933, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.26212358
@@ -1384,6 +1388,10 @@ PrefabInstance:
     - target: {fileID: 7937525084519919767, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_Name
       value: Bot
+      objectReference: {fileID: 0}
+    - target: {fileID: 7937525084519919767, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2339,20 +2347,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: 
+    TypeName: Scopes.ProjectLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
-  <InputConfig>k__BackingField: {fileID: 11400000, guid: fa037dffc3366524c94f3df9340460d2, type: 2}
-  <PlayerMovementConfig>k__BackingField: {fileID: 11400000, guid: 66d306fcd76cd3848a6097fc9f0726b3, type: 2}
-  <GravityConfig>k__BackingField: {fileID: 11400000, guid: 9aa92bda1dcb1744da8ca28f0c9735b9, type: 2}
-  <SoundsConfig>k__BackingField: {fileID: 11400000, guid: d18d8c0d766719f4b93f95c4207904f2, type: 2}
-  <MovementSoundConfig>k__BackingField: {fileID: 11400000, guid: 0803f7ab5024bc14784862c9bde194bc, type: 2}
-  <CameraFovConfig>k__BackingField: {fileID: 11400000, guid: bbca2bfbb27e35b46af6958147aef0f4, type: 2}
-  <InventoryConfig>k__BackingField: {fileID: 11400000, guid: 20108ccba74d64a418d796d99c78814d, type: 2}
-  <CanvasConfig>k__BackingField: {fileID: 11400000, guid: 5a8fd0a091023704690ebc3b9aa74b89, type: 2}
-  <InteractableConfig>k__BackingField: {fileID: 11400000, guid: d9b3543a838e1f04090a67faa60879eb, type: 2}
   <PlayerPrefab>k__BackingField: {fileID: 6364146570288871173, guid: be2dc860275a8604da3ff9be317262b8, type: 3}
-  <settings>k__BackingField: {fileID: 11400000, guid: 6e6c27ac4b461d97e9d0745dc6fb5e74, type: 2}
 --- !u!4 &1677724046
 Transform:
   m_ObjectHideFlags: 0
@@ -3278,6 +3276,7 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1677724046}
   - {fileID: 705507995}
   - {fileID: 1758102847}
   - {fileID: 1843746537}
@@ -3299,7 +3298,6 @@ SceneRoots:
   - {fileID: 1790971709}
   - {fileID: 1204326390}
   - {fileID: 176136387}
-  - {fileID: 1677724046}
   - {fileID: 52750551}
   - {fileID: 1107500070}
   - {fileID: 1569530645}

@@ -19,6 +19,7 @@ namespace Inventory
         public event Action<InventorySlot, InventorySlot> SlotChanged;
         public event Action<IEnumerable<InventorySlot>> SlotsCreated;
 
+        private readonly InventoryConfig inventoryConfig;
         private readonly LifetimeScope scope;
         private readonly AmmoStorage ammoStorage;
         private readonly Transform parentTransform;
@@ -36,6 +37,7 @@ namespace Inventory
                [Key("ParentTransformForWeapon")] Transform parentTransform
             )
         {
+            this.inventoryConfig = inventoryConfig;
             this.scope = scope;
             this.ammoStorage = ammoStorage;
             this.parentTransform = parentTransform;
@@ -47,13 +49,15 @@ namespace Inventory
             Slots.Add(secondarySlot);
 
             // SlotsCreated?.Invoke(Slots);
+        }
+        
+        public async void Start()
+        {
+            await ammoStorage.Ready;
             
             CreateWeapon(WeaponRole.Primary, inventoryConfig.TestWeaponConfig1.WeaponPref);
             CreateWeapon(WeaponRole.Secondary, inventoryConfig.TestWeaponConfig2.WeaponPref);
-        }
-        
-        public void Start()
-        {
+            
             SelectWeapon(WeaponRole.Primary);
         }
 

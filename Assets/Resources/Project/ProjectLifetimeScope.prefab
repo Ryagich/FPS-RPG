@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7949482649897157178
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5414261463166850157}
+  - component: {fileID: 2227809565379789962}
+  m_Layer: 0
+  m_Name: ProjectLifetimeScope
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5414261463166850157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7949482649897157178}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2227809565379789962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7949482649897157178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a73ed2cf3a1340bbbe7d14bfd9342db3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parentReference:
+    TypeName: 
+  autoRun: 1
+  autoInjectGameObjects: []
+  <InputConfig>k__BackingField: {fileID: 11400000, guid: fa037dffc3366524c94f3df9340460d2, type: 2}
+  <PlayerMovementConfig>k__BackingField: {fileID: 11400000, guid: 66d306fcd76cd3848a6097fc9f0726b3, type: 2}
+  <GravityConfig>k__BackingField: {fileID: 11400000, guid: 9aa92bda1dcb1744da8ca28f0c9735b9, type: 2}
+  <SoundsConfig>k__BackingField: {fileID: 11400000, guid: d18d8c0d766719f4b93f95c4207904f2, type: 2}
+  <MovementSoundConfig>k__BackingField: {fileID: 11400000, guid: 0803f7ab5024bc14784862c9bde194bc, type: 2}
+  <CameraFovConfig>k__BackingField: {fileID: 11400000, guid: bbca2bfbb27e35b46af6958147aef0f4, type: 2}
+  <InventoryConfig>k__BackingField: {fileID: 11400000, guid: 20108ccba74d64a418d796d99c78814d, type: 2}
+  <CanvasConfig>k__BackingField: {fileID: 11400000, guid: 5a8fd0a091023704690ebc3b9aa74b89, type: 2}
+  <InteractableConfig>k__BackingField: {fileID: 11400000, guid: d9b3543a838e1f04090a67faa60879eb, type: 2}
+  <BotSettings>k__BackingField: {fileID: 11400000, guid: 6e6c27ac4b461d97e9d0745dc6fb5e74, type: 2}

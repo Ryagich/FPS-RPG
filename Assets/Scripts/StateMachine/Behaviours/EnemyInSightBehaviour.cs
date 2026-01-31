@@ -23,14 +23,12 @@ namespace StateMachine.Behaviours
             var bodyTargetRot = Quaternion.LookRotation(bodyLookDir);
 
             var currentSpineRot = context.spine.rotation;
-
             var futureWorldRot = Quaternion.Slerp(
                                                   currentSpineRot,
                                                   bodyTargetRot,
                                                   context.DeltaTime * context.rotationDamping
                                                  );
 
-            // --- вычисляем LookDelta ДО применения ---
             var deltaRot = futureWorldRot * Quaternion.Inverse(context.LastSpineRotation);
 
             deltaRot.ToAngleAxis(out var angle, out var axis);
@@ -38,15 +36,11 @@ namespace StateMachine.Behaviours
             if (angle > 180f)
                 angle -= 360f;
 
-            // переводим в yaw / pitch
             var yawDelta = Vector3.Dot(axis, Vector3.up) * angle;
             var pitchDelta = Vector3.Dot(axis, context.spine.right) * angle;
 
-            context.LookDeltaPublisher.Publish(
-                                               new LookDeltaMessage(new Vector2(yawDelta, -pitchDelta))
-                                              );
+            context.LookDeltaPublisher.Publish(new LookDeltaMessage(new Vector2(yawDelta, -pitchDelta)));
 
-            // --- твоя текущая логика ограничений ---
             var futureLocalRot = Quaternion.Inverse(context.spine.parent.rotation) * futureWorldRot;
             var futureRawY = futureLocalRot.eulerAngles.y;
             var futureNormalizedY = (futureRawY > 180) ? futureRawY - 360 : futureRawY;
@@ -58,10 +52,7 @@ namespace StateMachine.Behaviours
             }
 
             context.spine.rotation = futureWorldRot;
-
-            // --- сохраняем состояние ---
             context.LastSpineRotation = futureWorldRot;
         }
-
     }
 }
