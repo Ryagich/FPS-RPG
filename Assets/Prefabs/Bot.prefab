@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &643532911741730642
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6444713294723154758}
+  m_Layer: 12
+  m_Name: ParentTransformForWeapon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6444713294723154758
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 643532911741730642}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1, y: 0.35, z: 0.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8269302637711238978}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1001137696486378417
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,6 +189,7 @@ MonoBehaviour:
   spine: {fileID: 8269302637711238978}
   visibleCollider: {fileID: 7465121335155894356}
   hips: {fileID: 8550804316107101393}
+  <ParentTransformForWeapon>k__BackingField: {fileID: 6444713294723154758}
 --- !u!195 &8176184849838848579
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -673,6 +705,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -3480699329000672020, guid: abf51879c194b264f869232d06e3ed01, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1596642548385627558}
+    - targetCorrespondingSourceObject: {fileID: -3480699329000672020, guid: abf51879c194b264f869232d06e3ed01, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6444713294723154758}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: abf51879c194b264f869232d06e3ed01, type: 3}
 --- !u!4 &4249953238800839749 stripped

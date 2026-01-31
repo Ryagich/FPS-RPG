@@ -50,14 +50,14 @@ namespace Bot
         //TODO: Логика переопределения объекта агрессии и выбора из нескольких
         private void OnVisionEntered(BotVisionMessage message)
         {
-            if(!message.isVisible && controller.context.aggroTarget != null 
+            if (!message.isVisible && controller.context.aggroTarget != null 
                 && controller.context.aggroTarget.Value.target == message.target)
             {
                 Debug.Log("TARGET LOST");
                 controller.context.aggroTarget = null;
                 return;
             }
-            if(message.isVisible && IsValidAggroTarget(message) && controller.context.aggroTarget == null)
+            if (message.isVisible && IsValidAggroTarget(message) && controller.context.aggroTarget == null)
             {
                 controller.context.aggroTarget = new AggroTarget(message.target, AggroTargetType.Enemy);
                 Debug.Log("Aggro target is set to: " + controller.context.aggroTarget.Value.target.name);

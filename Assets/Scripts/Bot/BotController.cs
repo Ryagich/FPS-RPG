@@ -1,3 +1,5 @@
+using MessagePipe;
+using Messages;
 using StateMachine;
 using StateMachine.Graph.Model;
 using UniRx;
@@ -8,15 +10,25 @@ using VContainer.Unity;
 
 namespace Bot
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class BotController : IStartable, IFixedTickable
     {
-        public StateMachineContext context;
+        public readonly StateMachineContext context;
+        private readonly BotSettings settings;
         public ReactiveProperty<State> CurrentState {get; private set;} = new();
-        private BotSettings settings;
-        private bool started = false;
+        private bool started;
 
-        public BotController(BotSettings settings, NavMeshAgent agent, [Key("botGoal")] Transform goal, 
-            [Key("self")] Transform self, [Key("visionOrigin")] Transform visionOrigin, [Key("spine")] Transform spine, [Key("hips")] Transform hips)
+        public BotController
+            (
+                BotSettings settings, 
+                NavMeshAgent agent, 
+                [Key("botGoal")] Transform goal, 
+                [Key("self")] Transform self, 
+                [Key("visionOrigin")] Transform visionOrigin, 
+                [Key("spine")] Transform spine, 
+                [Key("hips")] Transform hips,
+                IPublisher<LookDeltaMessage> lookDeltaMessageSubscriber
+            )
         {
             context = new StateMachineContext();
             context.agent = agent;
@@ -26,10 +38,11 @@ namespace Bot
             context.visionOrigin = visionOrigin;
             context.spine = spine;
             context.hips = hips;
+            context.LookDeltaPublisher = lookDeltaMessageSubscriber;
+            
             this.settings = settings;
         }
-
-
+        
         public void FixedTick()
         {
             if(!started)

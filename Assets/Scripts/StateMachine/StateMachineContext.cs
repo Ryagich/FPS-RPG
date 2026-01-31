@@ -27,5 +27,8 @@ namespace StateMachine
         public Transform spine;
 
         public Transform hips;
+        
+        public IPublisher<LookDeltaMessage> LookDeltaPublisher;
+        public Quaternion LastSpineRotation;
     }
 }

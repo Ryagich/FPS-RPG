@@ -19,6 +19,9 @@ namespace Weapon
             builder.RegisterInstance(gameObject).AsSelf();
             builder.RegisterInstance(CasingSpawnPoint).Keyed($"CasingSpawnPoint").AsSelf();
 
+            builder.Register<AttachmentsController>(Lifetime.Scoped);
+
+            builder.RegisterEntryPoint<Weapon>().AsSelf();
             builder.RegisterEntryPoint<WeaponLowering>().AsSelf();
             builder.RegisterEntryPoint<WeaponKickBack>().AsSelf();
             builder.RegisterEntryPoint<WeaponSway>().AsSelf();
@@ -26,16 +29,7 @@ namespace Weapon
             builder.RegisterEntryPoint<WeaponRunBobbing>().AsSelf();
             builder.RegisterEntryPoint<WeaponJumpBobbing>().AsSelf();
             builder.RegisterEntryPoint<WeaponReloading>().AsSelf();
-
-            // builder.Register<WeaponLowering>(Lifetime.Scoped);
-            // builder.Register<WeaponKickBack>(Lifetime.Scoped);
-            // builder.Register<WeaponSway>(Lifetime.Scoped);
-            // builder.Register<WeaponBobbing>(Lifetime.Scoped);
-            // builder.Register<WeaponRunBobbing>(Lifetime.Scoped);
-            // builder.Register<WeaponJumpBobbing>(Lifetime.Scoped);
-            builder.Register<AttachmentsController>(Lifetime.Scoped);
             
-            builder.RegisterEntryPoint<Weapon>().AsSelf();
             builder.RegisterEntryPoint<CasingDropper>().AsSelf();
         }
     }

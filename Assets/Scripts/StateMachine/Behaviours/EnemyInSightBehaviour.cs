@@ -1,3 +1,4 @@
+using Messages;
 using StateMachine.Graph.Model;
 using UnityEngine;
 
@@ -6,38 +7,61 @@ namespace StateMachine.Behaviours
     [CreateAssetMenu(fileName = "EnemyInSightBehaviour", menuName = "configs/StateMachine/Behaviours/EnemyInSight")]
     public class EnemyInSightBehaviour : BaseBehaviour
     {
+        public override void Enter(StateMachineContext context)
+        {
+            context.LastSpineRotation = context.spine.rotation;
+        }
+        
         public override void Logic(StateMachineContext context)
         {
-            if (context.aggroTarget == null) return;
+            if (context.aggroTarget == null) 
+                return;
 
-            Vector3 targetPos = context.aggroTarget.Value.target.bounds.center;
+            var targetPos = context.aggroTarget.Value.target.bounds.center;
 
-            float distanceToTarget = Vector3.Distance(context.self.position, targetPos);
-            Vector3 bodyLookDir = targetPos - context.self.position;
-            Quaternion bodyTargetRot = Quaternion.LookRotation(bodyLookDir);
+            var bodyLookDir = targetPos - context.self.position;
+            var bodyTargetRot = Quaternion.LookRotation(bodyLookDir);
 
-            Quaternion current = context.spine.rotation;
-            Quaternion target = bodyTargetRot;
+            var currentSpineRot = context.spine.rotation;
 
-            Quaternion diff = target * Quaternion.Inverse(current);
+            var futureWorldRot = Quaternion.Slerp(
+                                                  currentSpineRot,
+                                                  bodyTargetRot,
+                                                  context.DeltaTime * context.rotationDamping
+                                                 );
 
-            Quaternion futureWorldRot = Quaternion.Slerp(context.spine.rotation, bodyTargetRot, context.DeltaTime * context.rotationDamping);
+            // --- вычисляем LookDelta ДО применения ---
+            var deltaRot = futureWorldRot * Quaternion.Inverse(context.LastSpineRotation);
 
+            deltaRot.ToAngleAxis(out var angle, out var axis);
 
-            Quaternion futureLocalRot = Quaternion.Inverse(context.spine.parent.rotation) * futureWorldRot;
+            if (angle > 180f)
+                angle -= 360f;
 
-            float futureRawY = futureLocalRot.eulerAngles.y;
-            float futureNormalizedY = (futureRawY > 180) ? futureRawY - 360 : futureRawY;
+            // переводим в yaw / pitch
+            var yawDelta = Vector3.Dot(axis, Vector3.up) * angle;
+            var pitchDelta = Vector3.Dot(axis, context.spine.right) * angle;
+
+            context.LookDeltaPublisher.Publish(
+                                               new LookDeltaMessage(new Vector2(yawDelta, -pitchDelta))
+                                              );
+
+            // --- твоя текущая логика ограничений ---
+            var futureLocalRot = Quaternion.Inverse(context.spine.parent.rotation) * futureWorldRot;
+            var futureRawY = futureLocalRot.eulerAngles.y;
+            var futureNormalizedY = (futureRawY > 180) ? futureRawY - 360 : futureRawY;
 
             if (Mathf.Abs(futureNormalizedY) > 50f)
             {
-                diff.z = 0;
-                diff.x = 0;
-                context.hips.rotation = diff * context.hips.rotation;
+                context.hips.rotation = deltaRot * context.hips.rotation;
                 return;
             }
 
             context.spine.rotation = futureWorldRot;
+
+            // --- сохраняем состояние ---
+            context.LastSpineRotation = futureWorldRot;
         }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Movement;
+using UnityEngine;
 using VContainer.Unity;
 using Weapon.Attachments;
 using Weapon.Settings;
@@ -12,7 +13,7 @@ namespace Weapon.Animations
         
         private readonly WeaponConfig config;
         private readonly Transform transform;
-        public readonly CharacterController characterController;
+        private readonly IMovementDataProvider movement;
         
         public bool isAim;
 
@@ -32,12 +33,12 @@ namespace Weapon.Animations
             (
                 WeaponConfig config,
                 Transform transform,
-                CharacterController characterController
+                IMovementDataProvider movement
             )
         {
             this.config = config;
             this.transform = transform;
-            this.characterController = characterController;
+            this.movement = movement;
 
             SetCurrentSettings(false);
         }
@@ -63,14 +64,18 @@ namespace Weapon.Animations
             );
 
             // 3) Walk intensity
-            var speed = characterController.velocity.magnitude;
+            var velocity = movement.Velocity;
+            var speed = velocity.magnitude;
+
+            // var speed = movement.velocity.magnitude;
             var targetNorm = Mathf.Clamp01(speed / currentSettings.MaxWalkSpeed);
             walkSpeedNorm = Mathf.SmoothDamp(walkSpeedNorm, targetNorm, ref walkSpeedVel, currentSettings.WalkSmoothTime);
 
             // 4) Направления
-            var velDir = characterController.velocity.normalized;
-            var rawF = Vector3.Dot(characterController.transform.forward, velDir);
-            var rawR = Vector3.Dot(characterController.transform.right,   velDir);
+            var velDir = speed > 0.001f ? velocity.normalized : Vector3.zero;
+            // var velDir = characterController.velocity.normalized;
+            var rawF = Vector3.Dot(movement.Transform.forward, velDir);
+            var rawR = Vector3.Dot(movement.Transform.right, velDir);
             forwardAmtSmooth = Mathf.SmoothDamp(forwardAmtSmooth, rawF, ref forwardAmtVel, currentSettings.WalkSmoothTime);
             rightAmtSmooth   = Mathf.SmoothDamp(rightAmtSmooth,   rawR, ref rightAmtVel, currentSettings.WalkSmoothTime);
 

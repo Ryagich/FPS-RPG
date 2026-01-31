@@ -5,7 +5,7 @@ using VContainer.Unity;
 
 namespace Bot
 {
-    [RequireComponent(typeof(UnityEngine.AI.NavMeshAgent))]
+    [RequireComponent(typeof(NavMeshAgent))]
     public class BotMovement : IStartable
     {    
         private Transform goal;

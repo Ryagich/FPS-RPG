@@ -1,7 +1,7 @@
 using StateMachine.Graph.Model;
 using UnityEngine;
 
-namespace StateMachine.ActionOnTransition
+namespace StateMachine.ActionOnTransitions
 {
     [CreateAssetMenu(fileName = "MoveToObjective", menuName = "configs/StateMachine/ActionsOnTransition/EntrypointAction")]
     public class EntrypointAction : ActionOnTransitionBase

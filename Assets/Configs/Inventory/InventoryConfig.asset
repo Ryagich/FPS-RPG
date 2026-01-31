@@ -19,3 +19,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a1fd2ee53af1108458cfe082e295b499, type: 2}
   - {fileID: 11400000, guid: 7b5303c4ca21e0b4d91313b590255563, type: 2}
   - {fileID: 11400000, guid: fea92974cf8430542a7299523dece0a8, type: 2}
+  <TestWeaponConfig1>k__BackingField: {fileID: 11400000, guid: 8be4805ead19a68499090725aad1356b, type: 2}
+  <TestWeaponConfig2>k__BackingField: {fileID: 11400000, guid: 05ead379a11090245b9002c096ff3083, type: 2}

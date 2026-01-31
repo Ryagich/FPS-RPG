@@ -1,5 +1,6 @@
 using MessagePipe;
 using Messages;
+using Movement;
 using UnityEngine;
 using UnityEngine.AI;
 using VContainer;
@@ -15,25 +16,40 @@ namespace Bot
         [SerializeField] private Transform spine;
         [SerializeField] private Collider visibleCollider;
         [SerializeField] private Transform hips;
+        [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
 
         protected override void Configure(IContainerBuilder builder)
         {
+            // === MessagePipe ===
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<BotVisionMessage>(options);
+            builder.RegisterMessageBroker<LookDeltaMessage>(options);
 
             var agent = GetComponent<NavMeshAgent>();
-
-            builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterInstance(agent).AsSelf();
+
+            builder.Register<IMovementDataProvider>(c =>
+                                                        new NavMeshAgentMovementProvider(
+                                                             c.Resolve<NavMeshAgent>(),
+                                                             c.Resolve<Transform>()
+                                                            ),
+                                                    Lifetime.Scoped
+                                                   );
+            
+            builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterInstance(botGoal).Keyed("botGoal");
             builder.RegisterInstance(visibleCollider).Keyed("collider");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
             builder.RegisterInstance(spine).Keyed("spine");
             builder.RegisterInstance(hips).Keyed("hips");
-            builder.RegisterEntryPoint<BotController>().AsSelf();
+            builder.RegisterInstance(ParentTransformForWeapon).Keyed("ParentTransformForWeapon");
+
             builder.RegisterComponent(botSight).AsImplementedInterfaces();
+            
+            builder.RegisterEntryPoint<BotController>().AsSelf();
             builder.RegisterEntryPoint<BotAggro>().AsSelf();
+
+            builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
         }
     }
-
 }

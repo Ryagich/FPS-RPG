@@ -188,7 +188,6 @@ namespace Weapon
             weapon = newWeapon;
             roleToChange = newWeapon.Config.Role;
 
-            jumpBobbing.characterController = characterController;
             attachmentsController.UpdateAttachments();
             lowering.ResetLowering();
             lowering.transitionTime = weapon.Config.WeaponAnimationSettings.loweredTransitionTime;

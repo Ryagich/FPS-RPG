@@ -19,12 +19,9 @@ namespace Inventory
         public event Action<InventorySlot, InventorySlot> SlotChanged;
         public event Action<IEnumerable<InventorySlot>> SlotsCreated;
 
-        private readonly InventoryConfig inventoryConfig;
-        private readonly LifetimeScope playerScope;
+        private readonly LifetimeScope scope;
         private readonly AmmoStorage ammoStorage;
         private readonly Transform parentTransform;
-        private readonly Transform cameraTransform;
-        private readonly IObjectResolver resolver;
         
         public List<InventorySlot> Slots { get; } = new();
         public InventorySlot CurrentSlot { get; private set; } = null!;
@@ -34,21 +31,14 @@ namespace Inventory
         public Inventory
             (
                InventoryConfig inventoryConfig,
-               LifetimeScope playerScope,
+               LifetimeScope scope,
                AmmoStorage ammoStorage,
-               [Key("ParentTransformForWeapon")] Transform parentTransform, 
-               [Key("CameraParentTransform")] Transform cameraTransform,
-               IObjectResolver resolver,
-               [Key("TestWeaponConfig1")] WeaponConfig TestWeaponConfig1,
-               [Key("TestWeaponConfig2")] WeaponConfig TestWeaponConfig2
+               [Key("ParentTransformForWeapon")] Transform parentTransform
             )
         {
-            this.inventoryConfig = inventoryConfig;
-            this.playerScope = playerScope;
+            this.scope = scope;
             this.ammoStorage = ammoStorage;
             this.parentTransform = parentTransform;
-            this.cameraTransform = cameraTransform;
-            this.resolver = resolver;
 
             var primarySlot = new InventorySlot();
             Slots.Add(primarySlot);
@@ -58,8 +48,8 @@ namespace Inventory
 
             // SlotsCreated?.Invoke(Slots);
             
-            CreateWeapon(WeaponRole.Primary, TestWeaponConfig1.WeaponPref);
-            CreateWeapon(WeaponRole.Secondary, TestWeaponConfig2.WeaponPref);
+            CreateWeapon(WeaponRole.Primary, inventoryConfig.TestWeaponConfig1.WeaponPref);
+            CreateWeapon(WeaponRole.Secondary, inventoryConfig.TestWeaponConfig2.WeaponPref);
         }
         
         public void Start()
@@ -69,10 +59,10 @@ namespace Inventory
 
         public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weaponPrefab)
         {
-            var scope = playerScope.CreateChildFromPrefab(weaponPrefab);
+            var weaponScope = scope.CreateChildFromPrefab(weaponPrefab);
             
-            var weaponInstance = scope.Container.Resolve<Weapon.Weapon>();
-            var weaponTrans = scope.transform;
+            var weaponInstance = weaponScope.Container.Resolve<Weapon.Weapon>();
+            var weaponTrans = weaponScope.transform;
             var pos = weaponTrans.localPosition;
             weaponTrans.SetParent(parentTransform);
             weaponTrans.localPosition = pos;
@@ -80,7 +70,7 @@ namespace Inventory
             var slot = GetSlot(role);
 
             slot.SetItem(weaponInstance);
-            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(scope.Config.AmmoConfig.ID)));
+            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(weaponScope.Config.AmmoConfig.ID)));
             slot.Disable();
         }
 

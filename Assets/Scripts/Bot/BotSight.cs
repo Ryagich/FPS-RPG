@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -10,26 +11,31 @@ namespace Bot
 {
     public class BotSight : MonoBehaviour, ITickable
     {
-        private IPublisher<BotVisionMessage> botVisionPublisher;
         [SerializeField] private LayerMask obstructionLayers;
         private Transform visionOrigin;
+        
+        private IPublisher<BotVisionMessage> botVisionPublisher;
 
-
-        private List<Collider> targetsInRange = new();
-        private long lastVisibilityCheck = 0;
+        private readonly List<Collider> targetsInRange = new();
+        private readonly long lastVisibilityCheck = 0;
 
         [Inject]
-        public void Construct(IPublisher<BotVisionMessage> botVisionPublisher, [Key("visionOrigin")] Transform visionOrigin)
+        [SuppressMessage("ReSharper", "ParameterHidesMember")]
+        public void Construct
+            (
+                [Key("visionOrigin")] Transform visionOrigin,
+                IPublisher<BotVisionMessage> botVisionPublisher
+            )
         {
-            this.botVisionPublisher = botVisionPublisher;
             this.visionOrigin = visionOrigin;
+            this.botVisionPublisher = botVisionPublisher;
         }
 
 
         private bool IsObstructed(Collider other)
         {
-            Vector3 start = visionOrigin.position;
-            Vector3 end = other.bounds.center;
+            var start = visionOrigin.position;
+            var end = other.bounds.center;
 
             return Physics.Linecast(start, end, obstructionLayers);
         }
@@ -53,7 +59,7 @@ namespace Bot
 
         private void CheckVisibilityOfTargets()
         {
-            for (int i = 0; i < targetsInRange.Count; i++)
+            for (var i = 0; i < targetsInRange.Count; i++)
             {
                 if (IsObstructed(targetsInRange[i]))
                 {
@@ -67,7 +73,7 @@ namespace Bot
 
         public void Tick()
         {
-            long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            var now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             if (now - lastVisibilityCheck < 100)
             {
                 return;

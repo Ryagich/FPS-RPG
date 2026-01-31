@@ -5,6 +5,7 @@ using Input;
 using InteractableScripts;
 using MessagePipe;
 using Messages;
+using Movement;
 using Player.Stats;
 using Sounds;
 using Sounds.Movement;
@@ -12,7 +13,6 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using Weapon;
-using Weapon.Settings;
 
 namespace Player
 {
@@ -21,8 +21,6 @@ namespace Player
         [field: SerializeField] public Transform CameraParentTransform { get; private set; } = null!;
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
         [field: SerializeField] public SoundConfig MovementSoundConfig { get; private set; } = null!;
-        [field: SerializeField] public WeaponConfig TestWeaponConfig1 { get; private set; } = null!;
-        [field: SerializeField] public WeaponConfig TestWeaponConfig2 { get; private set; } = null!;
     
         private CanvasLifetimeScope canvasScope;
 
@@ -34,8 +32,6 @@ namespace Player
             builder.RegisterInstance(CameraParentTransform).Keyed("CameraParentTransform");
             builder.RegisterInstance(ParentTransformForWeapon).Keyed("ParentTransformForWeapon");
             builder.RegisterInstance(MovementSoundConfig).Keyed("MovementSoundConfig");
-            builder.RegisterInstance(TestWeaponConfig1).Keyed("TestWeaponConfig1");
-            builder.RegisterInstance(TestWeaponConfig2).Keyed("TestWeaponConfig2");
             
             builder.Register<PlayerGravity>(Lifetime.Scoped);
             builder.Register<PlayerJump>(Lifetime.Scoped);
@@ -43,6 +39,13 @@ namespace Player
             builder.Register<WeaponProvider>(Lifetime.Scoped);
             builder.Register<CameraShakeOnStep>(Lifetime.Scoped).AsSelf();
             builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
+            builder.Register<IMovementDataProvider>(c =>
+                                                        new CharacterControllerMovementProvider(
+                                                             c.Resolve<CharacterController>(),
+                                                             c.Resolve<Transform>()
+                                                            ),
+                                                    Lifetime.Scoped
+                                                   );
             
             // === MessagePipe ===
             var options = builder.RegisterMessagePipe();
@@ -58,8 +61,6 @@ namespace Player
             builder.RegisterMessageBroker<SwitchFireMode>(options);
             builder.RegisterMessageBroker<InteractableMessage>(options);
             
-            // === InputHandler ===
-            // builder.Register<InputHandler>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
             builder.RegisterBuildCallback(container =>
                                           {
                                               // GlobalMessagePipe.SetProvider(container.AsServiceProvider());
