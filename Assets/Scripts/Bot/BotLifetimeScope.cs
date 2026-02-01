@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using VContainer;
 using VContainer.Unity;
+using Weapon.Providers;
 
 namespace Bot
 {
@@ -35,7 +36,8 @@ namespace Bot
                                                             ),
                                                     Lifetime.Scoped
                                                    );
-            
+            builder.Register<WeaponProvider>(Lifetime.Scoped);
+
             builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterInstance(botGoal).Keyed("botGoal");
             builder.RegisterInstance(visibleCollider).Keyed("collider");

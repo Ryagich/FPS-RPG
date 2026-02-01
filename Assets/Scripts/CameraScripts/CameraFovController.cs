@@ -10,7 +10,7 @@ namespace CameraScripts
     public class CameraFovController : ITickable
     {
         private readonly CameraFovConfig cameraFovConfig;
-        private readonly UnityEngine.Camera сamera;
+        private readonly Camera сamera;
 
         private float defaultFov;
         private float targetFov;
@@ -19,14 +19,14 @@ namespace CameraScripts
         public CameraFovController
             (
                 CameraFovConfig cameraFovConfig,
-                PlayerMovement playerMovement,
+                MoveStates moveStates,
                 [Key("CameraParentTransform")] Transform cameraParentTransform
             )
         {
             this.cameraFovConfig = cameraFovConfig;
-            сamera = cameraParentTransform.GetComponentInChildren<UnityEngine.Camera>();
+            сamera = cameraParentTransform.GetComponentInChildren<Camera>();
 
-            playerMovement.IsSprinting.Subscribe(ChangeRunFov);
+            moveStates.IsSprinting.Subscribe(ChangeRunFov);
 
             defaultFov = сamera.fieldOfView;
             

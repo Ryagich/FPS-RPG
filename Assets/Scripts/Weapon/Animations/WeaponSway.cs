@@ -24,7 +24,8 @@ namespace Weapon.Animations
             (
                 WeaponConfig config,
                 Transform transform,
-                ISubscriber<LookDeltaMessage> lookDeltaMessageSubscriber
+                ISubscriber<LookDeltaMessage> lookDeltaMessageSubscriber,
+                ISubscriber<AimChangedMessage> aimChangedMessageSubscriber
             )
         {
             this.config = config;
@@ -33,6 +34,7 @@ namespace Weapon.Animations
             SetCurrentSettings(false);
                 
             lookDeltaMessageSubscriber.Subscribe(OnLookDeltaChanged);
+            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
 
         private void OnLookDeltaChanged(LookDeltaMessage msg)
@@ -88,7 +90,12 @@ namespace Weapon.Animations
             transform.localRotation *= Quaternion.Euler(currentRotOffset);
         }
         
-        public void SetCurrentSettings(bool isAim)
+        private void SetCurrentSettings(AimChangedMessage msg)
+        {
+            SetCurrentSettings(msg.State);
+        }
+        
+        private void SetCurrentSettings(bool isAim)
         {
             currentSettings = isAim
                             ? config.WeaponAnimationSettings.AimSwaySettings

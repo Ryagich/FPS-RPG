@@ -41,9 +41,18 @@ namespace Messages
         {
             State = state;
         }
-    }   
+    }
+
+    public readonly struct ClickMessage
+    {
+        public readonly bool State;
+
+        public ClickMessage(bool state)
+        {
+            State = state;
+        }
+    }
     
-    public readonly struct ClickMessage { }
     public readonly struct RightClickMessage { }       
     public readonly struct JumpMessage { }
 

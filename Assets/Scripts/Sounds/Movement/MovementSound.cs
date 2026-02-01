@@ -14,6 +14,7 @@ namespace Sounds.Movement
         private readonly MovementSoundConfig distanceToPlayMovementSoundConfig;
         private readonly SoundConfig soundConfig;
         private readonly CameraShakeOnStep cameraShakeOnStep;
+        private readonly MoveStates moveStates;
 
         private readonly Transform transform;
         private readonly PlayerMovement playerMovement;
@@ -22,13 +23,15 @@ namespace Sounds.Movement
         private float distanceAccumulated;
         private Vector3 lastPosition;
 
-        public MovementSound(
+        public MovementSound
+            (
                 MovementSoundConfig distanceToPlayMovementSoundConfig,
                 [Key("MovementSoundConfig")] SoundConfig movementSoundConfig,
                 Transform transform,
                 PlayerMovement playerMovement,
                 CharacterController characterController,
-                CameraShakeOnStep cameraShakeOnStep
+                CameraShakeOnStep cameraShakeOnStep,
+                MoveStates moveStates
             )
         {
             this.distanceToPlayMovementSoundConfig = distanceToPlayMovementSoundConfig;
@@ -38,13 +41,14 @@ namespace Sounds.Movement
             this.playerMovement = playerMovement;
             this.characterController = characterController;
             this.cameraShakeOnStep = cameraShakeOnStep;
+            this.moveStates = moveStates;
 
             lastPosition = transform.position;
         }
 
         public void Tick()
         {
-            if (playerMovement == null || !characterController.isGrounded)
+            if (!characterController.isGrounded)
                 return;
 
             var currentPosition = transform.position;
@@ -107,9 +111,9 @@ namespace Sounds.Movement
 
         private float GetStepDistance()
         {
-            if (playerMovement.IsSprinting.Value)
+            if (moveStates.IsSprinting.Value)
                 return distanceToPlayMovementSoundConfig.SprintStepDistance;
-            if (playerMovement.IsCrouching.Value)
+            if (moveStates.IsCrouching.Value)
                 return distanceToPlayMovementSoundConfig.CrouchStepDistance;
             return distanceToPlayMovementSoundConfig.WalkStepDistance;
         }

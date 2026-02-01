@@ -1,4 +1,6 @@
-﻿using Movement;
+﻿using MessagePipe;
+using Messages;
+using Movement;
 using UnityEngine;
 using VContainer.Unity;
 using Weapon.Settings;
@@ -23,14 +25,17 @@ namespace Weapon.Animations
             (
                 WeaponConfig config,
                 IMovementDataProvider movement,
-                Transform transform
+                Transform transform,
+                ISubscriber<AimChangedMessage> aimChangedMessageSubscriber
             )
         {
             this.config = config;
             this.movement = movement;
             this.transform = transform;
 
-            UseCurrentSettings(false);
+            SetCurrentSettings(false);
+
+            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
 
         public void LateTick()
@@ -78,8 +83,13 @@ namespace Weapon.Animations
             transform.localPosition += jumpPosOff + fallPosOff;
             transform.localRotation *= jumpRotOff * fallRotOff;
         }
-
-        public void UseCurrentSettings(bool isAim)
+        
+        private void SetCurrentSettings(AimChangedMessage msg)
+        {
+            SetCurrentSettings(msg.State);
+        }
+        
+        private void SetCurrentSettings(bool isAim)
         {
             currentSettings = isAim
                 ? config.WeaponAnimationSettings.AimJumpBobbingSettings

@@ -12,7 +12,7 @@ using Sounds.Movement;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using Weapon;
+using Weapon.Providers;
 
 namespace Player
 {
@@ -36,6 +36,7 @@ namespace Player
             builder.Register<PlayerGravity>(Lifetime.Scoped);
             builder.Register<PlayerJump>(Lifetime.Scoped);
             builder.Register<PlayerMovement>(Lifetime.Scoped);
+            builder.Register<MoveStates>(Lifetime.Scoped);
             builder.Register<WeaponProvider>(Lifetime.Scoped);
             builder.Register<CameraShakeOnStep>(Lifetime.Scoped).AsSelf();
             builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
@@ -60,7 +61,8 @@ namespace Player
             builder.RegisterMessageBroker<ReloadingMessage>(options);
             builder.RegisterMessageBroker<SwitchFireMode>(options);
             builder.RegisterMessageBroker<InteractableMessage>(options);
-            
+            builder.RegisterMessageBroker<AimChangedMessage>(options);
+
             builder.RegisterBuildCallback(container =>
                                           {
                                               // GlobalMessagePipe.SetProvider(container.AsServiceProvider());
@@ -84,6 +86,7 @@ namespace Player
             
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
             builder.RegisterEntryPoint<InteractableFounder>().AsSelf();
+            builder.RegisterEntryPoint<InputProvider>().AsSelf();
         }
     }
 }

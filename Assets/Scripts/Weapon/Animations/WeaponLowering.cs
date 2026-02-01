@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using VContainer.Unity;
+using Weapon.Settings;
 
 namespace Weapon.Animations
 {
@@ -10,17 +11,11 @@ namespace Weapon.Animations
         public event Action Lowered;
         public event Action Raised;
 
+        private readonly WeaponConfig config;
         private readonly Transform transform;
 
-        [Header("Lowering Settings")]
         [Tooltip("Опущено вниз")]
         public bool isLowered;
-        [Tooltip("Смещение позиции при опускании")]
-        [HideInInspector] public Vector3 loweredPositionOffset;
-        [Tooltip("Углы Эйлера при опускании")]
-        [HideInInspector] public Vector3 loweredRotationEuler;
-        [Tooltip("Время плавного перехода")]
-        [HideInInspector] public float transitionTime;
 
         /// <summary>Флаг: сейчас идёт анимация опускания</summary>
         public bool isLowering;
@@ -36,9 +31,11 @@ namespace Weapon.Animations
 
         public WeaponLowering
             (
+                WeaponConfig config,
                 Transform transform
             )
         {
+            this.config = config;
             this.transform = transform;
             originalLocalPosition = transform.localPosition;
             originalLocalRotation = transform.localRotation;
@@ -52,11 +49,11 @@ namespace Weapon.Animations
         {
             // 1) плавим blend → target
             var target = isLowered ? 1f : 0f;
-            blend = Mathf.SmoothDamp(blend, target, ref blendVel, transitionTime, Mathf.Infinity, Time.deltaTime);
+            blend = Mathf.SmoothDamp(blend, target, ref blendVel, config.WeaponAnimationSettings.loweredTransitionTime, Mathf.Infinity, Time.deltaTime);
 
             // 2) абсолютная установка трансформа
-            var posOff = loweredPositionOffset * blend;
-            var rotOff = Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(loweredRotationEuler), blend);
+            var posOff = config.WeaponAnimationSettings.loweredPositionOffset * blend;
+            var rotOff = Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(config.WeaponAnimationSettings.loweredRotationEuler), blend);
             transform.localPosition = originalLocalPosition + posOff;
             // ReSharper disable once Unity.InefficientPropertyAccess
             transform.localRotation = originalLocalRotation * rotOff;
@@ -88,8 +85,8 @@ namespace Weapon.Animations
             isRaising = true;
             isLowering = false;
 
-            transform.localPosition = originalLocalPosition + loweredPositionOffset;
-            transform.localRotation = originalLocalRotation * Quaternion.Euler(loweredRotationEuler);
+            transform.localPosition = originalLocalPosition + config.WeaponAnimationSettings.loweredPositionOffset;
+            transform.localRotation = originalLocalRotation * Quaternion.Euler(config.WeaponAnimationSettings.loweredRotationEuler);
         }
 
         /// <summary>Запустить анимацию опускания.</summary>

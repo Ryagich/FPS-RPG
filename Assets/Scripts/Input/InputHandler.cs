@@ -1,10 +1,8 @@
 ﻿using MessagePipe;
 using Messages;
-using Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
-using Weapon;
 using Weapon.Settings;
 
 namespace Input
@@ -13,8 +11,6 @@ namespace Input
     public class InputHandler : IStartable, ITickable
     {
         private readonly InputConfig inputConfig;
-        private readonly WeaponProvider weaponProvider;
-        private readonly PlayerMovement playerMovement;
         private readonly IPublisher<PlayerMoveMessage> playerMovePublisher;
         private readonly IPublisher<LookDeltaMessage> lookDeltaMessagePublisher;
         private readonly IPublisher<JumpMessage> jumpMessagePublisher;
@@ -24,13 +20,12 @@ namespace Input
         private readonly IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher;
         private readonly IPublisher<ReloadingMessage> reloadingMessagePublisher;
         private readonly IPublisher<SwitchFireMode> switchFireModePublisher;
+        private readonly IPublisher<AimChangedMessage> aimChangedMessagePublisher;
         private readonly IPublisher<InteractableMessage> interactableMessagePublisher;
 
         private InputHandler
             (
                 InputConfig inputConfig,
-                WeaponProvider weaponProvider,
-                PlayerMovement playerMovement,
                 IPublisher<PlayerMoveMessage> playerMovePublisher,
                 IPublisher<LookDeltaMessage> lookDeltaMessagePublisher,
                 IPublisher<JumpMessage> jumpMessagePublisher,
@@ -40,12 +35,11 @@ namespace Input
                 IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher,
                 IPublisher<ReloadingMessage> reloadingMessagePublisher,
                 IPublisher<SwitchFireMode> switchFireModePublisher,
+                IPublisher<AimChangedMessage> aimChangedMessagePublisher,
                 IPublisher<InteractableMessage> interactableMessagePublisher 
             )
         {
             this.inputConfig = inputConfig;
-            this.weaponProvider = weaponProvider;
-            this.playerMovement = playerMovement;
             this.playerMovePublisher = playerMovePublisher;
             this.lookDeltaMessagePublisher = lookDeltaMessagePublisher;
             this.jumpMessagePublisher = jumpMessagePublisher;
@@ -55,6 +49,7 @@ namespace Input
             this.switchWeaponMessagePublisher = switchWeaponMessagePublisher;
             this.reloadingMessagePublisher = reloadingMessagePublisher;
             this.switchFireModePublisher = switchFireModePublisher;
+            this.aimChangedMessagePublisher = aimChangedMessagePublisher;
             this.interactableMessagePublisher = interactableMessagePublisher;
         }
 
@@ -70,9 +65,6 @@ namespace Input
             inputConfig.MoveInput.action.canceled += OnMove;
            
             inputConfig.LookInput.action.performed += OnLookDelta;
-
-            // inputConfig.LookInput.action.started += OnLookDelta;
-            // inputConfig.LookInput.action.canceled += OnLookDelta;
             
             inputConfig.JumpInput.action.started += OnJump;
 
@@ -82,9 +74,6 @@ namespace Input
             inputConfig.CrouchInput.action.started += OnStartCrouching;
             inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
             
-            // inputConfig.CrouchInput.action.started += OnStartCrouching;
-            // inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
-          
             inputConfig.FirstWeapon.action.started += SwitchToFirstWeapon;
             inputConfig.SecondWeapon.action.started += SwitchToSecondWeapon;
             
@@ -117,38 +106,22 @@ namespace Input
         //Нужно зарефакторить. Хендлер всегда шлет сообщения. А уже сами классы решают что делать с инфой.
         private void UseActiveItem(InputAction.CallbackContext context)
         {
-            if (inputConfig.SprintInput.action.IsPressed() && weaponProvider.IsSprint())
-                OnCancelSprint();
-            weaponProvider.StartShooting();
+            clickMessagePublisher.Publish(new ClickMessage(true));
         }
         
         private void StopUseActiveItem(InputAction.CallbackContext context)
         {
-            weaponProvider.StopShoot();
-            if (inputConfig.SprintInput.action.IsPressed() && CanRun())
-                OnStartSprint();
+            clickMessagePublisher.Publish(new ClickMessage(false));
         }
-        
+
         private void AimIn(InputAction.CallbackContext context)
         {
-            if (inputConfig.SprintInput.action.IsPressed() && weaponProvider.IsSprint())
-                OnCancelSprint();
-            weaponProvider.AimIn();
+            aimChangedMessagePublisher.Publish(new AimChangedMessage(true));
         }
         
         private void AimOut(InputAction.CallbackContext context)
         {
-            weaponProvider.AimOut();
-            if (inputConfig.SprintInput.action.IsPressed() && CanRun())
-                OnStartSprint();
-        }
-        
-        private bool CanRun()
-        {
-            return !weaponProvider.IsShooting() 
-                && !weaponProvider.IsAiming() 
-                && !weaponProvider.IsReloading() 
-                && !playerMovement.IsCrouching.Value;
+            aimChangedMessagePublisher.Publish(new AimChangedMessage(false));
         }
         
         private void SwitchToFirstWeapon(InputAction.CallbackContext context)

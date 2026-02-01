@@ -2,6 +2,7 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Weapon.Providers;
 using Weapon.Settings;
 
 namespace Weapon.Drop

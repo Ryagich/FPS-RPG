@@ -1340,7 +1340,7 @@ PrefabInstance:
     - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: botGoal
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1792836273}
     - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: parentReference.TypeName
       value: Scopes.GameLifetimeScope

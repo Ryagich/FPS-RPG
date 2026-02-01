@@ -1,7 +1,4 @@
-﻿using MessagePipe;
-using Messages;
-using UniRx;
-using UnityEngine;
+﻿using UnityEngine;
 using Utils;
 using VContainer;
 
@@ -14,18 +11,14 @@ namespace Player
         private readonly Transform playerTransform;
         private readonly Transform cameraParentTransform;
         private readonly CharacterController characterController;
+        private readonly InputProvider inputProvider;
+        private readonly MoveStates moveStates;
 
         private readonly float characterHeight;
         private readonly float cameraDefaultLocalPosition;
-        private Vector2 direction;
         private Vector3 currentVelocity;
         
-        public readonly ReactiveProperty<bool> IsSprinting = new ();
-        public readonly ReactiveProperty<bool> IsCrouching = new ();
-        
         private float currentHeight;
-        private bool isCrouchingInput;
-        private bool isSprintingInput;
 
         public PlayerMovement
             (
@@ -33,48 +26,46 @@ namespace Player
                 Transform playerTransform,
                 [Key("CameraParentTransform")] Transform cameraParentTransform,
                 CharacterController characterController,
-                ISubscriber<PlayerMoveMessage> playerMoveMessageSubscriber,
-                ISubscriber<ChangeSprintStateMessage> changeSprintStateMessageSubscriber,
-                ISubscriber<ChangeCrouchingStateMessage> changeCrouchingStateMessageSubscriber
+                InputProvider inputProvider,
+                MoveStates moveStates
             )
         {
             this.playerMovementConfig = playerMovementConfig;
             this.playerTransform = playerTransform;
             this.cameraParentTransform = cameraParentTransform;
             this.characterController = characterController;
+            this.inputProvider = inputProvider;
+            this.moveStates = moveStates;
 
             characterHeight = characterController.height;
             currentHeight = characterHeight;
             cameraDefaultLocalPosition = cameraParentTransform.localPosition.y;
-            
-            playerMoveMessageSubscriber.Subscribe(OnMove);
-            changeSprintStateMessageSubscriber.Subscribe(OnChangeSprintState);
-            changeCrouchingStateMessageSubscriber.Subscribe(OnChangeCrouchingState);
         }
-
+        
         public Vector3 GetVelocity()
         {
-            IsCrouching.Value = isCrouchingInput ? isCrouchingInput : !CanStandUp();
-            IsSprinting.Value = false;
+            moveStates.IsCrouching.Value = moveStates.IsCrouchingInput ? moveStates.IsCrouchingInput : !CanStandUp();
+            moveStates.IsSprinting.Value = false;
 
             if (!characterController.isGrounded)
                 return currentVelocity * Time.deltaTime;
-            var input = Vector3.ClampMagnitude(playerTransform.forward * direction.y + playerTransform.right * direction.x, 1f);
-            IsSprinting.Value = !isCrouchingInput && isSprintingInput && input.sqrMagnitude > 0.001f;
+            moveStates.Direction = Vector3.ClampMagnitude(playerTransform.forward * moveStates.MoveInput.y 
+                                                        + playerTransform.right * moveStates.MoveInput.x, 1f);
+            moveStates.IsSprinting.Value = !moveStates.IsCrouchingInput && moveStates.IsSprintingInput && inputProvider.CanRun();
 
-            var canSprintForward = !IsCrouching.Value && IsSprinting.Value && direction.y > 0f;
-            var currSpeed = IsCrouching.Value
+            var canSprintForward = !moveStates.IsCrouching.Value && moveStates.IsSprinting.Value && moveStates.MoveInput.y > 0f;
+            var currSpeed = moveStates.IsCrouching.Value
                                 ? GetSpeed(playerMovementConfig.CrouchSpeed)
                                 : canSprintForward
                                     ? playerMovementConfig.SprintSpeed
                                     : GetSpeed(playerMovementConfig.WalkSpeed);
-            var currentAccelerationRate = IsCrouching.Value
+            var currentAccelerationRate = moveStates.IsCrouching.Value
                                               ? playerMovementConfig.CrouchAccelerationRates
                                               : canSprintForward
                                                   ? playerMovementConfig.SprintAccelerationRates
                                                   : playerMovementConfig.WalkAccelerationRates;
-            var targetVelocity = input * currSpeed;
-            var accel = input.sqrMagnitude > 0.001f ? currentAccelerationRate.x : currentAccelerationRate.y;
+            var targetVelocity = moveStates.Direction * currSpeed;
+            var accel = moveStates.Direction.sqrMagnitude > 0.001f ? currentAccelerationRate.x : currentAccelerationRate.y;
             
             currentVelocity = Vector3.MoveTowards(currentVelocity, targetVelocity, accel * Time.deltaTime);
             UpdateCrouch();
@@ -94,10 +85,10 @@ namespace Player
         
         private float GetSpeed(Vector3 speedVariants)
         {
-            var forwardBackSpeed = direction.y > 0f ? speedVariants.x : speedVariants.z;
+            var forwardBackSpeed = moveStates.MoveInput.y > 0f ? speedVariants.x : speedVariants.z;
             var sideSpeed = speedVariants.y;
-            var forwardWeight = Mathf.Abs(direction.y);
-            var sideWeight = Mathf.Abs(direction.x);
+            var forwardWeight = Mathf.Abs(moveStates.MoveInput.y);
+            var sideWeight = Mathf.Abs(moveStates.MoveInput.x);
             var totalWeight = forwardWeight + sideWeight;
             var currSpeed =
                 totalWeight > 0f
@@ -109,8 +100,8 @@ namespace Player
         private void UpdateCrouch()
         {
             var localPos = cameraParentTransform.localPosition;
-            var targetHeight = IsCrouching.Value ? playerMovementConfig.CrouchingHeight : characterHeight;
-            var targetCameraY = IsCrouching.Value ? playerMovementConfig.CameraPositionInCrouching : cameraDefaultLocalPosition;
+            var targetHeight = moveStates.IsCrouching.Value ? playerMovementConfig.CrouchingHeight : characterHeight;
+            var targetCameraY = moveStates.IsCrouching.Value ? playerMovementConfig.CameraPositionInCrouching : cameraDefaultLocalPosition;
             
             currentHeight = Mathf.MoveTowards(currentHeight, targetHeight, playerMovementConfig.CrouchChangedSpeed * Time.deltaTime );
             characterController.height = currentHeight;
@@ -119,21 +110,6 @@ namespace Player
                 localPos.WithY(Mathf.MoveTowards(cameraParentTransform.localPosition.y,
                                                  targetCameraY,
                                                  playerMovementConfig.CrouchChangedSpeed * Time.deltaTime));
-        }
-        
-        private void OnMove(PlayerMoveMessage msg)
-        {
-            direction = msg.Direction;
-        }
-
-        private void OnChangeSprintState(ChangeSprintStateMessage msg)
-        {
-            isSprintingInput = msg.State;
-        }
-        
-        private void OnChangeCrouchingState(ChangeCrouchingStateMessage msg)
-        {
-            isCrouchingInput = msg.State;
         }
     }
 }

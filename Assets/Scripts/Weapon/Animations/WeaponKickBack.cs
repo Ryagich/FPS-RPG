@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using MessagePipe;
+using Messages;
 using UnityEngine;
 using VContainer.Unity;
 using Weapon.Attachments;
@@ -23,7 +25,8 @@ namespace Weapon.Animations
             (
                 WeaponConfig config,
                 Transform transform,
-                Weapon weapon
+                Weapon weapon,
+                ISubscriber<AimChangedMessage> aimChangedMessageSubscriber
             )
         {
             this.transform = transform;
@@ -32,6 +35,7 @@ namespace Weapon.Animations
             SetCurrentSettings(false);
             
             weapon.RequestRecoil += ApplyKickback;
+            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
 
         public void LateTick()
@@ -64,7 +68,12 @@ namespace Weapon.Animations
             rotationOffset *= recoilRot;
         }
         
-        public void SetCurrentSettings(bool newAimState)
+        private void SetCurrentSettings(AimChangedMessage msg)
+        {
+            SetCurrentSettings(msg.State);
+        }
+        
+        private void SetCurrentSettings(bool newAimState)
         {
             isAim = newAimState;
             currentSettings = newAimState
