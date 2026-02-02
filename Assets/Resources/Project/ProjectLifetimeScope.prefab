@@ -57,4 +57,5 @@ MonoBehaviour:
   <InventoryConfig>k__BackingField: {fileID: 11400000, guid: 20108ccba74d64a418d796d99c78814d, type: 2}
   <CanvasConfig>k__BackingField: {fileID: 11400000, guid: 5a8fd0a091023704690ebc3b9aa74b89, type: 2}
   <InteractableConfig>k__BackingField: {fileID: 11400000, guid: d9b3543a838e1f04090a67faa60879eb, type: 2}
+  <StatsConfig>k__BackingField: {fileID: 11400000, guid: 321df875f7a8b3243b54c05aa5a4fab2, type: 2}
   <BotSettings>k__BackingField: {fileID: 11400000, guid: 6e6c27ac4b461d97e9d0745dc6fb5e74, type: 2}

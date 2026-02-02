@@ -90,6 +90,32 @@ namespace Inventory
             return Slots[id];
         }
 
+        public void DropWeapon()
+        {
+            var slot = GetSlot(((Weapon.Weapon)CurrentSlot.Item).Config.Role);
+            if (slot.Item != null)
+            {
+                var itemObjTransform = slot.Item.GameObject.transform;
+                var dropItemPrefab = slot.Item.GetDropPrefab();
+                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
+                Object.Destroy(itemObjTransform.gameObject);
+                slot.SetItem(null);
+            }
+        }
+
+        public void ClearSlots()
+        {
+            foreach (var slot in Slots)
+            {
+                if (slot.Item != null)
+                {
+                    var itemObjTransform = slot.Item.GameObject.transform;
+                    Object.Destroy(itemObjTransform.gameObject);
+                    slot.SetItem(null);
+                }
+            }
+        }
+        
         public void ChangeWeapon(WeaponConfig weaponConfig)
         {
             var slot = GetSlot(weaponConfig.Role);

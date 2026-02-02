@@ -1,6 +1,7 @@
 using MessagePipe;
 using Messages;
 using Movement;
+using Player.Stats;
 using UnityEngine;
 using UnityEngine.AI;
 using VContainer;
@@ -15,7 +16,6 @@ namespace Bot
         [SerializeField] private Transform botGoal;
         [SerializeField] private Transform visionOrigin;
         [SerializeField] private Transform spine;
-        [SerializeField] private Collider visibleCollider;
         [SerializeField] private Transform hips;
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
 
@@ -25,7 +25,8 @@ namespace Bot
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<BotVisionMessage>(options);
             builder.RegisterMessageBroker<LookDeltaMessage>(options);
-
+            builder.RegisterMessageBroker<DeathMessage>(options);
+            
             var agent = GetComponent<NavMeshAgent>();
             builder.RegisterInstance(agent).AsSelf();
 
@@ -37,10 +38,10 @@ namespace Bot
                                                     Lifetime.Scoped
                                                    );
             builder.Register<WeaponProvider>(Lifetime.Scoped);
+            builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
 
             builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterInstance(botGoal).Keyed("botGoal");
-            builder.RegisterInstance(visibleCollider).Keyed("collider");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
             builder.RegisterInstance(spine).Keyed("spine");
             builder.RegisterInstance(hips).Keyed("hips");
@@ -52,6 +53,7 @@ namespace Bot
             builder.RegisterEntryPoint<BotAggro>().AsSelf();
 
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
+            builder.RegisterEntryPoint<BotDeath>().AsSelf();
         }
     }
 }

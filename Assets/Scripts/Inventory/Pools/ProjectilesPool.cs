@@ -2,6 +2,7 @@
 using UnityEngine.Pool;
 using VContainer;
 using Weapon;
+using Weapon.Settings;
 
 namespace Inventory.Pools
 {
@@ -52,7 +53,7 @@ namespace Inventory.Pools
             return projectile;
         }
         
-        public Projectile Get(Vector3 position, Quaternion rotation)
+        public Projectile Get(Vector3 position, Quaternion rotation, WeaponConfig weaponConfig)
         {
             var projectile = ProjectilePool.Get();
             projectile.projectilesPool = this;
@@ -66,6 +67,7 @@ namespace Inventory.Pools
             
             projectile.GetComponent<Collider>().enabled = true;
             projectile.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
+            projectile.WeaponConfig = weaponConfig;
             projectile.CanInteract = true;
 
             return projectile;

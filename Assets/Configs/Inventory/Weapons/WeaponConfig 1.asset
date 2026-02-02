@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ID>k__BackingField: Weapon ID
   <DamageSettings>k__BackingField:
-    <Damage>k__BackingField: 10
+    <Damage>k__BackingField: 50
     <DistanceChanged>k__BackingField:
       serializedVersion: 2
       m_Curve:

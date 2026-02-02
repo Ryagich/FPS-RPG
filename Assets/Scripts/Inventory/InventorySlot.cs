@@ -36,8 +36,6 @@ namespace Inventory
 
         public void SetItem(IItem item)
         {
-            if (item is null)
-                return;
             var was = Item;
             Item = item;
             ItemChanged?.Invoke(was, Item);

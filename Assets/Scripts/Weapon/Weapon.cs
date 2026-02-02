@@ -239,7 +239,7 @@ namespace Weapon
             // создаем пулю
             if (interval >= tracerInterval)
             {
-                var p = projectilesPool.Get(pos, direction);
+                var p = projectilesPool.Get(pos, direction, Config);
                 var rb = p.GetComponent<Rigidbody>();
                 rb.velocity = finalDir * Config.ProjectileSpeed;
                 p.Init(impactPools, pos);

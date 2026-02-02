@@ -3,13 +3,18 @@ using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using Inventory.Pools;
 using Inventory.Pools.Impact;
+using Player.Stats;
 using UnityEngine;
+using VContainer.Unity;
+using VContainer;
+using Weapon.Settings;
 
 namespace Weapon
 {
     public class Projectile : MonoBehaviour
     {
         [HideInInspector] public bool CanInteract;
+        [HideInInspector] public WeaponConfig WeaponConfig;
         [SerializeField, Min(.0f)] private float _timeToDeath = 2.0f;
         [SerializeField, Min(.0f)] private float distanceToUseShotPointRotation = .5f;
         [SerializeField, Min(.0f)] private float trailTime = .2f;
@@ -78,6 +83,14 @@ namespace Weapon
                           : Quaternion.LookRotation(collision.contacts[0].normal);
             impactPools.Get(collision.gameObject.tag ,collision.contacts[0].point, direction);
 
+            var targetScope = collision.gameObject.GetComponentInParent<LifetimeScope>();
+
+            if (targetScope)
+            {
+                var statsController = targetScope.Container.Resolve<StatsController>();
+                statsController.TakeDamage(WeaponConfig.DamageSettings.Damage);
+            }
+            
             projectilesPool.Release(this);
         }
         

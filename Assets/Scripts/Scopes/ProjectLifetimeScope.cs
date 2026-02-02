@@ -7,6 +7,7 @@ using InteractableScripts;
 using Inventory;
 using Inventory.Ammo;
 using Player;
+using Player.Stats;
 using Sounds;
 using Sounds.Movement;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace Scopes
         [field: SerializeField] public InventoryConfig InventoryConfig { get; private set; } = null!;
         [field: SerializeField] public CanvasConfig CanvasConfig { get; private set; } = null!;
         [field: SerializeField] public InteractableConfig InteractableConfig { get; private set; } = null!;
+        [field: SerializeField] public StatsConfig StatsConfig { get; private set; } = null!;
         [field: SerializeField] public BotSettings BotSettings {get; private set;} = null!;
         
         protected override void Configure(IContainerBuilder builder)
@@ -39,6 +41,7 @@ namespace Scopes
             builder.RegisterInstance(InventoryConfig).AsSelf();
             builder.RegisterInstance(CanvasConfig).AsSelf();
             builder.RegisterInstance(InteractableConfig).AsSelf();
+            builder.RegisterInstance(StatsConfig).AsSelf();
             builder.RegisterInstance(BotSettings).AsSelf();
             
             builder.Register<AmmoStorage>(Lifetime.Singleton).AsSelf();

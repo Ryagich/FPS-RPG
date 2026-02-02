@@ -1341,10 +1341,6 @@ PrefabInstance:
       propertyPath: botGoal
       value: 
       objectReference: {fileID: 1792836273}
-    - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
-      propertyPath: parentReference.TypeName
-      value: Scopes.GameLifetimeScope
-      objectReference: {fileID: 0}
     - target: {fileID: 2389522154585707933, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.26212358
@@ -1388,10 +1384,6 @@ PrefabInstance:
     - target: {fileID: 7937525084519919767, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_Name
       value: Bot
-      objectReference: {fileID: 0}
-    - target: {fileID: 7937525084519919767, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
