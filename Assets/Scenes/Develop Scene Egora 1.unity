@@ -1341,6 +1341,10 @@ PrefabInstance:
       propertyPath: botGoal
       value: 
       objectReference: {fileID: 1792836273}
+    - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 1469229094}
     - target: {fileID: 2389522154585707933, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.26212358
@@ -1381,6 +1385,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7789803627711000127, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 2c61d80169e000541b1894f2dd30b07c, type: 2}
     - target: {fileID: 7937525084519919767, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
       propertyPath: m_Name
       value: Bot
@@ -2099,6 +2107,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &1469229094 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 7789803627711000127, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+  m_PrefabInstance: {fileID: 1073645755}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1561382953
 GameObject:
   m_ObjectHideFlags: 0

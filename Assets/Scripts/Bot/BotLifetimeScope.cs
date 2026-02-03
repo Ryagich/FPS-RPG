@@ -17,6 +17,8 @@ namespace Bot
         [SerializeField] private Transform visionOrigin;
         [SerializeField] private Transform spine;
         [SerializeField] private Transform hips;
+        [SerializeField] private Animator animator;
+
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
 
         protected override void Configure(IContainerBuilder builder)
@@ -46,7 +48,8 @@ namespace Bot
             builder.RegisterInstance(spine).Keyed("spine");
             builder.RegisterInstance(hips).Keyed("hips");
             builder.RegisterInstance(ParentTransformForWeapon).Keyed("ParentTransformForWeapon");
-
+            builder.RegisterInstance(animator);
+           
             builder.RegisterComponent(botSight).AsImplementedInterfaces();
             
             builder.RegisterEntryPoint<BotController>().AsSelf();

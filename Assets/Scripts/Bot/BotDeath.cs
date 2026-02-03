@@ -12,6 +12,7 @@ namespace Bot
     {
         private readonly LifetimeScope lifetimeScope;
         private readonly NavMeshAgent navMeshAgent;
+        private readonly Animator animator;
         private readonly Inventory.Inventory inventory;
         private readonly Transform transform;
 
@@ -19,6 +20,7 @@ namespace Bot
             (
                 LifetimeScope lifetimeScope,
                 NavMeshAgent navMeshAgent,
+                Animator animator,
                 Inventory.Inventory inventory,
                 [Key("self")] Transform transform,
                 ISubscriber<DeathMessage> deathMessageSubscribe
@@ -26,6 +28,7 @@ namespace Bot
         {
             this.lifetimeScope = lifetimeScope;
             this.navMeshAgent = navMeshAgent;
+            this.animator = animator;
             this.inventory = inventory;
             this.transform = transform;
             deathMessageSubscribe.Subscribe(OnDeath);
@@ -37,8 +40,11 @@ namespace Bot
             inventory.ClearSlots();
             lifetimeScope.DisposeCore();
             Object.Destroy(lifetimeScope);
+            Object.Destroy(navMeshAgent);
+            Object.Destroy(animator);
+
             RemoveAllForces();
-            navMeshAgent.enabled = false;
+            // navMeshAgent.enabled = false;
         }
         
         private void RemoveAllForces()
