@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MessagePipe;
-using Messages;
 using UnityEngine;
 using VContainer.Unity;
 using YG;
@@ -13,12 +11,11 @@ namespace Localization
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Bootloader : IStartable
     {
-        private readonly IPublisher<TranslationStateChangedMessage> translationStateChangedMessagePublisher;
-        private bool initialized;
+        private readonly BootCompletion bootCompletion;
 
-        public Bootloader(IPublisher<TranslationStateChangedMessage> translationStateChangedMessagePublisher)
+        public Bootloader(BootCompletion bootCompletion)
         {
-            this.translationStateChangedMessagePublisher = translationStateChangedMessagePublisher;
+            this.bootCompletion = bootCompletion;
         }
         
         public async void Start()
@@ -29,32 +26,17 @@ namespace Localization
         public async UniTask StartAsync(CancellationToken cancellation = default)
         {
             Debug.Log($"Bootloader starting: YG2Enabled={YG2.isSDKEnabled}");
-            initialized = YG2.isSDKEnabled;
-            
-            YG2.onGetSDKData += () =>
-                                {
-                                    Debug.Log($"SDK data loaded {DateTimeOffset.UtcNow} : {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
-                                    Debug.Log($"Configuring sentry: UserId='{YG2.player.id}', Username='{YG2.player.name}'");
-                                    initialized = true;
-                                };
-            
-        
-            Debug.Log("Waiting for SDK data");
-            while (!initialized)
-            {
-                initialized = YG2.isSDKEnabled;
-                await UniTask.DelayFrame(1, cancellationToken: cancellation);
-            }
-            
-            Debug.Log("Consider SDK initialized");
+            await YG2Awaiter.WaitForSDKDataAsync();
+
             YG2.InitMetrica();
-            
             YG2.GetAuth();
             YG2.GetLanguage();
             Debug.Log($"Configuring language: '{YG2.lang}'");
             await LocalizationHelper.InvalidateAsync(YG2.lang);
-            translationStateChangedMessagePublisher.Publish(new TranslationStateChangedMessage(true));
             YGInsides.LoadProgress();
+            YG2.GameReadyAPI();
+
+            bootCompletion.Signal();
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Inventory.Pools
             casing.transform.SetPositionAndRotation(position, rotation);
 
             var rb = casing.GetComponent<Rigidbody>();
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
             // Конус вылета

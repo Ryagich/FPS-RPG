@@ -76,7 +76,7 @@ namespace Inventory.Pools
         public void Release(Projectile projectile)
         {
             var rb = projectile.GetComponent<Rigidbody>();
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.constraints = RigidbodyConstraints.FreezeAll;
             projectile.GetComponent<Collider>().enabled = false;
             projectile.gameObject.SetActive(false);

@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: 
+    TypeName: Scopes.GameLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
   <WeaponConfig>k__BackingField: {fileID: 11400000, guid: 05ead379a11090245b9002c096ff3083, type: 2}

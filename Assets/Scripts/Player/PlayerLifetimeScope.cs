@@ -47,22 +47,12 @@ namespace Player
                                                             ),
                                                     Lifetime.Scoped
                                                    );
-            
-            // === MessagePipe ===
-            var options = builder.RegisterMessagePipe();
-            builder.RegisterMessageBroker<PlayerMoveMessage>(options);
-            builder.RegisterMessageBroker<LookDeltaMessage>(options);
-            builder.RegisterMessageBroker<ClickMessage>(options);
-            builder.RegisterMessageBroker<RightClickMessage>(options);
-            builder.RegisterMessageBroker<JumpMessage>(options);
-            builder.RegisterMessageBroker<ChangeSprintStateMessage>(options);
-            builder.RegisterMessageBroker<ChangeCrouchingStateMessage>(options);
-            builder.RegisterMessageBroker<SwitchWeaponMessage>(options);
-            builder.RegisterMessageBroker<ReloadingMessage>(options);
-            builder.RegisterMessageBroker<SwitchFireMode>(options);
-            builder.RegisterMessageBroker<InteractableMessage>(options);
-            builder.RegisterMessageBroker<AimChangedMessage>(options);
 
+            // Character death is local to this player scope; input messages are inherited
+            // from the parent GameLifetimeScope.
+            var options = builder.RegisterMessagePipe();
+            builder.RegisterMessageBroker<DeathMessage>(options);
+            
             builder.RegisterBuildCallback(container =>
                                           {
                                               // GlobalMessagePipe.SetProvider(container.AsServiceProvider());

@@ -241,7 +241,7 @@ namespace Weapon
             {
                 var p = projectilesPool.Get(pos, direction, Config);
                 var rb = p.GetComponent<Rigidbody>();
-                rb.velocity = finalDir * Config.ProjectileSpeed;
+                rb.linearVelocity = finalDir * Config.ProjectileSpeed;
                 p.Init(impactPools, pos);
                 interval = 0;
             }

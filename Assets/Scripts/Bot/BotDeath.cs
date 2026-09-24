@@ -52,7 +52,7 @@ namespace Bot
             foreach (var member in transform.GetComponentsInChildren<Rigidbody>())
             {
                 member.isKinematic = false;
-                member.velocity = Vector3.zero;
+                member.linearVelocity = Vector3.zero;
             }
         }
         

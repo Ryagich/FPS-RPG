@@ -5,7 +5,7 @@ using Gravity;
 using Input;
 using InteractableScripts;
 using Inventory;
-using Inventory.Ammo;
+using Localization;
 using Player;
 using Player.Stats;
 using Sounds;
@@ -18,6 +18,8 @@ namespace Scopes
 {
     public class ProjectLifetimeScope : LifetimeScope
     {
+        public static ProjectLifetimeScope Instance { get; private set; }
+
         [field: SerializeField] public InputConfig InputConfig { get; private set; } = null!;
         [field: SerializeField] public PlayerMovementConfig PlayerMovementConfig { get; private set; } = null!;
         [field: SerializeField] public GravityConfig GravityConfig { get; private set; } = null!;
@@ -28,7 +30,29 @@ namespace Scopes
         [field: SerializeField] public CanvasConfig CanvasConfig { get; private set; } = null!;
         [field: SerializeField] public InteractableConfig InteractableConfig { get; private set; } = null!;
         [field: SerializeField] public StatsConfig StatsConfig { get; private set; } = null!;
-        [field: SerializeField] public BotSettings BotSettings {get; private set;} = null!;
+
+        protected override void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            base.Awake();
+        }
+
+        protected override void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            base.OnDestroy();
+        }
         
         protected override void Configure(IContainerBuilder builder)
         {
@@ -42,11 +66,10 @@ namespace Scopes
             builder.RegisterInstance(CanvasConfig).AsSelf();
             builder.RegisterInstance(InteractableConfig).AsSelf();
             builder.RegisterInstance(StatsConfig).AsSelf();
-            builder.RegisterInstance(BotSettings).AsSelf();
             
-            builder.Register<AmmoStorage>(Lifetime.Singleton).AsSelf();
+            builder.Register<BootCompletion>(Lifetime.Singleton).AsSelf();
             
-            builder.RegisterEntryPoint<ProjectInitializer>().AsSelf();
+            builder.RegisterEntryPoint<Bootloader>().AsSelf();
         }
     }
 }

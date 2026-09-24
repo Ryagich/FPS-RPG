@@ -26,7 +26,6 @@ namespace Bot
             // === MessagePipe ===
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<BotVisionMessage>(options);
-            builder.RegisterMessageBroker<LookDeltaMessage>(options);
             builder.RegisterMessageBroker<DeathMessage>(options);
             
             var agent = GetComponent<NavMeshAgent>();
@@ -52,9 +51,6 @@ namespace Bot
            
             builder.RegisterComponent(botSight).AsImplementedInterfaces();
             
-            builder.RegisterEntryPoint<BotController>().AsSelf();
-            builder.RegisterEntryPoint<BotAggro>().AsSelf();
-
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
             builder.RegisterEntryPoint<BotDeath>().AsSelf();
         }
