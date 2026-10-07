@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using VContainer;
+using System.Collections.Generic;
 using MessagePipe;
 using Messages;
 using UniRx;
@@ -18,7 +19,7 @@ namespace Sounds
         private readonly IObjectPool<AudioSource> sourcePool;
         private readonly float despawnTimer = 2.0f;
 
-        private readonly GameObject parent;
+        private readonly Transform parent;
         private readonly CompositeDisposable disposables = new();
 
         private readonly List<ActiveSound> activeSounds = new();
@@ -32,7 +33,8 @@ namespace Sounds
         private SoundsManager
         (
             SoundsConfig soundsConfig,
-            ISubscriber<PlaySoundMessage> playSoundSubscriber
+            ISubscriber<PlaySoundMessage> playSoundSubscriber,
+            [Key("SoundsParent")] Transform parent
         )
         {
             this.soundsConfig = soundsConfig;
@@ -46,7 +48,7 @@ namespace Sounds
                                                      200,
                                                      2000
                                                     );
-            parent = new GameObject("Sounds Parent");
+            this.parent = parent;
             playSoundSubscriber
                 .Subscribe(PlaySound)
                 .AddTo(disposables);
@@ -91,7 +93,7 @@ namespace Sounds
             var trans = source.transform;
 
             trans.position = position;
-            trans.SetParent(soundParent ? soundParent : parent.transform);
+            trans.SetParent(soundParent ? soundParent : parent);
 
             source.spatialBlend = settings.isUISound ? 0 : 1;
             source.volume = Random.Range(settings.volume.x, settings.volume.y);
@@ -110,14 +112,14 @@ namespace Sounds
         }
 
         private AudioSource Create() =>
-            Object.Instantiate(soundsConfig.AudioSourcePrefab);
+            Object.Instantiate(soundsConfig.AudioSourcePrefab, parent);
 
         private void OnGet(AudioSource source) { }
 
         private void OnRelease(AudioSource source)
         {
             source.Stop();
-            source.transform.SetParent(parent.transform);
+            source.transform.SetParent(parent);
         }
 
         private void DestroySource(AudioSource source)

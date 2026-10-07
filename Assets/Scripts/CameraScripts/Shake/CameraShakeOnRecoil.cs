@@ -1,53 +1,29 @@
-﻿using Inventory;
+﻿using System;
 using MessagePipe;
 using Messages;
 using UnityEngine;
 using VContainer.Unity;
-using Weapon.Settings;
 
 namespace CameraScripts.Shake
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public sealed class CameraShakeOnRecoil : IStartable
+    public sealed class CameraShakeOnRecoil : IStartable, IDisposable
     {
-        private readonly CameraShaker cameraShaker;
-        private ShakeSettings settings;
+        private readonly IDisposable subscription;
 
-        public CameraShakeOnRecoil(
-                Inventory.Inventory inventory,
-                CameraShaker cameraShaker,
-                ISubscriber<RecoilMessage> recoilSubscriber
-            )
+        public CameraShakeOnRecoil(CameraShaker shaker, ISubscriber<RecoilMessage> recoil)
         {
-            this.cameraShaker = cameraShaker;
-
-            inventory.SlotChanged += OnSlotChanged;
-            if (inventory.CurrentSlot != null)
-                settings = ((Weapon.Weapon)inventory.CurrentSlot.Item).Config.ShakeSettings;
-
-            recoilSubscriber.Subscribe(OnRecoil);
-        }
-
-        private void OnSlotChanged(InventorySlot was, InventorySlot now)
-        {
-            settings = ((Weapon.Weapon)now.Item).Config.ShakeSettings;
-        }
-
-        private void OnRecoil(RecoilMessage msg)
-        {
-            if (settings == null)
-                return;
-
-            var power = Mathf.Clamp(msg.Recoil.magnitude, 0f, settings.maxShakePower);
-
-            cameraShaker.AddNoiseShake(
-                                       duration: settings.duration,
-                                       amplitude: settings.amplitude * power,
-                                       frequency: settings.frequency,
-                                       falloff: settings.falloffCurve
-                                      );
+            subscription = recoil.Subscribe(message =>
+            {
+                var settings = message.ShakeSettings;
+                if (settings == null)
+                    return;
+                var power = Mathf.Clamp(message.Recoil.magnitude, 0f, settings.maxShakePower);
+                shaker.AddNoiseShake(settings.duration, settings.amplitude * power,
+                    settings.frequency, settings.falloffCurve);
+            });
         }
         
         public void Start() { }
+        public void Dispose() => subscription.Dispose();
     }
 }

@@ -1,38 +1,34 @@
-﻿using InteractableScripts;
+using System;
+using InteractableScripts;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 using Weapon.Providers;
 using Weapon.Settings;
+using Object = UnityEngine.Object;
 
 namespace Weapon.Drop
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class WeaponAdderInInventory : IStartable
+    public sealed class WeaponAdderInInventory : IStartable, IDisposable
     {
-        private readonly WeaponConfig weaponConfig;
+        private readonly WeaponConfig config;
         private readonly GameObject gameObject;
+        private readonly Interactable interactable;
 
-        public WeaponAdderInInventory
-            (
-                WeaponConfig weaponConfig,
-                Interactable interactable,
-                GameObject gameObject
-            )
+        public WeaponAdderInInventory(WeaponConfig config, Interactable interactable, GameObject gameObject)
         {
-            this.weaponConfig = weaponConfig;
+            this.config = config;
             this.gameObject = gameObject;
-            interactable.Interacted += AddWeaponInInventory;
+            this.interactable = interactable;
+            interactable.Interacted += AddWeapon;
         }
 
-        private void AddWeaponInInventory(LifetimeScope scope)
+        private void AddWeapon(WeaponProvider actor)
         {
-            var weaponProvider = scope.Container.Resolve<WeaponProvider>();
-
-            weaponProvider.TakeNewWeapon(weaponConfig);
+            actor.TakeNewWeapon(config);
             Object.Destroy(gameObject);
         }
 
         public void Start() { }
+        public void Dispose() => interactable.Interacted -= AddWeapon;
     }
 }

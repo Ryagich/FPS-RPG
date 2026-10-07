@@ -1,4 +1,5 @@
-﻿using MessagePipe;
+﻿using System;
+using MessagePipe;
 using Messages;
 using Movement;
 using UnityEngine;
@@ -8,10 +9,11 @@ using Weapon.Settings;
 namespace Weapon.Animations
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class WeaponJumpBobbing : ILateTickable
+    public class WeaponJumpBobbing : ILateTickable, IDisposable
     {
         private readonly Transform transform;
         private readonly IMovementDataProvider movement;
+        private readonly IDisposable subscriptions;
         private readonly WeaponConfig config;
 
         private float jumpBlend;
@@ -35,11 +37,13 @@ namespace Weapon.Animations
 
             SetCurrentSettings(false);
 
-            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
+            subscriptions = aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
 
         public void LateTick()
         {
+            if (!transform.gameObject.activeInHierarchy)
+                return;
             // 1) Вертикальная скорость (универсально)
             var velY = movement.Velocity.y;
 
@@ -84,6 +88,8 @@ namespace Weapon.Animations
             transform.localRotation *= jumpRotOff * fallRotOff;
         }
         
+        public void Dispose() => subscriptions.Dispose();
+
         private void SetCurrentSettings(AimChangedMessage msg)
         {
             SetCurrentSettings(msg.IsAiming);

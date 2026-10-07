@@ -1,5 +1,7 @@
-﻿using System.Linq;
+using VContainer;
+using System.Linq;
 using UnityEngine;
+using VContainer.Unity;
 using Weapon.Settings;
 
 namespace Weapon.Attachments
@@ -8,7 +10,7 @@ namespace Weapon.Attachments
     public class AttachmentsController
     {
         private readonly WeaponConfig weaponConfig;
-        private readonly Transform parent;
+        private readonly LifetimeScope scope;
         
         public Scope Scope = null!;
         public Grip Grip = null!;
@@ -18,11 +20,11 @@ namespace Weapon.Attachments
         public AttachmentsController
             (
                 WeaponConfig weaponConfig,
-                Transform parent
+                [Key("WeaponScope")] LifetimeScope scope
             )
         {
             this.weaponConfig = weaponConfig;
-            this.parent = parent;
+            this.scope = scope;
         }
         
         public void UpdateAttachments()
@@ -68,7 +70,7 @@ namespace Weapon.Attachments
 
         public void ChangeScopeState(bool state)
         {
-            if (Scope)
+            if (Scope != null)
             {
                 if (Scope.ScopeCamera)
                 {
@@ -79,46 +81,50 @@ namespace Weapon.Attachments
         
         public void Clear()
         {
-            if (Scope)
-                Object.Destroy(Scope.gameObject);
-            if (Grip)
-                Object.Destroy(Grip.gameObject);
+            if (Scope != null)
+                Object.Destroy(Scope.GameObject);
+            if (Grip != null)
+                Object.Destroy(Grip.GameObject);
             if (Magazine)
                 Object.Destroy(Magazine.gameObject);
-            if (Muzzle)
-                Object.Destroy(Muzzle.gameObject);
+            if (Muzzle != null)
+                Object.Destroy(Muzzle.GameObject);
+            Scope = null;
+            Grip = null;
+            Magazine = null;
+            Muzzle = null;
         }
 
         private void InstantiateMagazine(AttachmentInfo attInfo)
         {
             if (Magazine)
                 Object.Destroy(Magazine.gameObject);
-            Magazine = Object.Instantiate(attInfo.BaseInfo.Pref, parent);
+            Magazine = Object.Instantiate(attInfo.BaseInfo.Pref, scope.transform);
             Magazine.transform.localPosition = attInfo.Offset;
         }
 
         private void InstantiateMuzzle(AttachmentInfo attInfo)
         {
-            if (Muzzle)
-                Object.Destroy(Muzzle.gameObject);
-            Muzzle = Object.Instantiate(attInfo.BaseInfo.Pref, parent).GetComponent<Muzzle>();
-            Muzzle.transform.localPosition = attInfo.Offset;
+            if (Muzzle != null)
+                Object.Destroy(Muzzle.GameObject);
+            Muzzle = (Muzzle)scope.CreateChildFromPrefab(attInfo.BaseInfo.EntityPrefab).Instance;
+            Muzzle.Transform.localPosition = attInfo.Offset;
         }
 
         private void InstantiateGrip(AttachmentInfo attInfo)
         {
-            if (Grip)
-                Object.Destroy(Grip.gameObject);
-            Grip = Object.Instantiate(attInfo.BaseInfo.Pref, parent).GetComponent<Grip>();
-            Grip.transform.localPosition = attInfo.Offset;
+            if (Grip != null)
+                Object.Destroy(Grip.GameObject);
+            Grip = (Grip)scope.CreateChildFromPrefab(attInfo.BaseInfo.EntityPrefab).Instance;
+            Grip.Transform.localPosition = attInfo.Offset;
         }
         
         private void InstantiateScope(AttachmentInfo attInfo)
         {
-            if (Scope)
-                Object.Destroy(Scope.gameObject);
-            Scope = Object.Instantiate(attInfo.BaseInfo.Pref, parent).GetComponent<Scope>();
-            Scope.transform.localPosition = attInfo.Offset;
+            if (Scope != null)
+                Object.Destroy(Scope.GameObject);
+            Scope = (Scope)scope.CreateChildFromPrefab(attInfo.BaseInfo.EntityPrefab).Instance;
+            Scope.Transform.localPosition = attInfo.Offset;
         }
     }
 }

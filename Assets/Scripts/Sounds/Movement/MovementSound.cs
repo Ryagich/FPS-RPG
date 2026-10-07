@@ -1,9 +1,10 @@
+using VContainer;
 ﻿using CameraScripts.Shake;
+using Characters;
 using MessagePipe;
 using Messages;
 using Player;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 
 namespace Sounds.Movement
@@ -14,10 +15,9 @@ namespace Sounds.Movement
         private readonly MovementSoundConfig distanceToPlayMovementSoundConfig;
         private readonly SoundConfig soundConfig;
         private readonly CameraShakeOnStep cameraShakeOnStep;
-        private readonly MoveStates moveStates;
+        private readonly CharacterState moveStates;
 
         private readonly Transform transform;
-        private readonly PlayerMovement playerMovement;
         private readonly CharacterController characterController;
 
         private float distanceAccumulated;
@@ -28,17 +28,15 @@ namespace Sounds.Movement
                 MovementSoundConfig distanceToPlayMovementSoundConfig,
                 [Key("MovementSoundConfig")] SoundConfig movementSoundConfig,
                 Transform transform,
-                PlayerMovement playerMovement,
                 CharacterController characterController,
                 CameraShakeOnStep cameraShakeOnStep,
-                MoveStates moveStates
+                CharacterState moveStates
             )
         {
             this.distanceToPlayMovementSoundConfig = distanceToPlayMovementSoundConfig;
             soundConfig = movementSoundConfig;
 
             this.transform = transform;
-            this.playerMovement = playerMovement;
             this.characterController = characterController;
             this.cameraShakeOnStep = cameraShakeOnStep;
             this.moveStates = moveStates;
@@ -49,7 +47,10 @@ namespace Sounds.Movement
         public void Tick()
         {
             if (!characterController.isGrounded)
+            {
+                lastPosition = transform.position;
                 return;
+            }
 
             var currentPosition = transform.position;
             var lastFlatPosition = lastPosition;

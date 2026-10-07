@@ -11,7 +11,7 @@ namespace Weapon.Animations
         public event Action EndedReloading;
         public event Action<float, float> UpdateReloadingTime;
 
-        public bool IsReloading;
+        public bool IsReloading { get; private set; }
         
         private readonly WeaponConfig config;
         

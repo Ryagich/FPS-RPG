@@ -1,66 +1,29 @@
-﻿using Player;
+﻿using System;
+using Characters;
 using UniRx;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 
 namespace CameraScripts
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class CameraFovController : ITickable
+    public sealed class CameraFovController : ITickable, IDisposable
     {
-        private readonly CameraFovConfig cameraFovConfig;
-        private readonly Camera сamera;
-
-        private float defaultFov;
+        private readonly CameraFovConfig config;
+        private readonly Camera camera;
+        private readonly float defaultFov;
+        private readonly IDisposable subscription;
         private float targetFov;
-        private float speed;
-        
-        public CameraFovController
-            (
-                CameraFovConfig cameraFovConfig,
-                MoveStates moveStates,
-                [Key("CameraParentTransform")] Transform cameraParentTransform
-            )
-        {
-            this.cameraFovConfig = cameraFovConfig;
-            сamera = cameraParentTransform.GetComponentInChildren<Camera>();
 
-            moveStates.IsSprinting.Subscribe(ChangeRunFov);
-
-            defaultFov = сamera.fieldOfView;
-            
-            targetFov = cameraFovConfig.RunFov;
-            speed = cameraFovConfig.ChangeToRunSpeed;
-        }
-        
-        public void ChangeRunFov(bool value)
+        public CameraFovController(CameraFovConfig config, CharacterState state, Camera camera)
         {
-            if (value)
-            {
-                targetFov = cameraFovConfig.RunFov;
-                speed = cameraFovConfig.ChangeToRunSpeed;
-            }
-            else
-            {
-                targetFov = defaultFov;
-            }
+            this.config = config;
+            this.camera = camera;
+            defaultFov = camera.fieldOfView;
+            subscription = state.IsSprinting.Subscribe(sprinting => targetFov = sprinting ? config.RunFov : defaultFov);
         }
 
-        public void Tick()
-        {
-            if (Mathf.Abs(сamera.fieldOfView - targetFov) > .01f)
-            {
-                сamera.fieldOfView = Mathf.Lerp(
-                                                сamera.fieldOfView,
-                                                targetFov,
-                                                Time.deltaTime * speed
-                                               );
-            }
-            else
-            {
-                сamera.fieldOfView = targetFov;
-            }
-        }
+        public void Tick() => camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, targetFov,
+            Time.deltaTime * config.ChangeToRunSpeed);
+        public void Dispose() => subscription.Dispose();
     }
 }

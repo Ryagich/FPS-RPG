@@ -1,96 +1,47 @@
-﻿using UnityEngine;
-using UnityEngine.Pool;
 using VContainer;
+using System;
+using UnityEngine;
+using UnityEngine.Pool;
+using VContainer.Unity;
 using Weapon;
 using Weapon.Settings;
+using Object = UnityEngine.Object;
 
 namespace Inventory.Pools
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class ProjectilesPool
+    public sealed class ProjectilesPool : IDisposable
     {
-        private readonly Projectile projectilePref;
-        private readonly IObjectPool<Projectile> ProjectilePool;
-        private readonly GameObject projectilePoolObj;
+        private readonly ProjectileLifetimeScope prefab;
+        private readonly LifetimeScope scope;
+        private readonly Transform parent;
+        private readonly ObjectPool<Projectile> pool;
         
-        // [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public ProjectilesPool
-            (
-                InventoryConfig inventoryConfig,
-                [Key("PoolsParent")] Transform poolsParent
-            )
+        public ProjectilesPool(InventoryConfig config, [Key("GameScope")] LifetimeScope scope,
+            [Key("PoolsParent")] Transform parent)
         {
-            projectilePoolObj = new GameObject("Projectiles Pool");
-            projectilePoolObj.transform.SetParent(poolsParent);
-            
-            projectilePref = inventoryConfig.ProjectilePref;
-            ProjectilePool = new ObjectPool<Projectile>(
-                                            Instantiate, //Метод создания объектов
-                                            OnGet, //Действие при извлечении из пула
-                                            OnRelease, //Действие при возврате в пул
-                                            DestroyProjectile, //Очистка объектов (опционально)
-                                            false, //Коллекция для отслеживания объектов не используется (опционально)
-                                            200, //Минимальный размер пула
-                                            2000 //Максимальный размер пула
-                                           );
+            prefab = config.ProjectilePref;
+            this.scope = scope;
+            this.parent = parent;
+            pool = new ObjectPool<Projectile>(Create, null, projectile => projectile.Deactivate(),
+                projectile => Object.Destroy(projectile.GameObject), false, 200, 2000);
         }
 
-        public Projectile Get(Vector3 position, Vector3 rotation)
+        public Projectile Get(Vector3 position, Quaternion rotation, WeaponConfig config)
         {
-            var projectile = ProjectilePool.Get();
-            var projectileTrans = projectile.transform;
-            var trail = projectile.GetComponent<TrailRenderer>();
-            
-            projectileTrans.SetPositionAndRotation(position, Quaternion.LookRotation(rotation));
-            projectile.gameObject.SetActive(true);
-            trail.Clear();
-            trail.time = 1;
-            
-            projectile.GetComponent<Collider>().enabled = true;
-            projectile.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-            projectile.CanInteract = true;
-
+            var projectile = pool.Get();
+            projectile.Launch(position, rotation, config, Release);
             return projectile;
         }
         
-        public Projectile Get(Vector3 position, Quaternion rotation, WeaponConfig weaponConfig)
+        public void Release(Projectile projectile) => pool.Release(projectile);
+
+        private Projectile Create()
         {
-            var projectile = ProjectilePool.Get();
-            projectile.projectilesPool = this;
-            var projectileTrans = projectile.transform;
-            var trail = projectile.GetComponent<TrailRenderer>();
-
-            projectileTrans.SetPositionAndRotation(position, rotation);
-            projectile.gameObject.SetActive(true);
-            trail.Clear();
-            trail.time = 1;
-            
-            projectile.GetComponent<Collider>().enabled = true;
-            projectile.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-            projectile.WeaponConfig = weaponConfig;
-            projectile.CanInteract = true;
-
-            return projectile;
+            var instance = scope.CreateChildFromPrefab(prefab);
+            instance.transform.SetParent(parent, false);
+            return instance.Instance;
         }
         
-        public void Release(Projectile projectile)
-        {
-            var rb = projectile.GetComponent<Rigidbody>();
-            rb.linearVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.FreezeAll;
-            projectile.GetComponent<Collider>().enabled = false;
-            projectile.gameObject.SetActive(false);
-            projectile.CanInteract = false;
-            ProjectilePool.Release(projectile);
-        }
-        
-        private Projectile Instantiate()
-        {
-            return Object.Instantiate(projectilePref, projectilePoolObj.transform);
-        }
-
-        private void OnGet(Projectile projectile) { }
-        private void OnRelease(Projectile projectile) { }
-        private void DestroyProjectile(Projectile projectile) { }
+        public void Dispose() => pool.Dispose();
     }
 }

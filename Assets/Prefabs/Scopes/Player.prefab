@@ -157,9 +157,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: Scopes.GameLifetimeScope
+    TypeName:
   autoRun: 1
   autoInjectGameObjects: []
+  controller: {fileID: 8076340133555317115}
+  bodyColliders:
+  - {fileID: 8076340133555317115}
+  playerCamera: {fileID: 7397388090799849924}
+  animator: {fileID: 0}
   <CameraParentTransform>k__BackingField: {fileID: 3683176396944124172}
   <ParentTransformForWeapon>k__BackingField: {fileID: 8558349566660135326}
   <MovementSoundConfig>k__BackingField: {fileID: 11400000, guid: f68af6ef5db4bd44b95382b65de2ed07, type: 2}

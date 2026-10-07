@@ -1,11 +1,21 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Weapon.Attachments
 {
-    public class Scope : MonoBehaviour, IAttachment
+    public sealed class Scope : IAttachment
     {
-        [field: SerializeField] public AttachmentBaseInfo AttachmentBaseInfo { get; set; } = null!;
-        [field: SerializeField] public UnityEngine.Camera ScopeCamera { get; private set; } = null!;
-        [field: SerializeField] public Transform CenterTransform { get; private set; } = null!;
+        public AttachmentBaseInfo AttachmentBaseInfo { get; set; }
+        public Transform Transform { get; }
+        public GameObject GameObject => Transform.gameObject;
+        public Camera ScopeCamera { get; }
+        public Transform CenterTransform { get; }
+
+        public Scope(Transform transform, AttachmentBaseInfo info, Camera scopeCamera, Transform centerTransform)
+        {
+            Transform = transform;
+            AttachmentBaseInfo = info;
+            ScopeCamera = scopeCamera;
+            CenterTransform = centerTransform;
+        }
     }
 }

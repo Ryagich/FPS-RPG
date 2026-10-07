@@ -29,6 +29,7 @@ MonoBehaviour:
   <Spread>k__BackingField: 0
   <Magazine>k__BackingField: 0
   <Pref>k__BackingField: {fileID: 4215967100040645749, guid: 5908322921a845f4c90bd519848622fa, type: 3}
+  <EntityPrefab>k__BackingField: {fileID: 9070126942904589027, guid: 5908322921a845f4c90bd519848622fa, type: 3}
   <Sprite>k__BackingField: {fileID: 0}
   <Type>k__BackingField: 1
   <ScopeSettings>k__BackingField:

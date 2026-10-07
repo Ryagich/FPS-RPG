@@ -1,25 +1,27 @@
+using VContainer;
 using UnityEngine;
+using VContainer.Unity;
 
-public sealed class PlayerCameraAimSync : MonoBehaviour
+public sealed class PlayerCameraAimSync : IFixedTickable
 {
-    [field: SerializeField] public Transform RootSource { get; set; } = null!;
-    [field: SerializeField] public Transform AimSource { get; set; } = null!;
+    private readonly Transform rootSource;
+    private readonly Transform aimSource;
+    private readonly Transform rootTarget;
+    private readonly Transform aimTarget;
 
-    [field: SerializeField] public Transform RootTarget { get; set; } = null!;
-    [field: SerializeField] public Transform AimTarget { get; set; } = null!;
-
-    private void FixedUpdate()
+    public PlayerCameraAimSync([Key("RootSource")] Transform rootSource,
+        [Key("AimSource")] Transform aimSource, [Key("RootTarget")] Transform rootTarget,
+        [Key("AimTarget")] Transform aimTarget)
     {
-        if (RootSource && RootTarget)
-        {
-            RootTarget.position = RootSource.position;
-            RootTarget.rotation = RootSource.rotation;
-        }
+        this.rootSource = rootSource;
+        this.aimSource = aimSource;
+        this.rootTarget = rootTarget;
+        this.aimTarget = aimTarget;
+    }
 
-        if (AimSource && AimTarget)
-        {
-            AimTarget.position = AimSource.position;
-            AimTarget.rotation = AimSource.rotation;
-        }
+    public void FixedTick()
+    {
+        rootTarget.SetPositionAndRotation(rootSource.position, rootSource.rotation);
+        aimTarget.SetPositionAndRotation(aimSource.position, aimSource.rotation);
     }
 }

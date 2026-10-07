@@ -1,6 +1,6 @@
+using VContainer;
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 
 namespace CameraScripts.Shake

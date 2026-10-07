@@ -1,63 +1,45 @@
-using MessagePipe;
-using Messages;
-using Movement;
-using Player;
-using Player.Stats;
+using Characters;
+using InteractableScripts;
+using Scopes;
 using UnityEngine;
-using UnityEngine.AI;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
-using Weapon.Providers;
 
 namespace Bot
 {
-    public class BotLifetimeScope : LifetimeScope
+    public sealed class BotLifetimeScope : EntityLifetimeScope
     {
-        [SerializeField] private BotSight botSight;
         [SerializeField] private Transform botGoal;
-        [SerializeField] private Transform visionOrigin;
-        [SerializeField] private Transform spine;
-        [SerializeField] private Transform hips;
+        [SerializeField] private CharacterController controller;
+        [SerializeField] private Collider[] bodyColliders;
+        [SerializeField] private Rigidbody[] ragdollBodies;
+        [FormerlySerializedAs("visionOrigin")]
+        [SerializeField] private Transform aimOrigin;
         [SerializeField] private Animator animator;
-
+        [SerializeField] private BotNavigationSettings navigationSettings = new();
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // === MessagePipe ===
-            var options = builder.RegisterMessagePipe();
-            builder.RegisterMessageBroker<BotVisionMessage>(options);
-            builder.RegisterMessageBroker<DeathMessage>(options);
-            
-            var agent = GetComponent<NavMeshAgent>();
-            builder.RegisterInstance(agent).AsSelf();
-
-            builder.Register<IMovementDataProvider>(c =>
-                                                        new NavMeshAgentMovementProvider(
-                                                             c.Resolve<NavMeshAgent>(),
-                                                             c.Resolve<Transform>()
-                                                            ),
-                                                    Lifetime.Scoped
-                                                   );
-            builder.Register<WeaponProvider>(Lifetime.Scoped).AsSelf();
-            builder.Register<PlayerMovement>(Lifetime.Scoped).AsSelf();
-            builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
-
-            
-
-            builder.RegisterInstance(transform).Keyed("self");
-            builder.RegisterInstance(botGoal).Keyed("botGoal");
-            builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
-            builder.RegisterInstance(spine).Keyed("spine");
-            builder.RegisterInstance(hips).Keyed("hips");
-            builder.RegisterInstance(ParentTransformForWeapon).Keyed("ParentTransformForWeapon");
-            builder.RegisterInstance(animator);
-           
-            builder.RegisterComponent(botSight).AsImplementedInterfaces();
-            
-            builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
+            foreach (var collider in bodyColliders)
+            {
+                if (collider != controller && !collider.isTrigger)
+                    Physics.IgnoreCollision(controller, collider);
+            }
+            builder.RegisterCharacter(controller, transform, aimOrigin, ParentTransformForWeapon);
+            builder.RegisterCharacterTargets(bodyColliders);
+            builder.RegisterInstance(ragdollBodies).Keyed("RagdollBodies");
+            // A null optional target is represented by the bot itself; demo Return uses its initial position.
+            builder.RegisterInstance(botGoal != null ? botGoal : transform).Keyed("botGoal");
+            builder.RegisterInstance(navigationSettings);
+            builder.Register<BotNavigation>(Lifetime.Scoped);
+            builder.RegisterEntryPoint<BotControlSource>().AsSelf();
+            builder.RegisterEntryPoint<CharacterMotor>().AsSelf();
+            builder.RegisterEntryPoint<BotAimOrigin>().AsSelf();
+            builder.RegisterEntryPoint<InteractionController>().AsSelf();
+            builder.RegisterCharacterAnimation(animator);
             builder.RegisterEntryPoint<BotDeath>().AsSelf();
-            builder.RegisterEntryPoint<BotAnimation>().AsSelf();
         }
     }
 }

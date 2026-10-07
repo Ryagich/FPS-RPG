@@ -1,16 +1,16 @@
-﻿using Bot;
 using CameraScripts;
 using CanvasScripts;
+using Characters;
 using Gravity;
 using Input;
 using InteractableScripts;
 using Inventory;
 using Localization;
-using Player;
 using Player.Stats;
 using Sounds;
 using Sounds.Movement;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -21,7 +21,8 @@ namespace Scopes
         public static ProjectLifetimeScope Instance { get; private set; }
 
         [field: SerializeField] public InputConfig InputConfig { get; private set; } = null!;
-        [field: SerializeField] public PlayerMovementConfig PlayerMovementConfig { get; private set; } = null!;
+        [field: FormerlySerializedAs("<PlayerMovementConfig>k__BackingField")]
+        [field: SerializeField] public CharacterMovementConfig CharacterMovementConfig { get; private set; } = null!;
         [field: SerializeField] public GravityConfig GravityConfig { get; private set; } = null!;
         [field: SerializeField] public SoundsConfig SoundsConfig { get; private set; } = null!;
         [field: SerializeField] public MovementSoundConfig MovementSoundConfig { get; private set; } = null!;
@@ -57,12 +58,13 @@ namespace Scopes
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterInstance(InputConfig).AsSelf();
-            builder.RegisterInstance(PlayerMovementConfig).AsSelf();
+            builder.RegisterInstance(CharacterMovementConfig).AsSelf();
             builder.RegisterInstance(GravityConfig).AsSelf();
             builder.RegisterInstance(SoundsConfig).AsSelf();
             builder.RegisterInstance(MovementSoundConfig).AsSelf();
             builder.RegisterInstance(CameraFovConfig).AsSelf();
             builder.RegisterInstance(InventoryConfig).AsSelf();
+            builder.RegisterInstance(InventoryConfig.CasingPref).Keyed("CasingPrefab");
             builder.RegisterInstance(CanvasConfig).AsSelf();
             builder.RegisterInstance(InteractableConfig).AsSelf();
             builder.RegisterInstance(StatsConfig).AsSelf();

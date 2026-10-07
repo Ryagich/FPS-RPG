@@ -166,3 +166,7 @@ MonoBehaviour:
   flashLight: {fileID: 0}
   flashParticlesCount: 5
   flashLightDuration: 0
+  parentReference:
+    TypeName:
+  autoRun: 1
+  autoInjectGameObjects: []

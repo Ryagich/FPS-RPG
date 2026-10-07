@@ -1,22 +1,26 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using MessagePipe;
 using Messages;
 using UnityEngine;
 using VContainer.Unity;
 using Weapon.Attachments;
 using Weapon.Settings;
+using Random = UnityEngine.Random;
 
 namespace Weapon.Animations
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class WeaponKickBack : ILateTickable
+    public class WeaponKickBack : ILateTickable, IDisposable
     {
         private readonly Transform transform;
+        private readonly Weapon weapon;
 
         // динамические оффсеты
         private Vector3 positionOffset = Vector3.zero;
         private Quaternion rotationOffset = Quaternion.identity;
 
+        private readonly IDisposable subscriptions;
         private readonly WeaponConfig config;
         private KickBackSettings currentSettings = null!;
         private bool isAim;
@@ -30,16 +34,19 @@ namespace Weapon.Animations
             )
         {
             this.transform = transform;
+            this.weapon = weapon;
             this.config = config;
 
             SetCurrentSettings(false);
             
             weapon.RequestRecoil += ApplyKickback;
-            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
+            subscriptions = aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
 
         public void LateTick()
         {
+            if (!transform.gameObject.activeInHierarchy)
+                return;
             // плавный возврат позиции
             positionOffset = Vector3.Lerp(positionOffset, Vector3.zero, currentSettings.speed * Time.deltaTime);
             transform.localPosition += positionOffset;
@@ -68,6 +75,12 @@ namespace Weapon.Animations
             rotationOffset *= recoilRot;
         }
         
+        public void Dispose()
+        {
+            weapon.RequestRecoil -= ApplyKickback;
+            subscriptions.Dispose();
+        }
+
         private void SetCurrentSettings(AimChangedMessage msg)
         {
             SetCurrentSettings(msg.IsAiming);

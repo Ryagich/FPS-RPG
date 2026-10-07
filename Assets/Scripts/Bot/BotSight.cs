@@ -1,85 +1,73 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using MessagePipe;
 using Messages;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 
 namespace Bot
 {
-    public class BotSight : MonoBehaviour, ITickable
+    // An optional sensor service. A physics callback adapter can feed Register/UnregisterTarget.
+    public sealed class BotSight : ITickable, IDisposable
     {
-        [SerializeField] private LayerMask obstructionLayers;
-        private Transform visionOrigin;
+        private readonly Transform origin;
+        private readonly LayerMask obstructionLayers;
+        private readonly IPublisher<BotVisionMessage> publisher;
+        private readonly Dictionary<Collider, bool> targets = new();
+        private readonly List<Collider> snapshot = new();
+        private float nextCheck;
         
-        private IPublisher<BotVisionMessage> botVisionPublisher;
-
-        private readonly List<Collider> targetsInRange = new();
-        private readonly long lastVisibilityCheck = 0;
-
-        [Inject]
-        [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public void Construct
-            (
-                [Key("visionOrigin")] Transform visionOrigin,
-                IPublisher<BotVisionMessage> botVisionPublisher
-            )
+        public BotSight(Transform origin, LayerMask obstructionLayers, IPublisher<BotVisionMessage> publisher)
         {
-            this.visionOrigin = visionOrigin;
-            this.botVisionPublisher = botVisionPublisher;
+            this.origin = origin;
+            this.obstructionLayers = obstructionLayers;
+            this.publisher = publisher;
         }
 
-
-        private bool IsObstructed(Collider other)
+        public void RegisterTarget(Collider collider)
         {
-            var start = visionOrigin.position;
-            var end = other.bounds.center;
-
-            return Physics.Linecast(start, end, obstructionLayers);
-        }
-
-        void OnTriggerEnter(Collider other)
-        {
-            targetsInRange.Add(other);
-            if (IsObstructed(other))
-            {
-                Debug.Log("Target is obstructed");
+            if (targets.ContainsKey(collider))
                 return;
-            }
-            botVisionPublisher?.Publish(new BotVisionMessage(other, true));
+            var visible = IsVisible(collider);
+            targets.Add(collider, visible);
+            publisher.Publish(new BotVisionMessage(collider, visible));
         }
 
-        void OnTriggerExit(Collider other)
+        public void UnregisterTarget(Collider collider)
         {
-            targetsInRange.Remove(other);
-            botVisionPublisher?.Publish(new BotVisionMessage(other, false));
+            if (targets.Remove(collider))
+                publisher.Publish(new BotVisionMessage(collider, false));
         }
 
-        private void CheckVisibilityOfTargets()
-        {
-            for (var i = 0; i < targetsInRange.Count; i++)
-            {
-                if (IsObstructed(targetsInRange[i]))
-                {
-                    botVisionPublisher?.Publish(new BotVisionMessage(targetsInRange[i], false));
-                    continue;
-                }
-
-                botVisionPublisher?.Publish(new BotVisionMessage(targetsInRange[i], true));
-            }
-        }
+        private bool IsVisible(Collider collider) => !Physics.Linecast(origin.position,
+            collider.bounds.center, obstructionLayers, QueryTriggerInteraction.Ignore);
 
         public void Tick()
         {
-            var now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            if (now - lastVisibilityCheck < 100)
-            {
+            if (Time.time < nextCheck)
                 return;
+            nextCheck = Time.time + 0.1f;
+            snapshot.Clear();
+            snapshot.AddRange(targets.Keys);
+            foreach (var collider in snapshot)
+            {
+                if (collider == null)
+                {
+                    targets.Remove(collider);
+                    continue;
+                }
+                var visible = IsVisible(collider);
+                if (targets[collider] == visible)
+                    continue;
+                targets[collider] = visible;
+                publisher.Publish(new BotVisionMessage(collider, visible));
             }
+        }
 
-            CheckVisibilityOfTargets();
+        public void Dispose()
+        {
+            targets.Clear();
+            snapshot.Clear();
         }
     }
 }

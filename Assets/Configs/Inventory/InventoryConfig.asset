@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: InventoryConfig
   m_EditorClassIdentifier: 
   <ProjectilePref>k__BackingField: {fileID: 5295135550341916596, guid: 9d23420aefd494b41963d8546e337847, type: 3}
-  <CasingPref>k__BackingField: {fileID: 3839419668256195286, guid: a441fb56cdfe6f043935489faae08121, type: 3}
+  <CasingPref>k__BackingField: {fileID: 6186393369875246685, guid: a441fb56cdfe6f043935489faae08121, type: 3}
   <casingLifeTime>k__BackingField: 7.5
   impacts:
   - {fileID: 11400000, guid: a1fd2ee53af1108458cfe082e295b499, type: 2}

@@ -1,33 +1,50 @@
-﻿using System.Collections;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace Weapon.Attachments
 {
-    public class Muzzle : MonoBehaviour, IAttachment
+    public sealed class Muzzle : IAttachment, ITickable
     {
-        [field: SerializeField] public AttachmentBaseInfo AttachmentBaseInfo { get; set; } = null!;
-        [field: SerializeField] public Transform ShotPoint { get; private set; } = null!;
-        [field: SerializeField] public ParticleSystem particles { get; private set; } = null!;
-        [field: SerializeField] private Light flashLight = null!;
-        [field: SerializeField] private int flashParticlesCount = 5;
-        [field: SerializeField] private float flashLightDuration;
+        private readonly ParticleSystem particles;
+        private readonly Light flashLight;
+        private readonly int particleCount;
+        private readonly float flashDuration;
+        private float flashTime;
+        public AttachmentBaseInfo AttachmentBaseInfo { get; set; }
+        public Transform Transform { get; }
+        public GameObject GameObject => Transform.gameObject;
+        public Transform ShotPoint { get; }
+
+        public Muzzle(Transform transform, AttachmentBaseInfo info, Transform shotPoint,
+            ParticleSystem particles, Light flashLight, int particleCount, float flashDuration)
+        {
+            Transform = transform;
+            AttachmentBaseInfo = info;
+            ShotPoint = shotPoint;
+            this.particles = particles;
+            this.flashLight = flashLight;
+            this.particleCount = particleCount;
+            this.flashDuration = flashDuration;
+        }
 
         public void Effect()
         {
-            if(particles != null)
-                particles.Emit(flashParticlesCount);
-
+            if (particles != null)
+                particles.Emit(particleCount);
             if (flashLight != null)
             {
+                flashTime = flashDuration;
                 flashLight.enabled = true;
-                StartCoroutine(nameof(DisableLight));
             }
         }
         
-        private IEnumerator DisableLight()
+        public void Tick()
         {
-            yield return new WaitForSeconds(flashLightDuration);
-            flashLight.enabled = false;
+            if (flashLight == null || !flashLight.enabled)
+                return;
+            flashTime -= Time.deltaTime;
+            if (flashTime <= 0f)
+                flashLight.enabled = false;
         }
     }
 }

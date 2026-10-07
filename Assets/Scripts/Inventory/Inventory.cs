@@ -1,9 +1,10 @@
-﻿using System;
+using VContainer;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Inventory.Ammo;
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
 using Weapon;
 using Weapon.Settings;
@@ -12,15 +13,20 @@ using Object = UnityEngine.Object;
 namespace Inventory
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Inventory : IStartable
+    public class Inventory : IAsyncStartable, IDisposable
     {
         //was | now
         public event Action<Ammo.Ammo, Ammo.Ammo> AmmoChanged;
         public event Action<InventorySlot, InventorySlot> SlotChanged;
         public event Action<IEnumerable<InventorySlot>> SlotsCreated;
 
+        private bool disposed;
+        private readonly Dictionary<string, Ammo.Ammo> characterAmmo = new();
+        public bool IsReady { get; private set; }
+
         private readonly InventoryConfig inventoryConfig;
         private readonly LifetimeScope scope;
+        private readonly LifetimeScope gameScope;
         private readonly AmmoStorage ammoStorage;
         private readonly Transform parentTransform;
         
@@ -33,12 +39,14 @@ namespace Inventory
             (
                InventoryConfig inventoryConfig,
                LifetimeScope scope,
+               [Key("GameScope")] LifetimeScope gameScope,
                AmmoStorage ammoStorage,
                [Key("ParentTransformForWeapon")] Transform parentTransform
             )
         {
             this.inventoryConfig = inventoryConfig;
             this.scope = scope;
+            this.gameScope = gameScope;
             this.ammoStorage = ammoStorage;
             this.parentTransform = parentTransform;
 
@@ -51,30 +59,43 @@ namespace Inventory
             // SlotsCreated?.Invoke(Slots);
         }
         
-        public async void Start()
+        public async UniTask StartAsync(CancellationToken cancellation = default)
         {
-            await ammoStorage.Ready;
+            try
+            {
+                await ammoStorage.Ready.AttachExternalCancellation(cancellation);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                return;
+            }
+            if (disposed)
+                return;
             
             CreateWeapon(WeaponRole.Primary, inventoryConfig.TestWeaponConfig1.WeaponPref);
             CreateWeapon(WeaponRole.Secondary, inventoryConfig.TestWeaponConfig2.WeaponPref);
             
             SelectWeapon(WeaponRole.Primary);
+            IsReady = true;
         }
 
         public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weaponPrefab)
         {
             var weaponScope = scope.CreateChildFromPrefab(weaponPrefab);
             
-            var weaponInstance = weaponScope.Container.Resolve<Weapon.Weapon>();
+            var weaponInstance = weaponScope.Instance;
             var weaponTrans = weaponScope.transform;
-            var pos = weaponTrans.localPosition;
-            weaponTrans.SetParent(parentTransform);
-            weaponTrans.localPosition = pos;
+            weaponTrans.SetParent(parentTransform, false);
 
             var slot = GetSlot(role);
 
             slot.SetItem(weaponInstance);
-            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(weaponScope.Config.AmmoConfig.ID)));
+            slot.SetAmmo(GetAmmo(weaponScope.Config.AmmoConfig));
             slot.Disable();
         }
 
@@ -92,12 +113,14 @@ namespace Inventory
 
         public void DropWeapon()
         {
-            var slot = GetSlot(((Weapon.Weapon)CurrentSlot.Item).Config.Role);
+            if (CurrentSlot?.Item is not Weapon.Weapon activeWeapon)
+                return;
+            var slot = GetSlot(activeWeapon.Config.Role);
             if (slot.Item != null)
             {
                 var itemObjTransform = slot.Item.GameObject.transform;
                 var dropItemPrefab = slot.Item.GetDropPrefab();
-                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
+                CreateDroppedItem(dropItemPrefab, itemObjTransform);
                 Object.Destroy(itemObjTransform.gameObject);
                 slot.SetItem(null);
             }
@@ -105,6 +128,7 @@ namespace Inventory
 
         public void ClearSlots()
         {
+            IsReady = false;
             foreach (var slot in Slots)
             {
                 if (slot.Item != null)
@@ -123,7 +147,7 @@ namespace Inventory
             {
                 var itemObjTransform = slot.Item.GameObject.transform;
                 var dropItemPrefab = slot.Item.GetDropPrefab();
-                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
+                CreateDroppedItem(dropItemPrefab, itemObjTransform);
                 Object.Destroy(itemObjTransform.gameObject);
             }
             CreateWeapon(weaponConfig.Role, weaponConfig.WeaponPref);
@@ -132,25 +156,27 @@ namespace Inventory
         
         public void SelectWeapon(WeaponRole role)
         {
+            if (!HasWeapon(role))
+                return;
             if (CurrentSlot is null)
             {
                 CurrentSlot = GetSlot(role);
                 CurrentSlot.Activate();
-                CurrentAmmo = ammoStorage.Ammo
-                                         .First(ammo => ammo.AmmoConfig.ID.Equals(((Weapon.Weapon)CurrentSlot.Item).Config.AmmoConfig.ID));
+                CurrentAmmo = CurrentSlot.Ammo;
                 
                 SlotChanged?.Invoke(null, CurrentSlot);
                 
                 return;
             }
             
-            if (((Weapon.Weapon)CurrentSlot.Item).IsShooting)
+            if (CurrentSlot.Item is Weapon.Weapon currentWeapon && currentWeapon.IsShooting)
             {
                 return;
             }
 
             var was = CurrentSlot;
-            CurrentSlot.Disable();
+            if (CurrentSlot.Item != null)
+                CurrentSlot.Disable();
 
             CurrentSlot = GetSlot(role);
             CurrentSlot.Activate();
@@ -159,12 +185,35 @@ namespace Inventory
             SlotChanged?.Invoke(was, CurrentSlot);
         }
 
+        public bool HasWeapon(WeaponRole role) => GetSlot(role).Item is Weapon.Weapon;
+
+        private void CreateDroppedItem(LifetimeScope prefab, Transform origin)
+        {
+            var droppedItem = gameScope.CreateChildFromPrefab(prefab);
+            droppedItem.transform.SetParent(null);
+            droppedItem.transform.SetPositionAndRotation(origin.position, origin.rotation);
+        }
+
+        private Ammo.Ammo GetAmmo(AmmoConfig config)
+        {
+            if (!characterAmmo.TryGetValue(config.ID, out var ammo))
+            {
+                ammo = new Ammo.Ammo(ammoStorage.GetById(config.ID));
+                characterAmmo.Add(config.ID, ammo);
+            }
+            return ammo;
+        }
+
+        public void Dispose()
+        {
+            disposed = true;
+            IsReady = false;
+        }
+
         private void ChangeCurrentAmmo(AmmoConfig ammoConfig)
         {
             var was = CurrentAmmo;
-            var ammo = ammoStorage.Ammo.FirstOrDefault(a => a.AmmoConfig.ID.Equals(ammoConfig.ID));
-
-            CurrentAmmo = ammo ?? throw new ArgumentException("Пришел тип патронов не записанный в инвентарь");
+            CurrentAmmo = GetAmmo(ammoConfig);
             AmmoChanged?.Invoke(was, CurrentAmmo);
         }
     }

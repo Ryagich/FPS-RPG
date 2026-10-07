@@ -99,3 +99,7 @@ MonoBehaviour:
   <AttachmentBaseInfo>k__BackingField: {fileID: 11400000, guid: 301c6c09c6b763c49808bfd27873e26f, type: 2}
   <ScopeCamera>k__BackingField: {fileID: 0}
   <CenterTransform>k__BackingField: {fileID: 8125338227908507506}
+  parentReference:
+    TypeName:
+  autoRun: 1
+  autoInjectGameObjects: []

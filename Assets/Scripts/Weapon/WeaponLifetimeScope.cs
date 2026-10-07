@@ -1,5 +1,4 @@
-﻿using MessagePipe;
-using Messages;
+using Scopes;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -9,19 +8,22 @@ using Weapon.Settings;
 
 namespace Weapon
 {
-    public class WeaponLifetimeScope : LifetimeScope
+    public class WeaponLifetimeScope : EntityLifetimeScope
     {
         [field: SerializeField] public WeaponConfig Config { get; private set; }
         [field: SerializeField] public Transform CasingSpawnPoint { get; private set; }
+        public Weapon Instance { get; private set; }
 
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterInstance(Config).AsSelf();
             builder.RegisterInstance(transform).AsSelf();
             builder.RegisterInstance(gameObject).AsSelf();
-            builder.RegisterInstance(CasingSpawnPoint).Keyed($"CasingSpawnPoint").AsSelf();
+            builder.RegisterInstance(this).Keyed("WeaponScope");
+            builder.RegisterInstance(CasingSpawnPoint).Keyed("CasingSpawnPoint");
 
             builder.Register<AttachmentsController>(Lifetime.Scoped);
+            builder.Register<WeaponPresentation>(Lifetime.Scoped);
 
             builder.RegisterEntryPoint<Weapon>().AsSelf();
             builder.RegisterEntryPoint<WeaponLowering>().AsSelf();
@@ -33,6 +35,7 @@ namespace Weapon
             builder.RegisterEntryPoint<WeaponReloading>().AsSelf();
             
             builder.RegisterEntryPoint<CasingDropper>().AsSelf();
+            builder.RegisterBuildCallback(container => Instance = container.Resolve<Weapon>());
         }
     }
 }

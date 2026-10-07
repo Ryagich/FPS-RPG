@@ -1,7 +1,8 @@
-﻿using System;
+using VContainer;
+using System;
+using Characters;
 using Inventory;
 using Inventory.Pools;
-using Inventory.Pools.Impact;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -19,18 +20,19 @@ namespace Weapon
         public event Action<int> ValueChanged;
         public event Action<ShootingMode> ShootingModChanged;
         public event Action<Vector2> RequestRecoil;
-        public event Action Shooted;
+        public event Action Shot;
         public event Action EmptyShot;
         
         public GameObject GameObject { get; set; }
+        public WeaponPresentation Presentation { get; }
 
         public readonly WeaponConfig Config;
-        private readonly Transform cameraTransform;
+        private readonly Transform aimTransform;
         private readonly AttachmentsController attachmentsC;
-        private readonly ImpactPools impactPools;
         private readonly ProjectilesPool projectilesPool;
         private readonly IPublisher<RecoilMessage> requestRecoilPublisher;
-        private readonly WeaponBobbing bobbing;
+        private readonly CharacterState characterState;
+        private readonly IPublisher<ShotFiredMessage> shootPublisher;
 
         private readonly int tracerInterval = 1;
         private readonly float timeBetweenShots;
@@ -38,7 +40,6 @@ namespace Weapon
         private int interval;
         private int burstShotsLeft;
         private float lastFireTime;
-        private Projectile projectile;
         private Vector2 recoil;
 
         public int Value { get; private set; }
@@ -52,24 +53,26 @@ namespace Weapon
             (
                 WeaponConfig config,
                 GameObject gameObject,
-                Transform cameraTrans,
-                WeaponBobbing bobbing,
+                WeaponPresentation presentation,
+                CharacterState characterState,
+                [Key("AimTransform")] Transform aimTransform,
+                IPublisher<ShotFiredMessage> shootPublisher,
                 AttachmentsController attachmentsC,
-                ImpactPools impactPools,
                 ProjectilesPool projectilesPool,
                 IPublisher<RecoilMessage> requestRecoilPublisher
             )
         {
             Config = config;
             GameObject = gameObject;
+            Presentation = presentation;
             
-            this.bobbing = bobbing;
+            this.characterState = characterState;
+            this.shootPublisher = shootPublisher;
             this.attachmentsC = attachmentsC;
-            this.impactPools = impactPools;
             this.projectilesPool = projectilesPool;
             this.requestRecoilPublisher = requestRecoilPublisher;
 
-            cameraTransform = cameraTrans;
+            this.aimTransform = aimTransform;
             if (config.Modes.Count is 0)
             {
                 throw new AggregateException("The weapon does not have any possible firing modes set.");
@@ -82,7 +85,7 @@ namespace Weapon
             ShootingModChanged?.Invoke(ShootingMode);
 
             timeBetweenShots = 60.0f / config.GetRPM();
-            //CurrentSpread = _config.GetCurrentRecoilSettings(bobbing.isAim).RecoilChillCoefficient; //???
+            //CurrentSpread = _config.GetCurrentRecoilSettings(characterState.IsAiming).RecoilChillCoefficient; //???
             Value = Config.GetMaxCapacity();
         }
 
@@ -123,14 +126,14 @@ namespace Weapon
             var summ = MathF.Abs(motion.x) + MathF.Abs(motion.z);
             recoil += new Vector2(summ / 2, summ / 2) * Config.MovementMultiply;
             recoil =
-                new Vector2(Mathf.Clamp(recoil.x, .0f, Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.x),
+                new Vector2(Mathf.Clamp(recoil.x, .0f, Config.GetCurrentRecoilSettings(characterState.IsAiming).MaxRecoilPower.x),
                             Mathf.Clamp(recoil.y, .0f,
-                                        Config.GetCurrentRecoilSettings(bobbing.isAim).MaxRecoilPower.y));
+                                        Config.GetCurrentRecoilSettings(characterState.IsAiming).MaxRecoilPower.y));
             CurrentSpread = Mathf.Max(
-                                      Config.GetCurrentRecoilSettings(bobbing.isAim).Spread
-                                    + (recoil.y * Config.GetCurrentRecoilSettings(bobbing.isAim)
+                                      Config.GetCurrentRecoilSettings(characterState.IsAiming).Spread
+                                    + (recoil.y * Config.GetCurrentRecoilSettings(characterState.IsAiming)
                                                         .RecoilSpreadMultiplier),
-                                      Config.GetCurrentRecoilSettings(bobbing.isAim).Spread
+                                      Config.GetCurrentRecoilSettings(characterState.IsAiming).Spread
                                      );
         }
 
@@ -138,7 +141,7 @@ namespace Weapon
 
         public void Tick()
         {
-            if (Value > 0)
+            if (GameObject.activeInHierarchy && Value > 0)
             {
                 TryShoot();
             }
@@ -146,11 +149,13 @@ namespace Weapon
 
         public void FixedTick()
         {
-            recoil *= Config.GetCurrentRecoilSettings(bobbing.isAim).RecoilChillCoefficient;
+            if (!GameObject.activeInHierarchy)
+                return;
+            recoil *= Config.GetCurrentRecoilSettings(characterState.IsAiming).RecoilChillCoefficient;
             CurrentSpread = Mathf.MoveTowards(
                                               CurrentSpread,
-                                              Config.GetCurrentRecoilSettings(bobbing.isAim).Spread,
-                                              Config.GetCurrentRecoilSettings(bobbing.isAim).SpreadChillCoefficient *
+                                              Config.GetCurrentRecoilSettings(characterState.IsAiming).Spread,
+                                              Config.GetCurrentRecoilSettings(characterState.IsAiming).SpreadChillCoefficient *
                                               Time.deltaTime
                                              );
         }
@@ -198,15 +203,15 @@ namespace Weapon
         private void Shoot()
         {
             interval++;
-            var recoilSettings = Config.GetCurrentRecoilSettings(bobbing.isAim);
+            var recoilSettings = Config.GetCurrentRecoilSettings(characterState.IsAiming);
             // считаем разброс
             CurrentSpread = Mathf.Max(
                                       recoilSettings.Spread + (recoil.y * recoilSettings.RecoilSpreadMultiplier),
                                       recoilSettings.Spread
                                      );
             var spread = Random.insideUnitCircle * CurrentSpread;
-            var shootingTransform = cameraTransform;
-            if (bobbing.isAim && attachmentsC.Scope != null && attachmentsC.Scope.CenterTransform)
+            var shootingTransform = aimTransform;
+            if (characterState.IsAiming && attachmentsC.Scope != null && attachmentsC.Scope.CenterTransform)
             {
                 shootingTransform = attachmentsC.Scope.CenterTransform;
             }
@@ -240,9 +245,8 @@ namespace Weapon
             if (interval >= tracerInterval)
             {
                 var p = projectilesPool.Get(pos, direction, Config);
-                var rb = p.GetComponent<Rigidbody>();
+                var rb = p.Body;
                 rb.linearVelocity = finalDir * Config.ProjectileSpeed;
-                p.Init(impactPools, pos);
                 interval = 0;
             }
 
@@ -261,8 +265,8 @@ namespace Weapon
                                 );
             RequestRecoil?.Invoke(recoil);
             requestRecoilPublisher.Publish(new RecoilMessage(recoil, Config.ShakeSettings));
-            GlobalMessagePipe.GetPublisher<ShootMessage>().Publish(new ShootMessage(this, direction));
-            Shooted?.Invoke();
+            shootPublisher.Publish(new ShotFiredMessage(this, direction));
+            Shot?.Invoke();
         }
 
         public void StartShoot()
@@ -286,6 +290,7 @@ namespace Weapon
         public void StopShoot()
         {
             IsShooting = false;
+            burstShotsLeft = 0;
         }
 
 #endregion
@@ -312,9 +317,4 @@ namespace Weapon
         public WeaponConfig WeaponConfig { get; } = WeaponConfig;
     }
 
-    public sealed record ShootMessage(Weapon Weapon, Quaternion Quaternion)
-    {
-        public Weapon Weapon { get; } = Weapon;
-        public Quaternion Quaternion { get; } = Quaternion;
-    }
 }

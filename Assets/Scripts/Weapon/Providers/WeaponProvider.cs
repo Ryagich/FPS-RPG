@@ -1,263 +1,221 @@
-﻿using CameraScripts;
+﻿using System;
+using Characters;
 using Inventory;
+using MessagePipe;
+using Messages;
 using UnityEngine;
-using VContainer;
 using Weapon.Animations;
-using Weapon.Attachments;
 using Weapon.Settings;
 
 namespace Weapon.Providers
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class WeaponProvider
+    public sealed class WeaponProvider : IDisposable
     {
-        private Vector2 movementDirection;
-        
         private readonly Inventory.Inventory inventory;
-
-        // private readonly HandsTargets handsTargets = null!;
-
+        private readonly CharacterState state;
+        private readonly IPublisher<AimChangedMessage> aimChanged;
+        private readonly IPublisher<ReloadStartedMessage> reloadStarted;
+        private readonly IPublisher<ReloadFinishedMessage> reloadFinished;
+        private readonly IPublisher<WeaponChangeStartedMessage> changeStarted;
+        private readonly IPublisher<WeaponChangeFinishedMessage> changeFinished;
         private Weapon weapon;
-        private WeaponLifetimeScope weaponScope;
-
-        private WeaponBobbing bobbing;
         private WeaponRunBobbing runBobbing;
         private WeaponLowering lowering;
         private WeaponReloading reloading;
-        private AttachmentsController attachmentsController;
-        private WeaponRole roleToChange;
+        private WeaponRole requestedRole;
+        private bool fireRequested;
+        private bool aimRequested;
+        private bool changingWeapon;
         
-        private bool haveShootRequest;
+        public bool IsChangingWeapon => changingWeapon || (IsReady && lowering != null && lowering.IsRaising);
+        public bool CanReload => IsReady && weapon.NeedAmmo() > 0 && inventory.CurrentAmmo != null && inventory.CurrentAmmo.Value > 0;
+        public bool IsReady => weapon != null && weapon.GameObject != null;
 
-        public WeaponProvider
-            (
-                Inventory.Inventory inventory
-                // HandsTargets handsTargets,
-            )
+        public WeaponProvider(Inventory.Inventory inventory, CharacterState state,
+            IPublisher<AimChangedMessage> aimChanged, IPublisher<ReloadStartedMessage> reloadStarted,
+            IPublisher<ReloadFinishedMessage> reloadFinished,
+            IPublisher<WeaponChangeStartedMessage> changeStarted,
+            IPublisher<WeaponChangeFinishedMessage> changeFinished)
         {
             this.inventory = inventory;
-            // this.handsTargets = handsTargets;
-
+            this.state = state;
+            this.aimChanged = aimChanged;
+            this.reloadStarted = reloadStarted;
+            this.reloadFinished = reloadFinished;
+            this.changeStarted = changeStarted;
+            this.changeFinished = changeFinished;
             inventory.SlotChanged += OnSlotChanged;
         }
 
-        public void TakeNewWeapon(WeaponConfig weaponConfig)
+        public void TakeNewWeapon(WeaponConfig config)
         {
-            if (weapon is not null)
-            {
-                if (IsShooting())
-                    return;
-                if (IsReloading())
-                    StopReloading();
-                if (lowering.isLowered)
-                    lowering.Lowered -= Lower;
-                
-                inventory.ChangeWeapon(weaponConfig);
-                if (weaponConfig.Role == weapon.Config.Role)
-                {
-                    inventory.SelectWeapon(weaponConfig.Role);
-                    SetWeapon((Weapon)inventory.CurrentSlot.Item);
-                }
-            }
-            else
-            {
-                inventory.ChangeWeapon(weaponConfig);
-                inventory.SelectWeapon(weaponConfig.Role);
-                SetWeapon((Weapon)inventory.CurrentSlot.Item);
-            }
+            if (!inventory.IsReady || IsShooting())
+                return;
+            StopReloading();
+            var select = !IsReady || weapon.Config.Role == config.Role;
+            inventory.ChangeWeapon(config);
+            if (select)
+                inventory.SelectWeapon(config.Role);
         }
 
         public void ChangeWeapon(WeaponRole role)
         {
-            if (weapon is not null)
-            {
-                if (IsShooting())
-                    return;
-                
-                if (weapon.Config.Role == role)
-                {
-                    if (lowering.isLowered)
-                    {
-                        lowering.Lowered -= Lower;
-                        lowering.Raise();
-                    }
-                }
-                else
-                {
-                    if (IsReloading())
-                        StopReloading();
-                    
-                    roleToChange = role;
-                    lowering.Lower();
-                    lowering.Lowered += Lower;
-                }
-            }
-            else
-            {
-                inventory.SelectWeapon(role);
-                SetWeapon((Weapon)inventory.CurrentSlot.Item);
-            }
+            if (!IsReady || IsShooting() || IsChangingWeapon || weapon.Config.Role == role
+                || !inventory.HasWeapon(role))
+                return;
+            StopReloading();
+            requestedRole = role;
+            changingWeapon = true;
+            StopSprint();
+            SetActualAim(false);
+            changeStarted.Publish(new WeaponChangeStartedMessage());
+            lowering.Lowered += OnLowered;
+            lowering.Lower();
         }
 
-        private void Lower()
+        private void OnLowered()
         {
-            //Руки позже
-            // handsTargets.SetTarget(null!, null!);
-            lowering.Lowered -= Lower;
-            inventory.SelectWeapon(roleToChange);
+            lowering.Lowered -= OnLowered;
+            inventory.SelectWeapon(requestedRole);
         }
 
-        private void OnSlotChanged(InventorySlot was, InventorySlot now)
+        private void OnSlotChanged(InventorySlot previous, InventorySlot current)
         {
-            SetWeapon((Weapon)now.Item);
-        }
-
-        private void SetWeapon(Weapon newWeapon)
-        {
-            var newScope = newWeapon.GameObject.GetComponent<WeaponLifetimeScope>();
-            var newBobbing = newScope.Container.Resolve<WeaponBobbing>();
-            var newRunBobbing = newScope.Container.Resolve<WeaponRunBobbing>();
-            var scopeInfo = newWeapon.Config.GetActiveScope();
-
-            var newAttachmentsC = newScope.Container.Resolve<AttachmentsController>();
-            newAttachmentsC.UpdateAttachments();
-
-            if (weapon != null)
-            {
-                newBobbing.isAim = bobbing.isAim;
-                newRunBobbing.isRunning = runBobbing.isRunning;
-                reloading.EndedReloading -= OnEndReloading;
-            }
-            weaponScope = newScope;
-
-            newBobbing.scopeSettings = scopeInfo.ScopesSettings;
-            //TODO: Когда будут прицелы с зумом - разобраться с их камерами
-            // if (newAttachmentsC.Scope.ScopeCamera)
-            //     newAttachmentsC.Scope.ScopeCamera.fieldOfView = cameraFovConfig.AimFov / scopeInfo.BaseInfo.ScopeSettings.Zoom;
-
-            lowering = weaponScope.Container.Resolve<WeaponLowering>();
-            reloading = newScope.Container.Resolve<WeaponReloading>();
-
-            bobbing = newBobbing;
-            runBobbing = newRunBobbing;
-            attachmentsController = newAttachmentsC;
-            weapon = newWeapon;
-            roleToChange = newWeapon.Config.Role;
-
-            attachmentsController.UpdateAttachments();
+            DetachWeapon();
+            weapon = current?.Item as Weapon;
+            if (!IsReady)
+                return;
+            var presentation = weapon.Presentation;
+            var attachments = presentation.Attachments;
+            attachments.UpdateAttachments();
+            var bobbing = presentation.Bobbing;
+            bobbing.ScopeSettings = weapon.Config.GetActiveScope()?.ScopesSettings;
+            runBobbing = presentation.RunBobbing;
+            lowering = presentation.Lowering;
+            reloading = presentation.Reloading;
+            reloading.EndedReloading += OnReloadFinished;
+            lowering.Raised += OnRaised;
             lowering.ResetLowering();
-            
-            if (haveShootRequest)
-            {
-                lowering.Raised += OnRaising;
-            }
-            
-            //TODO: Руки перенесу позже
-            // var leftTarget = newAttachmentsC.Grip.LeftHandTarget;
-            // var rightTarget = newWeapon.GetComponent<IKPointsInWeapon>().RightTarget;
-            // handsTargets.SetTarget(leftTarget, rightTarget);
-
-            reloading.EndedReloading += OnEndReloading;
+            SetActualAim(aimRequested && !changingWeapon, true);
+            if (state.IsSprinting.Value)
+                StartSprint();
         }
 
-        private void OnRaising()
+        private void OnRaised()
         {
-            if (haveShootRequest)
+            lowering.Raised -= OnRaised;
+            if (changingWeapon)
             {
-                haveShootRequest = false;
-                StartShooting();
+                changingWeapon = false;
+                changeFinished.Publish(new WeaponChangeFinishedMessage());
             }
+            SetAim(aimRequested);
+            if (fireRequested)
+                StartShooting();
         }
 
         public void StartShooting()
         {
-            if (lowering.isLowered)
-            {
-                haveShootRequest = true;
+            fireRequested = true;
+            if (!IsReady || IsReloading() || changingWeapon || lowering.IsLowered || lowering.IsRaising)
                 return;
-            }
-            if (lowering.isRaising)
-            {
-                haveShootRequest = true;
-                lowering.Raised += OnRaising;
-                return;
-            }
-            if (IsReloading())
-            {
-                return;
-            }
+            StopSprint();
             weapon.StartShoot();
-            if (runBobbing.isRunning)
+        }
+
+        public void StopShooting()
+        {
+            fireRequested = false;
+            if (IsReady)
+                weapon.StopShoot();
+        }
+
+        public void SetAim(bool aiming)
+        {
+            aimRequested = aiming;
+            SetActualAim(aiming && IsReady && !IsReloading() && !IsChangingWeapon);
+            if (state.IsAiming)
                 StopSprint();
         }
 
-        public void StopShoot()
+        private void SetActualAim(bool aiming, bool force = false)
         {
-            if (haveShootRequest)
-            {
-                haveShootRequest = false;
-                lowering.Raised -= OnRaising;
-            }
-            weapon.StopShoot();
+            if (!force && state.IsAiming == aiming)
+                return;
+            state.IsAiming = aiming;
+            // Republish after a slot change so newly created weapon views receive the state.
+            aimChanged.Publish(new AimChangedMessage(aiming));
         }
-
-#region Reloading
 
         public bool TryReload()
         {
-            if (IsReloading() || IsShooting() || lowering.isLowered || lowering.isRaising)
-            {
+            if (!IsReady || IsReloading() || IsShooting() || changingWeapon
+                || lowering.IsLowered || lowering.IsRaising || inventory.CurrentAmmo == null
+                || inventory.CurrentAmmo.Value <= 0 || weapon.NeedAmmo() <= 0)
                 return false;
-            }
-            if (inventory.CurrentAmmo.Value <= 0 || weapon.NeedAmmo() <= 0)
-            {
-                return false;
-            }
-
+            StopSprint();
+            SetActualAim(false);
             reloading.StartReloading();
-
-            return false;
+            reloadStarted.Publish(new ReloadStartedMessage());
+            return true;
         }
 
         private void StopReloading()
         {
+            if (!IsReloading())
+                return;
             reloading.StopReloading();
+            reloadFinished.Publish(new ReloadFinishedMessage(true));
         }
 
-        private void OnEndReloading()
+        private void OnReloadFinished()
         {
-            var value = ((Weapon)inventory.CurrentSlot.Item).NeedAmmo() <= inventory.CurrentAmmo.Value
-                            ? ((Weapon)inventory.CurrentSlot.Item).NeedAmmo()
-                            : inventory.CurrentAmmo.Value;
-            inventory.CurrentAmmo.AddValue(-value);
-            ((Weapon)inventory.CurrentSlot.Item).TryChangeValue((int)value);
+            if (!IsReady || inventory.CurrentAmmo == null)
+                return;
+            var amount = Mathf.Min(weapon.NeedAmmo(), (int)inventory.CurrentAmmo.Value);
+            inventory.CurrentAmmo.AddValue(-amount);
+            weapon.TryChangeValue(amount);
+            reloadFinished.Publish(new ReloadFinishedMessage(false));
+            SetAim(aimRequested);
+            if (fireRequested)
+                StartShooting();
         }
-
-#endregion
         
         public void StartSprint()
         {
-            runBobbing.StartRun();
-            // cameraFovController.SetRunFov();
+            if (IsReady && !IsShooting() && !IsAiming() && !IsReloading() && !changingWeapon)
+                runBobbing.StartRun();
         }
 
-        public void StopSprint()
-        {
-            if (runBobbing != null)
-                runBobbing.StopRun();
-            // cameraFovController.SetDefaultFov();
-        }
-
+        public void StopSprint() => runBobbing?.StopRun();
         public void SetMovementSpeed(Vector3 motion)
         {
-            weapon.SetMovementSpeed(motion);
+            if (IsReady)
+                weapon.SetMovementSpeed(motion);
+        }
+
+        public bool IsShooting() => IsReady && weapon.IsShooting;
+        public bool IsAiming() => state.IsAiming;
+        public bool IsSprinting() => state.IsSprinting.Value;
+        public bool IsReloading() => IsReady && reloading != null && reloading.IsReloading;
+        public bool TrySwitchShootingMode() => IsReady && !IsReloading() && !IsChangingWeapon
+            && weapon.TrySwitchShootingMode();
+
+        private void DetachWeapon()
+        {
+            if (lowering != null)
+            {
+                lowering.Lowered -= OnLowered;
+                lowering.Raised -= OnRaised;
+            }
+            if (reloading != null)
+                reloading.EndedReloading -= OnReloadFinished;
         }
         
-        public bool IsShooting() => weapon.IsShooting;
-        public bool IsAiming() => bobbing.isAim;
-        public bool IsSprint() => runBobbing.isRunning;
-        public bool IsReloading() => reloading.IsReloading;
-
-        public bool TrySwitchShootingMode() => weapon.TrySwitchShootingMode();
+        public void Dispose()
+        {
+            inventory.SlotChanged -= OnSlotChanged;
+            DetachWeapon();
+        }
     }
 }

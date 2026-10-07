@@ -1,30 +1,32 @@
- using UnityEngine;
+using VContainer;
+using UnityEngine;
+using VContainer.Unity;
 
-public class HandsTargets : MonoBehaviour
+public sealed class HandsTargets : ITickable
 {
-    [field: SerializeField] private Transform leftTarget = null!;
-    [field: SerializeField] private Transform rightTarget = null!;
+    private readonly Transform leftTarget;
+    private readonly Transform rightTarget;
+    private Transform currentLeftTarget;
+    private Transform currentRightTarget;
 
-    [field: SerializeField] private Transform currentLeftTarget = null!;
-    [field: SerializeField] private Transform currentRightTarget = null!;
-
-    private void Update()
+    public HandsTargets([Key("LeftHandTarget")] Transform leftTarget,
+        [Key("RightHandTarget")] Transform rightTarget)
     {
-        if (currentLeftTarget)
-        {
-            leftTarget.position = currentLeftTarget.position;
-            leftTarget.rotation = currentLeftTarget.rotation;
-        }
-        if (currentRightTarget)
-        {
-            rightTarget.position = currentRightTarget.position;
-            rightTarget.rotation = currentRightTarget.rotation;
-        }
+        this.leftTarget = leftTarget;
+        this.rightTarget = rightTarget;
     }
 
-    public void SetTarget(Transform newLeftTarget, Transform newRightTarget)
+    public void Tick()
     {
-        currentLeftTarget = newLeftTarget;
-        currentRightTarget = newRightTarget;
+        if (currentLeftTarget != null)
+            leftTarget.SetPositionAndRotation(currentLeftTarget.position, currentLeftTarget.rotation);
+        if (currentRightTarget != null)
+            rightTarget.SetPositionAndRotation(currentRightTarget.position, currentRightTarget.rotation);
+    }
+
+    public void SetTarget(Transform left, Transform right)
+    {
+        currentLeftTarget = left;
+        currentRightTarget = right;
     }
 }

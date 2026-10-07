@@ -7,7 +7,7 @@ namespace Weapon.Animations
     // ReSharper disable once ClassNeverInstantiated.Global
     public class WeaponRunBobbing : ILateTickable
     {
-        public bool isRunning;
+        private bool isRunning;
 
         private float runBlend;
         private float runBlendVel;
@@ -28,6 +28,8 @@ namespace Weapon.Animations
 
         public void LateTick()
         {
+            if (!transform.gameObject.activeInHierarchy)
+                return;
             // 1) Блендим запуск/останов бега
             var target = isRunning ? 1f : 0f;
             runBlend = Mathf.SmoothDamp(runBlend, target, ref runBlendVel, config.WeaponAnimationSettings.RunBobbingSettings.RunTransitionTime);

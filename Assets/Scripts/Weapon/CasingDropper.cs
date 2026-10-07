@@ -1,14 +1,16 @@
-﻿using Inventory.Pools;
-using UnityEngine;
 using VContainer;
+﻿using System;
+using Inventory.Pools;
+using UnityEngine;
 using VContainer.Unity;
 using Weapon.Settings;
 
 namespace Weapon
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class CasingDropper : IStartable
+    public class CasingDropper : IStartable, IDisposable
     {
+        private readonly Weapon weapon;
         private readonly WeaponConfig weaponConfig;
         private readonly CasingPool casingPool;
         private readonly Transform casingSpawnPoint;
@@ -22,10 +24,11 @@ namespace Weapon
             )
         {
             this.weaponConfig = weaponConfig;
+            this.weapon = weapon;
             this.casingPool = casingPool;
             this.casingSpawnPoint = casingSpawnPoint;
             
-            weapon.Shooted += DropCasing;
+            weapon.Shot += DropCasing;
         }
         
         // Тип оружия	            forceRange (м/с)	ejectTorque (Н·м)	coneAngle (°)	lifeTime (с)
@@ -42,5 +45,6 @@ namespace Weapon
         }
 
         public void Start() { }
+        public void Dispose() => weapon.Shot -= DropCasing;
     }
 }

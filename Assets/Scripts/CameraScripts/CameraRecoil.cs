@@ -1,4 +1,4 @@
-﻿using Inventory;
+using System;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -7,52 +7,33 @@ using Weapon.Settings;
 
 namespace CameraScripts
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    internal sealed class CameraRecoil : ITickable
+    internal sealed class CameraRecoil : ITickable, IDisposable
     {
-        private readonly PlayerCamera playerCamera;
-        private Vector2 totalRecoil;
+        private readonly PlayerCamera camera;
+        private readonly IDisposable subscription;
+        private Vector2 recoil;
         private ShakeSettings settings;
         
-        // [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public CameraRecoil
-            (
-                Inventory.Inventory inventory, 
-                PlayerCamera playerCamera,
-                ISubscriber<RecoilMessage> recoilMessageSubscriber
-            )
+        public CameraRecoil(PlayerCamera camera, ISubscriber<RecoilMessage> recoilSubscriber)
         {
-            this.playerCamera = playerCamera;
-            
-            inventory.SlotChanged += OnSlotChanged;
-            if (inventory.CurrentSlot != null!)
+            this.camera = camera;
+            subscription = recoilSubscriber.Subscribe(message =>
             {
-                var weapon = (Weapon.Weapon)inventory.CurrentSlot.Item;
-                settings = weapon.Config.ShakeSettings;
-            }
-            
-            recoilMessageSubscriber.Subscribe(OnRequestRecoil);
-        }
-        
-        private void OnRequestRecoil(RecoilMessage msg)
-        {
-            totalRecoil += new Vector2(Random.Range(-msg.Recoil.x, msg.Recoil.x), msg.Recoil.y);
-        }
-        
-        private void OnSlotChanged(InventorySlot was, InventorySlot now)
-        {
-            settings = ((Weapon.Weapon)now.Item).Config.ShakeSettings;
+                settings = message.ShakeSettings;
+                recoil += new Vector2(UnityEngine.Random.Range(-message.Recoil.x, message.Recoil.x), message.Recoil.y);
+            });
         }
 
         public void Tick()
         {
             if (settings == null)
-            {
                 return;
-            }
-            var deltaRecoil = totalRecoil * settings.RecoilMultiplier;
-            totalRecoil -= deltaRecoil;
-            playerCamera.RotateX(deltaRecoil);
+            var fraction = 1f - Mathf.Pow(1f - Mathf.Clamp01(settings.RecoilMultiplier), Time.deltaTime * 60f);
+            var delta = recoil * fraction;
+            recoil -= delta;
+            camera.AddRotation(delta);
         }
+
+        public void Dispose() => subscription.Dispose();
     }
 }

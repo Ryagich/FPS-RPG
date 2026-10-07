@@ -14,13 +14,12 @@ namespace Weapon.Animations
         private readonly WeaponConfig config;
         private readonly Transform transform;
 
-        [Tooltip("Опущено вниз")]
-        public bool isLowered;
+        public bool IsLowered { get; private set; }
 
         /// <summary>Флаг: сейчас идёт анимация опускания</summary>
-        public bool isLowering;
+        public bool IsLowering { get; private set; }
         /// <summary>Флаг: сейчас идёт анимация подъёма</summary>
-        public bool isRaising;
+        public bool IsRaising { get; private set; }
 
         // база для жёсткой установки трансформа
         private readonly Vector3 originalLocalPosition;
@@ -39,16 +38,18 @@ namespace Weapon.Animations
             this.transform = transform;
             originalLocalPosition = transform.localPosition;
             originalLocalRotation = transform.localRotation;
-            blend = isLowered ? 1f : 0f;
+            blend = IsLowered ? 1f : 0f;
             blendVel = 0f;
-            isLowering = false;
-            isRaising = false;
+            IsLowering = false;
+            IsRaising = false;
         }
 
         public void LateTick()
         {
+            if (!transform.gameObject.activeInHierarchy)
+                return;
             // 1) плавим blend → target
-            var target = isLowered ? 1f : 0f;
+            var target = IsLowered ? 1f : 0f;
             blend = Mathf.SmoothDamp(blend, target, ref blendVel, config.WeaponAnimationSettings.loweredTransitionTime, Mathf.Infinity, Time.deltaTime);
 
             // 2) абсолютная установка трансформа
@@ -59,14 +60,14 @@ namespace Weapon.Animations
             transform.localRotation = originalLocalRotation * rotOff;
 
             // 3) эвенты по окончании
-            if (isLowered && blend >= 0.99f)
+            if (IsLowered && IsLowering && blend >= 0.99f)
             {
+                IsLowering = false;
                 Lowered?.Invoke();
-                isLowering = false;
             }
-            else if (isRaising && blend <= 0.5f)
+            else if (IsRaising && blend <= 0.01f)
             {
-                isRaising = false;
+                IsRaising = false;
                 Raised?.Invoke();
             }
         }
@@ -79,11 +80,11 @@ namespace Weapon.Animations
         {
             blendVel = 0f;
             blend = 1f;
-            isLowered = false;
+            IsLowered = false;
 
             // сразу помечаем как «начался подъём»
-            isRaising = true;
-            isLowering = false;
+            IsRaising = true;
+            IsLowering = false;
 
             transform.localPosition = originalLocalPosition + config.WeaponAnimationSettings.loweredPositionOffset;
             transform.localRotation = originalLocalRotation * Quaternion.Euler(config.WeaponAnimationSettings.loweredRotationEuler);
@@ -92,17 +93,17 @@ namespace Weapon.Animations
         /// <summary>Запустить анимацию опускания.</summary>
         public void Lower()
         {
-            isLowered = true;
-            isLowering = true;
-            isRaising = false;
+            IsLowered = true;
+            IsLowering = true;
+            IsRaising = false;
         }
 
         /// <summary>Запустить анимацию подъёма.</summary>
         public void Raise()
         {
-            isLowered = false;
-            isRaising = true;
-            isLowering = false;
+            IsLowered = false;
+            IsRaising = true;
+            IsLowering = false;
         }
     }
 }

@@ -1,128 +1,77 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using VContainer;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
-using VContainer;
 using VContainer.Unity;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Inventory.Pools
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class CasingPool : IFixedTickable
+    public sealed class CasingPool : IFixedTickable, IDisposable
     {
-        private readonly GameObject casingPref;
-        private readonly float casingLifeTime;
-        private readonly IObjectPool<GameObject> casingPool;
-        private readonly Transform casingPoolsObj;
+        private readonly Rigidbody prefab;
+        private readonly Transform parent;
+        private readonly float lifetime;
+        private readonly ObjectPool<Rigidbody> pool;
+        private readonly List<(Rigidbody Body, float TimeLeft)> active = new();
         
-        private readonly List<ActiveCasing> activeCasings = new();
-
-        private struct ActiveCasing
+        public CasingPool(InventoryConfig config, [Key("CasingPrefab")] Rigidbody prefab,
+            [Key("PoolsParent")] Transform parent)
         {
-            public GameObject Go;
-            public float TimeLeft;
+            this.prefab = prefab;
+            this.parent = parent;
+            lifetime = config.casingLifeTime;
+            pool = new ObjectPool<Rigidbody>(Create, null, body => body.gameObject.SetActive(false),
+                body => Object.Destroy(body.gameObject), false, 200, 1000);
         }
         
-        [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public CasingPool
-            (
-                InventoryConfig inventoryConfig,
-                [Key("PoolsParent")] Transform poolsParent
-            )
+        public void GetCasing(Vector3 position, Quaternion rotation, Vector2 forceRange,
+            float ejectTorque, float coneAngle)
         {
-            casingPoolsObj = new GameObject("Casing Pool").transform;
-            casingPoolsObj.SetParent(poolsParent);
-            
-            casingPref = inventoryConfig.CasingPref;
-            casingLifeTime = inventoryConfig.casingLifeTime;
-            
-            casingPool = new ObjectPool<GameObject>(CreateCasing, //Метод создания объектов
-                                                    OnGet, //Действие при извлечении из пула
-                                                    OnRelease, //Действие при возврате в пул
-                                                    DestroyProjectile, //Очистка объектов (опционально)
-                                                    false, //Коллекция для отслеживания объектов не используется (опционально)
-                                                    200, //Минимальный размер пула
-                                                    1000 //Максимальный размер пула
-                                                   );
+            var body = pool.Get();
+            body.transform.SetPositionAndRotation(position, rotation);
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+            body.gameObject.SetActive(true);
+            var baseDirection = body.transform.TransformDirection(Vector3.right);
+            var angle = Random.Range(-coneAngle, coneAngle);
+            var direction = Quaternion.AngleAxis(angle, body.transform.up) * baseDirection;
+            body.AddForce(direction.normalized * Random.Range(forceRange.x, forceRange.y), ForceMode.VelocityChange);
+            body.AddTorque(Random.onUnitSphere * ejectTorque, ForceMode.Impulse);
+            active.Add((body, lifetime));
         }
         
         public void FixedTick()
         {
-            var dt = Time.fixedDeltaTime;
-
-            for (var i = activeCasings.Count - 1; i >= 0; i--)
+            for (var i = active.Count - 1; i >= 0; i--)
             {
-                var casing = activeCasings[i];
-                casing.TimeLeft -= dt;
-
+                var casing = active[i];
+                casing.TimeLeft -= Time.fixedDeltaTime;
                 if (casing.TimeLeft <= 0f)
                 {
-                    casingPool.Release(casing.Go);
-                    activeCasings.RemoveAt(i);
+                    pool.Release(casing.Body);
+                    active.RemoveAt(i);
                 }
                 else
                 {
-                    activeCasings[i] = casing;
+                    active[i] = casing;
                 }
             }
         }
         
-        public void GetCasing
-            (
-                Vector3 position,
-                Quaternion rotation,
-                Vector2 forceRange,
-                float ejectTorque,
-                float coneAngle
-           )
+        private Rigidbody Create()
         {
-            var casing = casingPool.Get();
-
-            casing.transform.SetPositionAndRotation(position, rotation);
-
-            var rb = casing.GetComponent<Rigidbody>();
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-
-            // Конус вылета
-            var baseDir = casing.transform.TransformDirection(Vector3.right);
-            var angleDeg = Random.Range(-coneAngle, coneAngle);
-            var dir = Quaternion.AngleAxis(angleDeg, casing.transform.up) * baseDir;
-
-            // Сила
-            var force = Random.Range(forceRange.x, forceRange.y);
-            rb.AddForce(dir.normalized * force, ForceMode.VelocityChange);
-            rb.AddTorque(Random.onUnitSphere * ejectTorque, ForceMode.Impulse);
-
-            activeCasings.Add(new ActiveCasing
-                              {
-                                  Go = casing,
-                                  TimeLeft = casingLifeTime
-                              });
+            var body = Object.Instantiate(prefab, parent);
+            body.gameObject.SetActive(false);
+            return body;
         }
         
-        private GameObject CreateCasing()
+        public void Dispose()
         {
-            var go = Object.Instantiate(casingPref, casingPoolsObj);
-            go.SetActive(false);
-            return go;
-        }
-
-        private void OnGet(GameObject casing)
-        {
-            casing.gameObject.SetActive(true);
-        }
-        
-        private void OnRelease(GameObject casing)
-        {
-            casing.gameObject.SetActive(false);
-            casing.transform.position = casingPoolsObj.position;
-        }
-
-        private void DestroyProjectile(GameObject casing) 
-        {
-           Object.Destroy(casing);
+            pool.Dispose();
+            active.Clear();
         }
     }
 }

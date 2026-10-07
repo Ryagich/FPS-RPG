@@ -301,10 +301,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: Scopes.GameLifetimeScope
+    TypeName:
   autoRun: 1
   autoInjectGameObjects: []
   <WeaponConfig>k__BackingField: {fileID: 11400000, guid: 05ead379a11090245b9002c096ff3083, type: 2}
+  interactionColliders:
+  - {fileID: 2179232927924411719}
+  - {fileID: 762203097986800927}
 --- !u!54 &5311516731344043704
 Rigidbody:
   m_ObjectHideFlags: 0

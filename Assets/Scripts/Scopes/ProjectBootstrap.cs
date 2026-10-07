@@ -8,7 +8,7 @@ namespace Scopes
         private static void Initialize()
         {
             // защита от двойного создания
-            if (Object.FindObjectOfType<ProjectLifetimeScope>() != null)
+            if (ProjectLifetimeScope.Instance != null)
                 return;
             var prefab = Resources.Load<ProjectLifetimeScope>("Project/ProjectLifetimeScope");
 

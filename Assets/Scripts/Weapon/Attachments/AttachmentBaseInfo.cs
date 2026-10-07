@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Localization;
 using NaughtyAttributes;
 using UnityEngine;
@@ -20,6 +20,7 @@ namespace Weapon.Attachments
         [field: SerializeField] public int Magazine { get; private set; }
         // Сам аттачмент, как объект
         [field: SerializeField] public GameObject Pref { get; private set; }
+        [field: SerializeField] public AttachmentLifetimeScope EntityPrefab { get; private set; }
         [field: SerializeField] public Sprite Sprite { get; private set; }
         [field: SerializeField] public AttachmentTypes Type { get; private set; }
         [field: SerializeField, ShowIf(nameof(isScope)), AllowNesting] 

@@ -1,103 +1,98 @@
-﻿using System.Collections;
-using System.Diagnostics.CodeAnalysis;
-using Cysharp.Threading.Tasks;
-using Inventory.Pools;
+using System;
+using Characters;
 using Inventory.Pools.Impact;
-using Player.Stats;
 using UnityEngine;
 using VContainer.Unity;
-using VContainer;
 using Weapon.Settings;
 
 namespace Weapon
 {
-    public class Projectile : MonoBehaviour
+    public sealed class Projectile : ITickable, IDisposable
     {
-        [HideInInspector] public bool CanInteract;
-        [HideInInspector] public WeaponConfig WeaponConfig;
-        [SerializeField, Min(.0f)] private float _timeToDeath = 2.0f;
-        [SerializeField, Min(.0f)] private float distanceToUseShotPointRotation = .5f;
-        [SerializeField, Min(.0f)] private float trailTime = .2f;
-
-        private Coroutine coroutine = null!;
+        private readonly Rigidbody body;
+        private readonly Collider collider;
+        private readonly TrailRenderer trail;
+        private readonly ProjectileCollisionRelay collisionRelay;
+        private readonly ProjectileSettings settings;
+        private readonly ImpactPools impacts;
+        private readonly EntityTargets targets;
+        private WeaponConfig config;
+        private Action<Projectile> release;
         private Vector3 shotPosition;
-        private TrailRenderer trail;
-        public ProjectilesPool projectilesPool;
-        private ImpactPools impactPools;
+        private float timeLeft;
+        private bool active;
+
+        public GameObject GameObject => body.gameObject;
+        public Rigidbody Body => body;
         
-        [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public void Init
-            (
-                ImpactPools impactPools,
-                Vector3 shotPosition
-            )
+        public Projectile(Rigidbody body, Collider collider, TrailRenderer trail,
+            ProjectileCollisionRelay collisionRelay, ProjectileSettings settings,
+            ImpactPools impacts, EntityTargets targets)
         {
-            this.impactPools = impactPools;
-            this.shotPosition = shotPosition;
-            coroutine = StartCoroutine(DestroyAfter());
+            this.body = body;
+            this.collider = collider;
+            this.trail = trail;
+            this.collisionRelay = collisionRelay;
+            this.settings = settings;
+            this.impacts = impacts;
+            this.targets = targets;
+            collisionRelay.Collided += OnCollision;
         }
         
-        private void ApplyNow()
+        public void Launch(Vector3 position, Quaternion rotation, WeaponConfig config, Action<Projectile> release)
         {
-            if (!trail) return;
-
-            trail.emitting = false;
+            this.config = config;
+            this.release = release;
+            shotPosition = position;
+            timeLeft = settings.Lifetime;
+            active = true;
+            body.transform.SetPositionAndRotation(position, rotation);
+            body.constraints = RigidbodyConstraints.None;
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+            collider.enabled = true;
+            GameObject.SetActive(true);
             trail.Clear();
-
-            trail.time = trailTime;
+            trail.time = settings.TrailTime;
             trail.emitting = true;
         }
 
-        private async UniTaskVoid ApplyEndOfFrame()
+        public void Deactivate()
         {
-            // Ждём, пока Unity закончит внутренние апдейты/инициализацию трейла в этом кадре
-            await UniTask.Yield();
-           
-            if (!trail)
+            active = false;
+            release = null;
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+            body.constraints = RigidbodyConstraints.FreezeAll;
+            collider.enabled = false;
+            trail.emitting = false;
+            GameObject.SetActive(false);
+        }
+        
+        public void Tick()
+        {
+            if (!active)
                 return;
-
-            // Дожимаем значение ещё раз
-            trail.time = trailTime;
+            timeLeft -= Time.deltaTime;
+            if (timeLeft <= 0f)
+                release(this);
         }
         
-        private void Awake()
+        private void OnCollision(Collision collision)
         {
-            trail = GetComponent<TrailRenderer>();
-        }
-        
-        private void OnEnable()
-        {
-            ApplyNow();
-            ApplyEndOfFrame().Forget();
-        }
-
-        private void OnCollisionEnter(Collision collision)
-        {
-            if (!CanInteract)
+            if (!active)
                 return;
-            if (coroutine != null!)
-                StopCoroutine(coroutine);
-
-            var direction = Vector3.Distance(transform.position, shotPosition) > distanceToUseShotPointRotation
-                          ? Quaternion.LookRotation(-transform.forward)
-                          : Quaternion.LookRotation(collision.contacts[0].normal);
-            impactPools.Get(collision.gameObject.tag ,collision.contacts[0].point, direction);
-
-            var targetScope = collision.gameObject.GetComponentInParent<LifetimeScope>();
-
-            if (targetScope)
-            {
-                var statsController = targetScope.Container.Resolve<StatsController>();
-                statsController.TakeDamage(WeaponConfig.DamageSettings.Damage);
-            }
-            
-            projectilesPool.Release(this);
+            var contact = collision.GetContact(0);
+            var direction = Vector3.Distance(body.position, shotPosition) > settings.NormalDistance
+                ? Quaternion.LookRotation(-body.transform.forward) : Quaternion.LookRotation(contact.normal);
+            impacts.Get(collision.gameObject.tag, contact.point, direction);
+            // Return to the pool before damage can destroy the target entity and its scope.
+            var damage = config.DamageSettings.Damage;
+            release(this);
+            if (targets.TryGetDamage(collision.collider, out var target))
+                target.TakeDamage(damage);
         }
-        
-        private IEnumerator DestroyAfter()
-        {
-            yield return new WaitForSeconds(_timeToDeath);
-            projectilesPool.Release(this);
-        }
+
+        public void Dispose() => collisionRelay.Collided -= OnCollision;
     }
 }

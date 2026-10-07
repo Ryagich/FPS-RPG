@@ -98,3 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <AttachmentBaseInfo>k__BackingField: {fileID: 11400000, guid: 100cae4ec1435b249a1e97d71c2b61e1, type: 2}
   <LeftHandTarget>k__BackingField: {fileID: 0}
+  parentReference:
+    TypeName:
+  autoRun: 1
+  autoInjectGameObjects: []

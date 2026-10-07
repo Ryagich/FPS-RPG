@@ -1,61 +1,59 @@
-﻿using MessagePipe;
+using VContainer;
+﻿using System;
+using MessagePipe;
 using Messages;
 using UnityEngine;
-using UnityEngine.AI;
-using VContainer;
 using VContainer.Unity;
 
 namespace Bot
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class BotDeath : IStartable
+    public sealed class BotDeath : IStartable, IDisposable
     {
-        private readonly LifetimeScope lifetimeScope;
-        private readonly NavMeshAgent navMeshAgent;
-        private readonly Animator animator;
+        private readonly LifetimeScope scope;
         private readonly Inventory.Inventory inventory;
-        private readonly Transform transform;
+        private readonly CharacterController controller;
+        private readonly Animator animator;
+        private readonly Rigidbody[] ragdollBodies;
+        private readonly IDisposable subscription;
+        private bool dead;
 
-        public BotDeath
-            (
-                LifetimeScope lifetimeScope,
-                NavMeshAgent navMeshAgent,
-                Animator animator,
-                Inventory.Inventory inventory,
-                [Key("self")] Transform transform,
-                ISubscriber<DeathMessage> deathMessageSubscribe
-            )
+        public BotDeath(LifetimeScope scope, Inventory.Inventory inventory, CharacterController controller,
+            Animator animator, [Key("RagdollBodies")] Rigidbody[] ragdollBodies,
+            ISubscriber<DeathMessage> death)
         {
-            this.lifetimeScope = lifetimeScope;
-            this.navMeshAgent = navMeshAgent;
-            this.animator = animator;
+            this.scope = scope;
             this.inventory = inventory;
-            this.transform = transform;
-            deathMessageSubscribe.Subscribe(OnDeath);
+            this.controller = controller;
+            this.animator = animator;
+            this.ragdollBodies = ragdollBodies;
+            subscription = death.Subscribe(OnDeath);
         }
 
-        private void OnDeath(DeathMessage msg)
+        private void OnDeath(DeathMessage message)
         {
+            if (dead)
+                return;
+            dead = true;
+            controller.enabled = false;
             inventory.DropWeapon();
             inventory.ClearSlots();
-            lifetimeScope.DisposeCore();
-            Object.Destroy(lifetimeScope);
-            Object.Destroy(navMeshAgent);
-            Object.Destroy(animator);
-
-            RemoveAllForces();
-            // navMeshAgent.enabled = false;
-        }
-        
-        private void RemoveAllForces()
-        {
-            foreach (var member in transform.GetComponentsInChildren<Rigidbody>())
+            if (animator != null)
             {
-                member.isKinematic = false;
-                member.linearVelocity = Vector3.zero;
+                animator.enabled = false;
+                UnityEngine.Object.Destroy(animator);
+            }
+            UnityEngine.Object.Destroy(controller);
+            scope.DisposeCore();
+            UnityEngine.Object.Destroy(scope);
+            foreach (var body in ragdollBodies)
+            {
+                body.isKinematic = false;
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
             }
         }
         
         public void Start() { }
+        public void Dispose() => subscription.Dispose();
     }
 }

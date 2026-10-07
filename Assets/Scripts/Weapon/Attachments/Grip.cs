@@ -1,10 +1,19 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Weapon.Attachments
 {
-    public class Grip : MonoBehaviour, IAttachment
+    public sealed class Grip : IAttachment
     {
-        [field: SerializeField] public AttachmentBaseInfo AttachmentBaseInfo { get; set; } = null!;
-        [field: SerializeField] public Transform LeftHandTarget { get; private set; } = null!;
+        public AttachmentBaseInfo AttachmentBaseInfo { get; set; }
+        public Transform Transform { get; }
+        public GameObject GameObject => Transform.gameObject;
+        public Transform LeftHandTarget { get; }
+
+        public Grip(Transform transform, AttachmentBaseInfo info, Transform leftHandTarget)
+        {
+            Transform = transform;
+            AttachmentBaseInfo = info;
+            LeftHandTarget = leftHandTarget;
+        }
     }
 }

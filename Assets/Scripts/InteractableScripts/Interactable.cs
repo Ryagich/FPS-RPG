@@ -1,37 +1,16 @@
-﻿using System;
-using UnityEngine;
-using VContainer.Unity;
+using System;
+using Weapon.Providers;
 
 namespace InteractableScripts
 {
-    public class Interactable : MonoBehaviour
+    public sealed class Interactable
     {
-        public event Action<LifetimeScope> Interacted; 
-        public event Action<LifetimeScope> Highlighted; 
-        public event Action<LifetimeScope> HighlightOuted; 
+        public event Action<WeaponProvider> Interacted;
+        public event Action<WeaponProvider> Highlighted;
+        public event Action<WeaponProvider> HighlightOuted;
 
-        [field: SerializeField] public bool CanInteractable { get; private set; } = true;
-        [field: SerializeField] public bool ManyInteract { get; private set; }
-        
-        public void Interact(LifetimeScope interacting)
-        {
-            if (!CanInteractable)
-                return;
-            Interacted?.Invoke(interacting);
-        }
-    
-        public void Highlight(LifetimeScope interacting)
-        {
-            if (!CanInteractable)
-                return;
-            Highlighted?.Invoke(interacting);
-        }
-    
-        public void OutHighlight(LifetimeScope interacting)
-        {
-            if (!CanInteractable)
-                return;
-            HighlightOuted?.Invoke(interacting);
-        }
+        public void Interact(WeaponProvider actor) => Interacted?.Invoke(actor);
+        public void Highlight(WeaponProvider actor) => Highlighted?.Invoke(actor);
+        public void OutHighlight(WeaponProvider actor) => HighlightOuted?.Invoke(actor);
     }
 }

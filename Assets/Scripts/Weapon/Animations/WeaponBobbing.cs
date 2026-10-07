@@ -1,4 +1,5 @@
-﻿using MessagePipe;
+﻿using System;
+using MessagePipe;
 using Messages;
 using Movement;
 using UnityEngine;
@@ -9,15 +10,16 @@ using Weapon.Settings;
 namespace Weapon.Animations
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class WeaponBobbing : ILateTickable
+    public class WeaponBobbing : ILateTickable, IDisposable
     {
-        public ScopesSettings scopeSettings;
+        public ScopesSettings ScopeSettings { get; set; }
         
+        private readonly IDisposable subscriptions;
         private readonly WeaponConfig config;
         private readonly Transform transform;
         private readonly IMovementDataProvider movement;
         
-        public bool isAim;
+        private bool isAiming;
 
         // внутренние для блендов и фаз
         private float aimBlend;
@@ -45,18 +47,20 @@ namespace Weapon.Animations
 
             SetCurrentSettings(false);
             
-            aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
+            subscriptions = aimChangedMessageSubscriber.Subscribe(SetCurrentSettings);
         }
         
         public void LateTick()
         {
+            if (!transform.gameObject.activeInHierarchy)
+                return;
             var t = Time.time;
 
             // 1) Блендим прицел
-            var targetAim = isAim ? 1f : 0f;
+            var targetAim = isAiming ? 1f : 0f;
             aimBlend = Mathf.SmoothDamp(aimBlend, targetAim, ref aimBlendVelocity, config.WeaponAnimationSettings.aimBobbingTransitionTime);
-            var aimPosOff = scopeSettings is null ? Vector3.zero : (scopeSettings.AimPosition * aimBlend);
-            var aimRotOff = Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(scopeSettings?.aimRotationEuler ?? Vector3.zero), aimBlend);
+            var aimPosOff = ScopeSettings is null ? Vector3.zero : (ScopeSettings.AimPosition * aimBlend);
+            var aimRotOff = Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(ScopeSettings?.aimRotationEuler ?? Vector3.zero), aimBlend);
 
             // 2) Idle–bobbing
             var breatheOff = Mathf.Sin(2 * Mathf.PI * currentSettings.BreatheFrequency * t) * currentSettings.BreatheAmplitude;
@@ -70,14 +74,15 @@ namespace Weapon.Animations
 
             // 3) Walk intensity
             var velocity = movement.Velocity;
-            var speed = velocity.magnitude;
+            var speed = new Vector2(velocity.x, velocity.z).magnitude;
 
             // var speed = movement.velocity.magnitude;
-            var targetNorm = Mathf.Clamp01(speed / currentSettings.MaxWalkSpeed);
+            var targetNorm = movement.IsGrounded && currentSettings.MaxWalkSpeed > 0.001f
+                ? Mathf.Clamp01(speed / currentSettings.MaxWalkSpeed) : 0f;
             walkSpeedNorm = Mathf.SmoothDamp(walkSpeedNorm, targetNorm, ref walkSpeedVel, currentSettings.WalkSmoothTime);
 
             // 4) Направления
-            var velDir = speed > 0.001f ? velocity.normalized : Vector3.zero;
+            var velDir = speed > 0.001f ? new Vector3(velocity.x, 0f, velocity.z).normalized : Vector3.zero;
             // var velDir = characterController.velocity.normalized;
             var rawF = Vector3.Dot(movement.Transform.forward, velDir);
             var rawR = Vector3.Dot(movement.Transform.right, velDir);
@@ -121,6 +126,8 @@ namespace Weapon.Animations
         // public void StartAim() => isAim = true;
         // public void StopAim() => isAim = false;
         
+        public void Dispose() => subscriptions.Dispose();
+
         private void SetCurrentSettings(AimChangedMessage msg)
         {
             SetCurrentSettings(msg.IsAiming);
@@ -128,7 +135,7 @@ namespace Weapon.Animations
         
         private void SetCurrentSettings(bool value)
         {
-            isAim = value;
+            isAiming = value;
             currentSettings = value
                             ? config.WeaponAnimationSettings.AimBobbingSettings
                             : config.WeaponAnimationSettings.BobbingSettings;

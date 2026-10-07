@@ -1,47 +1,28 @@
-using Localization;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VContainer;
+using VContainer.Unity;
 
 namespace Scopes
 {
-    /// <summary>
-    /// Builds the scene session only after project-level boot has synchronized Yandex and Unity Localization.
-    /// Put one on every gameplay or development scene and choose its role in the Inspector.
-    /// </summary>
     [DefaultExecutionOrder(-1000)]
-    public sealed class GameSceneBootstrapper : MonoBehaviour
+    public sealed class GameSceneBootstrapper : LifetimeScope
     {
         [SerializeField] private GameLifetimeScope gameScopePrefab;
-        [Header("Scene session")]
         [SerializeField] private bool isGameplayScene = true;
+        [Tooltip("Scopes placed in this scene; their parent is assigned explicitly after game scope boot.")]
+        [SerializeField] private EntityLifetimeScope[] sceneEntities = System.Array.Empty<EntityLifetimeScope>();
 
-        private async void Awake()
+        protected override void Awake()
         {
-            var projectScope = ProjectLifetimeScope.Instance;
-            if (projectScope == null)
-            {
-                Debug.LogError("ProjectLifetimeScope not found.", this);
-                return;
-            }
+            parentReference.Object = ProjectLifetimeScope.Instance;
+            base.Awake();
+        }
 
-            var bootCompletion = projectScope.Container.Resolve<BootCompletion>();
-            await bootCompletion.WaitAsync();
-
-            if (gameScopePrefab == null)
-            {
-                Debug.LogError("GameLifetimeScope prefab is not assigned.", this);
-                return;
-            }
-
-            var gameLifetimeScope = Instantiate(gameScopePrefab);
-            gameLifetimeScope.gameObject.SetActive(false);
-
-            gameLifetimeScope.parentReference.Object = projectScope;
-            SceneManager.MoveGameObjectToScene(gameLifetimeScope.gameObject, gameObject.scene);
-            gameLifetimeScope.SetSceneSessionConfiguration(new GameSceneSessionConfiguration(isGameplayScene));
-            gameLifetimeScope.gameObject.SetActive(true);
-            gameLifetimeScope.Build();
+        protected override void Configure(IContainerBuilder builder)
+        {
+            builder.RegisterInstance(new GameSceneBootstrapSettings(gameScopePrefab, gameObject.scene,
+                isGameplayScene, sceneEntities));
+            builder.RegisterEntryPoint<GameSceneBootstrap>().AsSelf();
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿using System;
+using VContainer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MessagePipe;
 using Messages;
 using UnityEngine;
 using UnityEngine.Pool;
-using VContainer;
 using VContainer.Unity;
 using Object = UnityEngine.Object;
 
@@ -28,14 +28,11 @@ namespace Inventory.Pools.Impact
                 IPublisher<PlaySoundMessage> playSoundMessagePublisher
             )
         {
-            var ImpactPoolsObj = new GameObject("Impact Pools");
-            ImpactPoolsObj.transform.SetParent(poolsParent);
-            
             this.playSoundMessagePublisher = playSoundMessagePublisher;
 
             foreach (var impact in inventoryConfig.Impacts)
             {
-                pools.Add(new ImpactPool(impact));
+                pools.Add(new ImpactPool(impact, poolsParent));
                 activeImpacts.Add((impact, new List<Impact>()));
             }
         }
@@ -88,10 +85,12 @@ namespace Inventory.Pools.Impact
     {
         public readonly ImpactConfig ImpactConfig;
         private readonly IObjectPool<Impact> pool;
+        private readonly Transform parent;
         
-        public ImpactPool(ImpactConfig impactConfig)
+        public ImpactPool(ImpactConfig impactConfig, Transform parent)
         {
             ImpactConfig = impactConfig;
+            this.parent = parent;
             pool = new ObjectPool<Impact>(
                                           InstantiateImpact, //Метод создания объектов
                                           OnGet, //Действие при извлечении из пула
@@ -112,7 +111,7 @@ namespace Inventory.Pools.Impact
             return impact;
         }
 
-        private Impact InstantiateImpact() => new (Object.Instantiate(ImpactConfig.Pref));
+        private Impact InstantiateImpact() => new (Object.Instantiate(ImpactConfig.Pref, parent));
         public void Release(Impact impact) => pool.Release(impact);
         private void OnRelease(Impact impact) 
         {

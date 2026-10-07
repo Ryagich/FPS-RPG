@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Inventory.Pools.Impact;
 using UnityEngine;
 using Weapon;
@@ -10,8 +10,8 @@ namespace Inventory
     public class InventoryConfig : ScriptableObject
     {
         [SerializeField] private List<Ammo.Ammo> ammoList = new();
-        [field: SerializeField] public Projectile ProjectilePref { get; private set; }
-        [field: SerializeField] public GameObject CasingPref { get; private set; }
+        [field: SerializeField] public ProjectileLifetimeScope ProjectilePref { get; private set; }
+        [field: SerializeField] public Rigidbody CasingPref { get; private set; }
         [field: SerializeField] public float casingLifeTime { get; private set; } = 5f;
         
         [SerializeField] private List<ImpactConfig> impacts = new();
