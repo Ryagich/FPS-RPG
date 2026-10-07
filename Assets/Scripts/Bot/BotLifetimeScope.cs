@@ -3,7 +3,6 @@ using Dependencies;
 using InteractableScripts;
 using Scopes;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -15,7 +14,6 @@ namespace Bot
         [SerializeField] private CharacterController controller;
         [SerializeField] private Collider[] bodyColliders;
         [SerializeField] private Rigidbody[] ragdollBodies;
-        [FormerlySerializedAs("visionOrigin")]
         [SerializeField] private Transform aimOrigin;
         [SerializeField] private Animator animator;
         [SerializeField] private BotNavigationSettings navigationSettings = new();

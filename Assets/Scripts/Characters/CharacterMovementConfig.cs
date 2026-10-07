@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace Characters
@@ -24,7 +23,6 @@ namespace Characters
         [field: SerializeField] public float JumpHeight { get; private set; } = 1.2f;
         [field: Header("Camera Settings")]
         [field: SerializeField] public float Sensitivity { get; private set; } = 100.0f;
-        [field: FormerlySerializedAs("<cameraYClamp>k__BackingField")]
         [field: SerializeField] public Vector2 CameraPitchLimits { get; private set; } = new(-80f, 80f);
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using YG.Insides;
 
 namespace YG
@@ -47,7 +46,6 @@ namespace YG
             public TriggerEvent callback = new TriggerEvent();
         }
 
-        [FormerlySerializedAs("delegates")]
         [SerializeField]
         private List<Entry> m_Delegates;
 

@@ -26,4 +26,4 @@ MonoBehaviour:
     m_Bits: 1
   <JumpHeight>k__BackingField: 3
   <Sensitivity>k__BackingField: 0.5
-  <cameraYClamp>k__BackingField: {x: -80, y: 80}
+  <CameraPitchLimits>k__BackingField: {x: -80, y: 80}

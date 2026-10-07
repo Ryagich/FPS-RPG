@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -9,7 +8,6 @@ namespace Weapon.Attachments
     {
         [field: SerializeField] public AttachmentBaseInfo AttachmentBaseInfo { get; private set; }
         [field: SerializeField] public Transform ShotPoint { get; private set; }
-        [field: FormerlySerializedAs("<particles>k__BackingField")]
         [field: SerializeField] public ParticleSystem Particles { get; private set; }
         [field: SerializeField] private Light flashLight;
         [field: SerializeField] private int flashParticlesCount = 5;

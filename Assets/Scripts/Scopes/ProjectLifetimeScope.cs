@@ -11,7 +11,6 @@ using Player.Stats;
 using Sounds;
 using Sounds.Movement;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -22,7 +21,6 @@ namespace Scopes
         public static ProjectLifetimeScope Instance { get; private set; }
 
         [field: SerializeField] public InputConfig InputConfig { get; private set; } = null!;
-        [field: FormerlySerializedAs("<PlayerMovementConfig>k__BackingField")]
         [field: SerializeField] public CharacterMovementConfig CharacterMovementConfig { get; private set; } = null!;
         [field: SerializeField] public GravityConfig GravityConfig { get; private set; } = null!;
         [field: SerializeField] public SoundsConfig SoundsConfig { get; private set; } = null!;

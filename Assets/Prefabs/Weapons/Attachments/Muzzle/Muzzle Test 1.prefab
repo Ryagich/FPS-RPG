@@ -162,7 +162,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <AttachmentBaseInfo>k__BackingField: {fileID: 11400000, guid: 22301e3147c45404da4f7228a1fbd41a, type: 2}
   <ShotPoint>k__BackingField: {fileID: 4450397733328384643}
-  <particles>k__BackingField: {fileID: 0}
+  <Particles>k__BackingField: {fileID: 0}
   flashLight: {fileID: 0}
   flashParticlesCount: 5
   flashLightDuration: 0
