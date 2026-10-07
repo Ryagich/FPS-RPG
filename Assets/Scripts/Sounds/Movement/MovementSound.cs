@@ -1,6 +1,6 @@
-using VContainer;
 ﻿using CameraScripts.Shake;
 using Characters;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using Player;
@@ -26,13 +26,14 @@ namespace Sounds.Movement
         public MovementSound
             (
                 MovementSoundConfig distanceToPlayMovementSoundConfig,
-                [Key("MovementSoundConfig")] SoundConfig movementSoundConfig,
+                MovementSoundSettings movementSoundConfigReference,
                 Transform transform,
                 CharacterController characterController,
                 CameraShakeOnStep cameraShakeOnStep,
                 CharacterState moveStates
             )
         {
+            var movementSoundConfig = movementSoundConfigReference.Value;
             this.distanceToPlayMovementSoundConfig = distanceToPlayMovementSoundConfig;
             soundConfig = movementSoundConfig;
 

@@ -1,8 +1,8 @@
-using VContainer;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Dependencies;
 using Inventory.Ammo;
 using UnityEngine;
 using VContainer.Unity;
@@ -39,11 +39,13 @@ namespace Inventory
             (
                InventoryConfig inventoryConfig,
                LifetimeScope scope,
-               [Key("GameScope")] LifetimeScope gameScope,
+               GameScope gameScopeReference,
                AmmoStorage ammoStorage,
-               [Key("ParentTransformForWeapon")] Transform parentTransform
+               WeaponParent parentTransformReference
             )
         {
+            var gameScope = gameScopeReference.Value;
+            var parentTransform = parentTransformReference.Value;
             this.inventoryConfig = inventoryConfig;
             this.scope = scope;
             this.gameScope = gameScope;

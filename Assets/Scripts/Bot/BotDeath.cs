@@ -1,5 +1,5 @@
-using VContainer;
 ﻿using System;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -18,9 +18,10 @@ namespace Bot
         private bool dead;
 
         public BotDeath(LifetimeScope scope, Inventory.Inventory inventory, CharacterController controller,
-            Animator animator, [Key("RagdollBodies")] Rigidbody[] ragdollBodies,
+            Animator animator, RagdollBodies ragdollBodiesReference,
             ISubscriber<DeathMessage> death)
         {
+            var ragdollBodies = ragdollBodiesReference.Value;
             this.scope = scope;
             this.inventory = inventory;
             this.controller = controller;

@@ -1,6 +1,6 @@
-using VContainer;
 using System;
 using Characters;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -18,9 +18,10 @@ namespace InteractableScripts
         private readonly IDisposable subscription;
         private Interactable current;
 
-        public InteractionController(InteractableConfig config, [Key("AimTransform")] Transform aim,
+        public InteractionController(InteractableConfig config, AimTransform aimReference,
             WeaponProvider actor, EntityTargets targets, ISubscriber<InteractCommand> interact)
         {
+            var aim = aimReference.Value;
             this.config = config;
             this.aim = aim;
             this.actor = actor;

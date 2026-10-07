@@ -1,3 +1,4 @@
+using Dependencies;
 using InteractableScripts;
 using Scopes;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Weapon.Drop
             builder.RegisterInstance(gameObject).AsSelf();
 
             builder.Register<Interactable>(Lifetime.Scoped);
-            builder.RegisterInstance(interactionColliders).Keyed("InteractionColliders");
+            builder.RegisterInstance(new InteractionColliders(interactionColliders));
             builder.RegisterEntryPoint<InteractableRegistration>().AsSelf();
             
             builder.RegisterEntryPoint<WeaponAdderInInventory>().AsSelf();

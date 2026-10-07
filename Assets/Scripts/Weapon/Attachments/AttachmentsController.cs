@@ -1,5 +1,5 @@
-using VContainer;
 using System.Linq;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 using Weapon.Settings;
@@ -20,9 +20,10 @@ namespace Weapon.Attachments
         public AttachmentsController
             (
                 WeaponConfig weaponConfig,
-                [Key("WeaponScope")] LifetimeScope scope
+                WeaponScope scopeReference
             )
         {
+            var scope = scopeReference.Value;
             this.weaponConfig = weaponConfig;
             this.scope = scope;
         }

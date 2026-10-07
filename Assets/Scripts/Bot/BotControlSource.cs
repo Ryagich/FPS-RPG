@@ -1,6 +1,6 @@
-using VContainer;
 using System;
 using Characters;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -73,7 +73,7 @@ namespace Bot
         private bool discreteActionSent;
         private bool disposed;
 
-        public BotControlSource(Transform transform, [Key("botGoal")] Transform goal,
+        public BotControlSource(Transform transform, BotGoal goalReference,
             BotNavigation navigation, BotNavigationSettings settings, CharacterState state,
             Inventory.Inventory inventory, WeaponProvider weapon,
             IPublisher<MoveCommand> move, IPublisher<LookCommand> look,
@@ -83,6 +83,7 @@ namespace Bot
             IPublisher<SwitchWeaponCommand> switchWeapon, IPublisher<SwitchFireModeCommand> fireMode,
             IPublisher<InteractCommand> interact)
         {
+            var goal = goalReference.Value;
             this.transform = transform;
             this.goal = goal;
             this.navigation = navigation;

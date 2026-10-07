@@ -1,5 +1,5 @@
-using VContainer;
 ﻿using System.Collections.Generic;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -23,8 +23,9 @@ namespace CameraScripts.Shake
             public AnimationCurve Curve;     // ожидаем 0 -> -1 -> 0
         }
 
-        public CameraStepBobber([Key("CameraParentTransform")] Transform cameraParentTransform)
+        public CameraStepBobber(CameraParent cameraParentTransformReference)
         {
+            var cameraParentTransform = cameraParentTransformReference.Value;
             this.cameraParentTransform = cameraParentTransform;
         }
 

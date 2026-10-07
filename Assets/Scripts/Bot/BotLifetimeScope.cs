@@ -1,4 +1,5 @@
 using Characters;
+using Dependencies;
 using InteractableScripts;
 using Scopes;
 using UnityEngine;
@@ -29,9 +30,9 @@ namespace Bot
             }
             builder.RegisterCharacter(controller, transform, aimOrigin, ParentTransformForWeapon);
             builder.RegisterCharacterTargets(bodyColliders);
-            builder.RegisterInstance(ragdollBodies).Keyed("RagdollBodies");
+            builder.RegisterInstance(new RagdollBodies(ragdollBodies));
             // A null optional target is represented by the bot itself; demo Return uses its initial position.
-            builder.RegisterInstance(botGoal != null ? botGoal : transform).Keyed("botGoal");
+            builder.RegisterInstance(new BotGoal(botGoal != null ? botGoal : transform));
             builder.RegisterInstance(navigationSettings);
             builder.Register<BotNavigation>(Lifetime.Scoped);
             builder.RegisterEntryPoint<BotControlSource>().AsSelf();

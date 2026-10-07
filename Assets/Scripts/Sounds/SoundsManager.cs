@@ -1,5 +1,5 @@
-using VContainer;
 using System.Collections.Generic;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UniRx;
@@ -34,9 +34,10 @@ namespace Sounds
         (
             SoundsConfig soundsConfig,
             ISubscriber<PlaySoundMessage> playSoundSubscriber,
-            [Key("SoundsParent")] Transform parent
+            SoundsParent parentReference
         )
         {
+            var parent = parentReference.Value;
             this.soundsConfig = soundsConfig;
 
             sourcePool = new ObjectPool<AudioSource>(

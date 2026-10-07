@@ -1,5 +1,5 @@
-using VContainer;
 using Characters;
+using Dependencies;
 using UnityEngine;
 
 namespace CameraScripts
@@ -9,8 +9,9 @@ namespace CameraScripts
         private readonly CharacterLook look;
         public Transform CameraParentTransform { get; }
         
-        public PlayerCamera(CharacterLook look, [Key("CameraParentTransform")] Transform cameraParentTransform)
+        public PlayerCamera(CharacterLook look, CameraParent cameraParentTransformReference)
         {
+            var cameraParentTransform = cameraParentTransformReference.Value;
             this.look = look;
             CameraParentTransform = cameraParentTransform;
         }

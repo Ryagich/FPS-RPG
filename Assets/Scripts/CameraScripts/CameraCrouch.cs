@@ -1,5 +1,5 @@
-using VContainer;
 using Characters;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -14,8 +14,9 @@ namespace CameraScripts
         private float appliedY;
 
         public CameraCrouch(CharacterState state, CharacterMovementConfig config,
-            [Key("CameraParentTransform")] Transform camera)
+            CameraParent cameraReference)
         {
+            var camera = cameraReference.Value;
             this.state = state;
             this.config = config;
             this.camera = camera;

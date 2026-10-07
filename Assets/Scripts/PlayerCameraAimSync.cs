@@ -1,4 +1,4 @@
-using VContainer;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -9,10 +9,14 @@ public sealed class PlayerCameraAimSync : IFixedTickable
     private readonly Transform rootTarget;
     private readonly Transform aimTarget;
 
-    public PlayerCameraAimSync([Key("RootSource")] Transform rootSource,
-        [Key("AimSource")] Transform aimSource, [Key("RootTarget")] Transform rootTarget,
-        [Key("AimTarget")] Transform aimTarget)
+    public PlayerCameraAimSync(SyncRootSource rootSourceReference,
+        SyncAimSource aimSourceReference, SyncRootTarget rootTargetReference,
+        SyncAimTarget aimTargetReference)
     {
+        var rootSource = rootSourceReference.Value;
+        var aimSource = aimSourceReference.Value;
+        var rootTarget = rootTargetReference.Value;
+        var aimTarget = aimTargetReference.Value;
         this.rootSource = rootSource;
         this.aimSource = aimSource;
         this.rootTarget = rootTarget;

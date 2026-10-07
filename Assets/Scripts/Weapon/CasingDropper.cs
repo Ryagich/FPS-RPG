@@ -1,5 +1,5 @@
-using VContainer;
 ﻿using System;
+using Dependencies;
 using Inventory.Pools;
 using UnityEngine;
 using VContainer.Unity;
@@ -20,9 +20,10 @@ namespace Weapon
                 WeaponConfig weaponConfig, 
                 Weapon weapon,
                 CasingPool casingPool,
-                [Key("CasingSpawnPoint")] Transform casingSpawnPoint
+                CasingSpawnPoint casingSpawnPointReference
             )
         {
+            var casingSpawnPoint = casingSpawnPointReference.Value;
             this.weaponConfig = weaponConfig;
             this.weapon = weapon;
             this.casingPool = casingPool;

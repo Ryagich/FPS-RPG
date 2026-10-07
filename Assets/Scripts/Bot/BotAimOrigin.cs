@@ -1,4 +1,4 @@
-using VContainer;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -12,8 +12,9 @@ namespace Bot
         private readonly float standingHeight;
         private readonly float standingY;
 
-        public BotAimOrigin(CharacterController controller, [Key("AimTransform")] Transform aim)
+        public BotAimOrigin(CharacterController controller, AimTransform aimReference)
         {
+            var aim = aimReference.Value;
             this.controller = controller;
             this.aim = aim;
             standingHeight = controller.height;

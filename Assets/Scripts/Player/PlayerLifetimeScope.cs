@@ -2,6 +2,7 @@ using CameraScripts;
 using CameraScripts.Shake;
 using CanvasScripts;
 using Characters;
+using Dependencies;
 using Input;
 using InteractableScripts;
 using Scopes;
@@ -31,8 +32,8 @@ namespace Player
                 CameraParentTransform, ParentTransformForWeapon);
             builder.RegisterCharacterTargets(bodyColliders);
             builder.RegisterInstance(playerCamera);
-            builder.RegisterInstance(CameraParentTransform).Keyed("CameraParentTransform");
-            builder.RegisterInstance(MovementSoundConfig).Keyed("MovementSoundConfig");
+            builder.RegisterInstance(new CameraParent(CameraParentTransform));
+            builder.RegisterInstance(new MovementSoundSettings(MovementSoundConfig));
             builder.Register<CameraShakeOnStep>(Lifetime.Scoped);
             builder.Register<PlayerCamera>(Lifetime.Scoped);
             if (animator != null)

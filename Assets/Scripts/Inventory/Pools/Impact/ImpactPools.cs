@@ -1,7 +1,7 @@
-using VContainer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -24,10 +24,11 @@ namespace Inventory.Pools.Impact
         public ImpactPools
             (
                 InventoryConfig inventoryConfig,
-                [Key("PoolsParent")] Transform poolsParent,
+                PoolsParent poolsParentReference,
                 IPublisher<PlaySoundMessage> playSoundMessagePublisher
             )
         {
+            var poolsParent = poolsParentReference.Value;
             this.playSoundMessagePublisher = playSoundMessagePublisher;
 
             foreach (var impact in inventoryConfig.Impacts)

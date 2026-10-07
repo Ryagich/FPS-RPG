@@ -1,4 +1,5 @@
 using Characters;
+using Dependencies;
 using Inventory.Ammo;
 using Inventory.Pools;
 using Inventory.Pools.Impact;
@@ -51,15 +52,15 @@ namespace Scopes
             builder.RegisterInstance(sceneSessionConfiguration);
             builder.Register<AmmoStorage>(Lifetime.Singleton).AsSelf();
             builder.Register<EntityTargets>(Lifetime.Singleton);
-            builder.RegisterInstance(this).Keyed("GameScope");
+            builder.RegisterInstance(new GameScope(this));
 
             // === MessagePipe ===
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<PlaySoundMessage>(options);
         
             //pools
-            builder.RegisterInstance(poolsParent).Keyed("PoolsParent");
-            builder.RegisterInstance(soundsParent).Keyed("SoundsParent");
+            builder.RegisterInstance(new PoolsParent(poolsParent));
+            builder.RegisterInstance(new SoundsParent(soundsParent));
             builder.Register<ProjectilesPool>(Lifetime.Singleton).AsSelf();
             builder.RegisterEntryPoint<ImpactPools>().AsSelf();
             builder.RegisterEntryPoint<CasingPool>().AsSelf();

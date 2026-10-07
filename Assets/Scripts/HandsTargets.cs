@@ -1,4 +1,4 @@
-using VContainer;
+using Dependencies;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -9,9 +9,11 @@ public sealed class HandsTargets : ITickable
     private Transform currentLeftTarget;
     private Transform currentRightTarget;
 
-    public HandsTargets([Key("LeftHandTarget")] Transform leftTarget,
-        [Key("RightHandTarget")] Transform rightTarget)
+    public HandsTargets(LeftHandTarget leftTargetReference,
+        RightHandTarget rightTargetReference)
     {
+        var leftTarget = leftTargetReference.Value;
+        var rightTarget = rightTargetReference.Value;
         this.leftTarget = leftTarget;
         this.rightTarget = rightTarget;
     }

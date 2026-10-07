@@ -1,6 +1,6 @@
-using VContainer;
 using System;
 using Characters;
+using Dependencies;
 using Inventory;
 using Inventory.Pools;
 using MessagePipe;
@@ -55,13 +55,14 @@ namespace Weapon
                 GameObject gameObject,
                 WeaponPresentation presentation,
                 CharacterState characterState,
-                [Key("AimTransform")] Transform aimTransform,
+                AimTransform aimTransformReference,
                 IPublisher<ShotFiredMessage> shootPublisher,
                 AttachmentsController attachmentsC,
                 ProjectilesPool projectilesPool,
                 IPublisher<RecoilMessage> requestRecoilPublisher
             )
         {
+            var aimTransform = aimTransformReference.Value;
             Config = config;
             GameObject = gameObject;
             Presentation = presentation;

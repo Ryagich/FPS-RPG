@@ -1,6 +1,6 @@
-using VContainer;
 using System;
 using System.Collections.Generic;
+using Dependencies;
 using UnityEngine;
 using UnityEngine.Pool;
 using VContainer.Unity;
@@ -17,9 +17,11 @@ namespace Inventory.Pools
         private readonly ObjectPool<Rigidbody> pool;
         private readonly List<(Rigidbody Body, float TimeLeft)> active = new();
         
-        public CasingPool(InventoryConfig config, [Key("CasingPrefab")] Rigidbody prefab,
-            [Key("PoolsParent")] Transform parent)
+        public CasingPool(InventoryConfig config, CasingPrefab prefabReference,
+            PoolsParent parentReference)
         {
+            var prefab = prefabReference.Value;
+            var parent = parentReference.Value;
             this.prefab = prefab;
             this.parent = parent;
             lifetime = config.casingLifeTime;

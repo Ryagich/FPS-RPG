@@ -1,3 +1,4 @@
+using Dependencies;
 using Scopes;
 using UnityEngine;
 using VContainer;
@@ -19,8 +20,8 @@ namespace Weapon
             builder.RegisterInstance(Config).AsSelf();
             builder.RegisterInstance(transform).AsSelf();
             builder.RegisterInstance(gameObject).AsSelf();
-            builder.RegisterInstance(this).Keyed("WeaponScope");
-            builder.RegisterInstance(CasingSpawnPoint).Keyed("CasingSpawnPoint");
+            builder.RegisterInstance(new WeaponScope(this));
+            builder.RegisterInstance(new CasingSpawnPoint(CasingSpawnPoint));
 
             builder.Register<AttachmentsController>(Lifetime.Scoped);
             builder.Register<WeaponPresentation>(Lifetime.Scoped);

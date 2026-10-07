@@ -1,3 +1,4 @@
+using Dependencies;
 using MessagePipe;
 using Messages;
 using Movement;
@@ -38,8 +39,8 @@ namespace Characters
 
             builder.RegisterInstance(controller);
             builder.RegisterInstance(body);
-            builder.RegisterInstance(aim).Keyed("AimTransform");
-            builder.RegisterInstance(weaponParent).Keyed("ParentTransformForWeapon");
+            builder.RegisterInstance(new AimTransform(aim));
+            builder.RegisterInstance(new WeaponParent(weaponParent));
             builder.Register<CharacterState>(Lifetime.Scoped);
             builder.Register<CharacterMovementCommands>(Lifetime.Scoped);
             builder.Register<CharacterLook>(Lifetime.Scoped);
@@ -62,7 +63,7 @@ namespace Characters
 
         public static void RegisterCharacterTargets(this IContainerBuilder builder, Collider[] colliders)
         {
-            builder.RegisterInstance(colliders).Keyed("BodyColliders");
+            builder.RegisterInstance(new BodyColliders(colliders));
             builder.RegisterEntryPoint<CharacterTargets>().AsSelf();
         }
     }

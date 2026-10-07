@@ -1,6 +1,7 @@
 using CameraScripts;
 using CanvasScripts;
 using Characters;
+using Dependencies;
 using Gravity;
 using Input;
 using InteractableScripts;
@@ -64,7 +65,7 @@ namespace Scopes
             builder.RegisterInstance(MovementSoundConfig).AsSelf();
             builder.RegisterInstance(CameraFovConfig).AsSelf();
             builder.RegisterInstance(InventoryConfig).AsSelf();
-            builder.RegisterInstance(InventoryConfig.CasingPref).Keyed("CasingPrefab");
+            builder.RegisterInstance(new CasingPrefab(InventoryConfig.CasingPref));
             builder.RegisterInstance(CanvasConfig).AsSelf();
             builder.RegisterInstance(InteractableConfig).AsSelf();
             builder.RegisterInstance(StatsConfig).AsSelf();

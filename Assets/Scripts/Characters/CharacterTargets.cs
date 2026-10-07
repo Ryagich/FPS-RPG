@@ -1,5 +1,5 @@
-using VContainer;
 using System;
+using Dependencies;
 using Player.Stats;
 using UnityEngine;
 using VContainer.Unity;
@@ -13,8 +13,9 @@ namespace Characters
         private readonly Collider[] colliders;
 
         public CharacterTargets(EntityTargets targets, StatsController stats,
-            [Key("BodyColliders")] Collider[] colliders)
+            BodyColliders collidersReference)
         {
+            var colliders = collidersReference.Value;
             this.targets = targets;
             this.stats = stats;
             this.colliders = colliders;

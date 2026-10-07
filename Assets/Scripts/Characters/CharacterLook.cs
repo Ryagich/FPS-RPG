@@ -1,5 +1,5 @@
-using VContainer;
 using System;
+using Dependencies;
 using MessagePipe;
 using Messages;
 using UnityEngine;
@@ -15,9 +15,10 @@ namespace Characters
         private readonly IDisposable subscription;
         private Vector2 pendingDelta;
 
-        public CharacterLook(Transform body, [Key("AimTransform")] Transform aim,
+        public CharacterLook(Transform body, AimTransform aimReference,
             CharacterMovementConfig config, CharacterState state, ISubscriber<LookCommand> look)
         {
+            var aim = aimReference.Value;
             this.body = body;
             this.aim = aim;
             this.config = config;

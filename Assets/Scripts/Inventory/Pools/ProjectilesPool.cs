@@ -1,5 +1,5 @@
-using VContainer;
 using System;
+using Dependencies;
 using UnityEngine;
 using UnityEngine.Pool;
 using VContainer.Unity;
@@ -16,9 +16,11 @@ namespace Inventory.Pools
         private readonly Transform parent;
         private readonly ObjectPool<Projectile> pool;
         
-        public ProjectilesPool(InventoryConfig config, [Key("GameScope")] LifetimeScope scope,
-            [Key("PoolsParent")] Transform parent)
+        public ProjectilesPool(InventoryConfig config, GameScope scopeReference,
+            PoolsParent parentReference)
         {
+            var scope = scopeReference.Value;
+            var parent = parentReference.Value;
             prefab = config.ProjectilePref;
             this.scope = scope;
             this.parent = parent;
