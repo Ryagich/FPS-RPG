@@ -42,7 +42,7 @@ namespace CameraScripts.Shake
 
         public CameraShaker(PlayerCamera playerCamera)
         {
-            cameraTransform = playerCamera.cameraParentTransform;
+            cameraTransform = playerCamera.CameraParentTransform;
         }
 
         #region API

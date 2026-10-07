@@ -17,18 +17,21 @@ namespace Player
         private readonly float characterHeight;
         private readonly float cameraDefaultLocalPosition;
         private Vector3 currentVelocity;
-        
+
         private float currentHeight;
 
+        public bool IsCrouching => moveStates.IsCrouching.Value;
+        public bool IsGrounded => characterController.isGrounded;
+
         public PlayerMovement
-            (
-                PlayerMovementConfig playerMovementConfig,
-                Transform playerTransform,
-                [Key("CameraParentTransform")] Transform cameraParentTransform,
-                CharacterController characterController,
-                InputProvider inputProvider,
-                MoveStates moveStates
-            )
+        (
+            PlayerMovementConfig playerMovementConfig,
+            Transform playerTransform,
+            [Key("CameraParentTransform")] Transform cameraParentTransform,
+            CharacterController characterController,
+            InputProvider inputProvider,
+            MoveStates moveStates
+        )
         {
             this.playerMovementConfig = playerMovementConfig;
             this.playerTransform = playerTransform;
@@ -41,7 +44,7 @@ namespace Player
             currentHeight = characterHeight;
             cameraDefaultLocalPosition = cameraParentTransform.localPosition.y;
         }
-        
+
         public Vector3 GetVelocity()
         {
             moveStates.IsCrouching.Value = moveStates.IsCrouchingInput ? moveStates.IsCrouchingInput : !CanStandUp();
@@ -49,40 +52,61 @@ namespace Player
 
             if (!characterController.isGrounded)
                 return currentVelocity * Time.deltaTime;
-            moveStates.Direction = Vector3.ClampMagnitude(playerTransform.forward * moveStates.MoveInput.y 
-                                                        + playerTransform.right * moveStates.MoveInput.x, 1f);
-            moveStates.IsSprinting.Value = !moveStates.IsCrouchingInput && moveStates.IsSprintingInput && inputProvider.CanRun();
+            moveStates.Direction = Vector3.ClampMagnitude(playerTransform.forward * moveStates.MoveInput.y
+                                                          + playerTransform.right * moveStates.MoveInput.x, 1f);
+            moveStates.IsSprinting.Value =
+                !moveStates.IsCrouchingInput && moveStates.IsSprintingInput && inputProvider.CanRun();
 
-            var canSprintForward = !moveStates.IsCrouching.Value && moveStates.IsSprinting.Value && moveStates.MoveInput.y > 0f;
-            var currSpeed = moveStates.IsCrouching.Value
-                                ? GetSpeed(playerMovementConfig.CrouchSpeed)
-                                : canSprintForward
-                                    ? playerMovementConfig.SprintSpeed
-                                    : GetSpeed(playerMovementConfig.WalkSpeed);
-            var currentAccelerationRate = moveStates.IsCrouching.Value
-                                              ? playerMovementConfig.CrouchAccelerationRates
-                                              : canSprintForward
-                                                  ? playerMovementConfig.SprintAccelerationRates
-                                                  : playerMovementConfig.WalkAccelerationRates;
-            var targetVelocity = moveStates.Direction * currSpeed;
-            var accel = moveStates.Direction.sqrMagnitude > 0.001f ? currentAccelerationRate.x : currentAccelerationRate.y;
-            
+            var currSpeed = GetMaxSpeed();
+            var currentAccelerationRate = GetMaxAcceleration();
+                var targetVelocity = moveStates.Direction * currSpeed;
+            var accel = moveStates.Direction.sqrMagnitude > 0.001f
+                ? currentAccelerationRate.x
+                : currentAccelerationRate.y;
+
             currentVelocity = Vector3.MoveTowards(currentVelocity, targetVelocity, accel * Time.deltaTime);
             UpdateCrouch();
             return currentVelocity * Time.deltaTime;
+        }
+
+        private float GetMaxSpeed()
+        {
+            var canSprintForward = !moveStates.IsCrouching.Value
+                                   && moveStates.IsSprinting.Value
+                                   && moveStates.MoveInput.y > 0f;
+
+            return moveStates.IsCrouching.Value
+                ? GetSpeed(playerMovementConfig.CrouchSpeed)
+                : canSprintForward
+                    ? playerMovementConfig.SprintSpeed
+                    : GetSpeed(playerMovementConfig.WalkSpeed);
+        }
+
+        private Vector2 GetMaxAcceleration()
+        {
+            var canSprintForward = !moveStates.IsCrouching.Value
+                                   && moveStates.IsSprinting.Value
+                                   && moveStates.MoveInput.y > 0f;
+
+            return moveStates.IsCrouching.Value
+                ? playerMovementConfig.CrouchAccelerationRates
+                : canSprintForward
+                    ? playerMovementConfig.SprintAccelerationRates
+                    : playerMovementConfig.WalkAccelerationRates;
         }
 
         private bool CanStandUp()
         {
             var position = playerTransform.position;
             var radius = characterController.radius;
-            
+
             var bottom = position + (Vector3.up * (radius + characterController.skinWidth));
             var top = position + (Vector3.up * (characterHeight - radius));
 
-            return !Physics.CheckCapsule(bottom, top, radius, playerMovementConfig.CrouchCheckMask, QueryTriggerInteraction.Ignore);
+            return !Physics.CheckCapsule(bottom, top, radius, playerMovementConfig.CrouchCheckMask,
+                QueryTriggerInteraction.Ignore);
         }
-        
+
         private float GetSpeed(Vector3 speedVariants)
         {
             var forwardBackSpeed = moveStates.MoveInput.y > 0f ? speedVariants.x : speedVariants.z;
@@ -96,20 +120,28 @@ namespace Player
                     : 0f;
             return currSpeed;
         }
-        
+
         private void UpdateCrouch()
         {
             var localPos = cameraParentTransform.localPosition;
             var targetHeight = moveStates.IsCrouching.Value ? playerMovementConfig.CrouchingHeight : characterHeight;
-            var targetCameraY = moveStates.IsCrouching.Value ? playerMovementConfig.CameraPositionInCrouching : cameraDefaultLocalPosition;
-            
-            currentHeight = Mathf.MoveTowards(currentHeight, targetHeight, playerMovementConfig.CrouchChangedSpeed * Time.deltaTime );
+            var targetCameraY = moveStates.IsCrouching.Value
+                ? playerMovementConfig.CameraPositionInCrouching
+                : cameraDefaultLocalPosition;
+
+            currentHeight = Mathf.MoveTowards(currentHeight, targetHeight,
+                playerMovementConfig.CrouchChangedSpeed * Time.deltaTime);
             characterController.height = currentHeight;
             characterController.center = new Vector3(0, currentHeight / 2f, 0);
             cameraParentTransform.localPosition =
                 localPos.WithY(Mathf.MoveTowards(cameraParentTransform.localPosition.y,
-                                                 targetCameraY,
-                                                 playerMovementConfig.CrouchChangedSpeed * Time.deltaTime));
+                    targetCameraY,
+                    playerMovementConfig.CrouchChangedSpeed * Time.deltaTime));
         }
+
+        public float GetHorizontalSpeed() => new Vector2(currentVelocity.x, currentVelocity.y).magnitude;
+        public float GetMaxHorizontalSpeed() => GetMaxSpeed();
+
+        public Vector3 GetLocalMovement() => playerTransform.InverseTransformDirection(currentVelocity);
     }
 }

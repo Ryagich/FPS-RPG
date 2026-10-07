@@ -1,6 +1,7 @@
 using MessagePipe;
 using Messages;
 using Movement;
+using Player;
 using Player.Stats;
 using UnityEngine;
 using UnityEngine.AI;
@@ -38,8 +39,11 @@ namespace Bot
                                                             ),
                                                     Lifetime.Scoped
                                                    );
-            builder.Register<WeaponProvider>(Lifetime.Scoped);
+            builder.Register<WeaponProvider>(Lifetime.Scoped).AsSelf();
+            builder.Register<PlayerMovement>(Lifetime.Scoped).AsSelf();
             builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
+
+            
 
             builder.RegisterInstance(transform).Keyed("self");
             builder.RegisterInstance(botGoal).Keyed("botGoal");
@@ -53,6 +57,7 @@ namespace Bot
             
             builder.RegisterEntryPoint<Inventory.Inventory>().AsSelf();
             builder.RegisterEntryPoint<BotDeath>().AsSelf();
+            builder.RegisterEntryPoint<BotAnimation>().AsSelf();
         }
     }
 }

@@ -10,12 +10,15 @@ namespace CameraScripts
     // ReSharper disable once ClassNeverInstantiated.Global
     public class PlayerCamera : ITickable
     {
+        public readonly Transform CameraParentTransform;
+        
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly Transform playerBody;
-        public readonly Transform cameraParentTransform;
-
-        private float XRotation { get; set; }
+        
         private Vector2 lookDelta;
+        
+        public float XRotation { get; private set; }
+        public float XRotationRate => lookDelta.x * playerMovementConfig.Sensitivity;
         
         public PlayerCamera
             (
@@ -27,7 +30,7 @@ namespace CameraScripts
         {
             this.playerMovementConfig = playerMovementConfig;
             this.playerBody = playerBody;
-            this.cameraParentTransform = cameraParentTransform;
+            this.CameraParentTransform = cameraParentTransform;
 
             lookDeltaMessageSubscriber.Subscribe(OnLookDeltaChanged);
         }
@@ -52,7 +55,7 @@ namespace CameraScripts
             XRotation -= direction.y;
             XRotation = Mathf.Clamp(XRotation, playerMovementConfig.cameraYClamp.x,playerMovementConfig.cameraYClamp.y);
             
-            cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
+            CameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * direction.x);
         }
         
@@ -61,7 +64,7 @@ namespace CameraScripts
             XRotation -= delta.y;
             XRotation = Mathf.Clamp(XRotation, -90f, 90f);
             
-            cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
+            CameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * delta.x);
         }
     }

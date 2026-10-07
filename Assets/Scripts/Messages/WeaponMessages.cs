@@ -6,10 +6,10 @@ namespace Messages
 {
     public readonly struct AimChangedMessage
     {
-        public readonly bool State;
-        public AimChangedMessage(bool state)
+        public readonly bool IsAiming;
+        public AimChangedMessage(bool isAiming)
         {
-            State = state;
+            IsAiming = isAiming;
         }
     }
 

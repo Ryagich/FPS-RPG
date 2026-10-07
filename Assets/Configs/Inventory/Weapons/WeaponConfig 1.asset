@@ -79,8 +79,8 @@ MonoBehaviour:
   <RecoilSettings>k__BackingField:
     <RecoilPower>k__BackingField: {x: 0.42, y: 0.24}
     <MaxRecoilPower>k__BackingField: {x: 0.32, y: 0.18}
-    <Spread>k__BackingField: 0.25
-    <RecoilSpreadMultiplier>k__BackingField: 1
+    <Spread>k__BackingField: 0
+    <RecoilSpreadMultiplier>k__BackingField: 3.39
     <SpreadChillCoefficient>k__BackingField: 0.5
     <RecoilChillCoefficient>k__BackingField: 0.5
   <AimRecoilSettings>k__BackingField:

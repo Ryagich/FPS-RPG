@@ -65,7 +65,7 @@ namespace Player
         
         private void OnAim(AimChangedMessage msg)
         {
-            isAimInput = msg.State;
+            isAimInput = msg.IsAiming;
             if (isAimInput)
             {
                 if (weaponProvider.IsSprint())

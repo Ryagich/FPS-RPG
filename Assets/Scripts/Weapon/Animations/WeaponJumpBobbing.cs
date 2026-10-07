@@ -86,7 +86,7 @@ namespace Weapon.Animations
         
         private void SetCurrentSettings(AimChangedMessage msg)
         {
-            SetCurrentSettings(msg.State);
+            SetCurrentSettings(msg.IsAiming);
         }
         
         private void SetCurrentSettings(bool isAim)

@@ -18,7 +18,6 @@ namespace Bot
             this.goal = goal;
         }
 
-
         void IStartable.Start()
         {
             agent.destination = goal.position;
