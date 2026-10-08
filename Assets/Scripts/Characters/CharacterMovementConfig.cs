@@ -14,6 +14,9 @@ namespace Characters
         [field: SerializeField] public Vector2 WalkAccelerationRates { get; private set; } = new(20.0f, 40.0f);
         [field: SerializeField] public Vector2 SprintAccelerationRates { get; private set; } = new(20.0f, 40.0f);
         [field: SerializeField] public Vector2 CrouchAccelerationRates { get; private set; } = new(20.0f, 40.0f);
+        [field: Header("Air Control")]
+        [field: Tooltip("Acceleration and braking while steering in the air. No input preserves momentum.")]
+        [field: SerializeField] public Vector2 AirAccelerationRates { get; private set; } = new(18.0f, 30.0f);
         [field: Header("Crouch")]
         [field: SerializeField] public float CrouchingHeight { get; private set; } = .8f;
         [field: SerializeField] public float CrouchChangedSpeed { get; private set; } = 5f;

@@ -38,16 +38,50 @@ namespace Characters
                 && !state.IsAiming && !weapon.IsReloading() && !weapon.IsChangingWeapon;
             state.SetSprinting(sprinting);
             state.MaxSpeed = GetSpeed(state.MoveRequest, crouchActive, sprinting);
+            // Use resolved movement so contacts cannot leave hidden momentum in the motor.
+            velocity = new Vector3(state.Velocity.x, 0f, state.Velocity.z);
+            var input = Vector2.ClampMagnitude(state.MoveRequest, 1f);
+            var direction = transform.forward * input.y + transform.right * input.x;
+            var speed = state.MaxSpeed;
             if (!controller.isGrounded)
-                return velocity;
-
-            var direction = transform.forward * state.MoveRequest.y + transform.right * state.MoveRequest.x;
-            var targetVelocity = direction * state.MaxSpeed;
-            var rates = crouchActive ? config.CrouchAccelerationRates
+            {
+                // Coast without input; steering retains takeoff speed without adding sprint speed in midair.
+                if (input.sqrMagnitude < 0.000001f)
+                    return velocity;
+                speed = Mathf.Max(speed, velocity.magnitude);
+            }
+            var targetVelocity = direction * speed;
+            var rates = !controller.isGrounded ? config.AirAccelerationRates
+                : crouchActive ? config.CrouchAccelerationRates
                 : sprinting ? config.SprintAccelerationRates : config.WalkAccelerationRates;
-            var acceleration = direction.sqrMagnitude > 0.001f ? rates.x : rates.y;
-            velocity = Vector3.MoveTowards(velocity, targetVelocity, Mathf.Max(0f, acceleration) * deltaTime);
+            velocity = UpdateVelocity(velocity, targetVelocity, rates, deltaTime);
             return velocity;
+        }
+
+        private static Vector3 UpdateVelocity(Vector3 current, Vector3 target, Vector2 rates, float deltaTime)
+        {
+            var acceleration = Mathf.Max(0f, rates.x);
+            var braking = Mathf.Max(0f, rates.y);
+            var targetSpeed = target.magnitude;
+            if (targetSpeed < 0.001f)
+                return Vector3.MoveTowards(current, Vector3.zero, braking * deltaTime);
+
+            var direction = target / targetSpeed;
+            var forwardSpeed = Vector3.Dot(current, direction);
+            var sidewaysVelocity = current - direction * forwardSpeed;
+            sidewaysVelocity = Vector3.MoveTowards(sidewaysVelocity, Vector3.zero, braking * deltaTime);
+            // Cancel motion against the command before accelerating in the requested direction.
+            var accelerationTime = deltaTime;
+            if (forwardSpeed < 0f)
+            {
+                accelerationTime = braking > 0f ? Mathf.Max(0f, deltaTime + forwardSpeed / braking) : 0f;
+                forwardSpeed = Mathf.MoveTowards(forwardSpeed, 0f, braking * deltaTime);
+            }
+            forwardSpeed = Mathf.MoveTowards(forwardSpeed, targetSpeed,
+                (forwardSpeed > targetSpeed ? braking : acceleration) * accelerationTime);
+            var result = direction * forwardSpeed + sidewaysVelocity;
+            // Turning must not create speed by accelerating while lateral momentum is still present.
+            return Vector3.ClampMagnitude(result, Mathf.Max(current.magnitude, targetSpeed));
         }
 
         // Navigation uses the same directional speed limits as the physical motor.

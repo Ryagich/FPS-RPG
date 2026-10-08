@@ -114,7 +114,7 @@ namespace Bot
                 stuckTime = 0f;
             }
             lastPosition = position;
-            // Link traversal uses the current takeoff velocity: there is no air steering in the motor.
+            // Estimate link reach from takeoff velocity; aligned air input preserves that speed.
             var gravity = Mathf.Max(0.01f, gravityConfig.Gravity);
             var impulse = Mathf.Sqrt(2f * gravity * Mathf.Max(0f, movementConfig.JumpHeight));
             var discriminant = impulse * impulse - 2f * gravity * offset.y;
