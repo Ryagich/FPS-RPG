@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-
 namespace EditorTools
 {
     public readonly struct RetainedGraphConnection<TNode, TConnection>
@@ -21,26 +20,51 @@ namespace EditorTools
         public TConnection Connection { get; }
     }
 
-    public interface IRetainedGraphCanvasHost<TNode, TConnection>
-        where TNode : class
-        where TConnection : class
+    /// <summary>
+    /// Owns the mutable camera state of a graph workspace.
+    /// </summary>
+    public interface IRetainedGraphCanvasViewport
     {
-        string RetainedGraphEmptyStateMessage { get; }
-        bool RetainedGraphHasGraph { get; }
-        Vector2 RetainedGraphNodeSize { get; }
         float RetainedGraphZoom { get; set; }
         Vector2 RetainedGraphPanOffset { get; set; }
         bool RetainedGraphIsSelectingTarget { get; }
+        void ClampRetainedGraphPan(float workspaceWidth, float workspaceHeight);
+    }
+
+    /// <summary>
+    /// Supplies presentation values shared by the canvas background, grid and node overlays.
+    /// </summary>
+    public interface IRetainedGraphCanvasAppearance
+    {
+        string RetainedGraphEmptyStateMessage { get; }
         Color RetainedGraphCanvasColor { get; }
         Color RetainedGraphPanelColor { get; }
         Color RetainedGraphMinorGridColor { get; }
         Color RetainedGraphMajorGridColor { get; }
         Color RetainedGraphTargetBorderColor { get; }
+    }
 
+    /// <summary>
+    /// Owns graph structure and the mapping from domain connections to visual connections.
+    /// </summary>
+    public interface IRetainedGraphCanvasSource<TNode, TConnection>
+        where TNode : class
+        where TConnection : class
+    {
+        bool RetainedGraphHasGraph { get; }
         void PrepareRetainedGraph();
         void ClearRetainedNodeRects();
         IEnumerable<TNode> GetRetainedGraphNodes();
         IEnumerable<RetainedGraphConnection<TNode, TConnection>> GetRetainedGraphConnections();
+    }
+
+    /// <summary>
+    /// Owns domain-specific node geometry and IMGUI node contents.
+    /// </summary>
+    public interface IRetainedGraphCanvasNodePresenter<TNode>
+        where TNode : class
+    {
+        Vector2 RetainedGraphNodeSize { get; }
         Vector2 GetRetainedNodePosition(TNode node);
         void SetRetainedNodePosition(TNode node, Vector2 position);
         void SetRetainedNodeRect(TNode node, Rect rect);
@@ -48,12 +72,28 @@ namespace EditorTools
         Color GetRetainedNodeTint(TNode node);
         bool IsRetainedNodeTargetable(TNode node);
         void DrawRetainedNode(TNode node);
+    }
+
+    /// <summary>
+    /// Owns edits initiated by the canvas: selection, target assignment, deletion and persistence.
+    /// </summary>
+    public interface IRetainedGraphCanvasInteraction<TNode>
+        where TNode : class
+    {
         void DeleteRetainedNode(TNode node);
         void SelectRetainedNode(TNode node);
         void ClearRetainedNodeSelection();
         bool TrySelectRetainedTarget(TNode node);
-        void MarkRetainedGraphDirty();
-        void ClampRetainedGraphPan(float workspaceWidth, float workspaceHeight);
+        void MarkRetainedNodePositionDirty();
+    }
+
+    /// <summary>
+    /// Renders a connection after the canvas has resolved the participating node rectangles.
+    /// </summary>
+    public interface IRetainedGraphCanvasConnectionRenderer<TNode, TConnection>
+        where TNode : class
+        where TConnection : class
+    {
         void DrawRetainedConnection(
             Painter2D painter,
             TConnection connection,
@@ -64,12 +104,7 @@ namespace EditorTools
             bool isDragging);
     }
 
-    /// <summary>
-    /// Retained-mode canvas for graph editor windows. Node inspectors remain IMGUI so the
-    /// existing serialized editing logic is preserved, while panning, drag and connection
-    /// redraw affect only the visual elements that actually changed.
-    /// </summary>
-    public sealed class RetainedGraphCanvas<TNode, TConnection> : VisualElement
+    public sealed class RetainedGraphCanvas<TNode, TConnection> : VisualElement, IGraphEditorCanvasView
         where TNode : class
         where TConnection : class
     {
@@ -78,28 +113,70 @@ namespace EditorTools
         private const float ZoomMin = 0.25f;
         private const float ZoomMax = 2f;
         private const float NodeHeaderHeight = 24f;
+        // Mirrors the dialog editor's retained canvas: only presenters close to the
+        // viewport exist, while domain node geometry remains available for edges.
+        private const float VirtualizationMargin = 240f;
+        private const int VirtualizedNodeCreationBudget = 1;
 
-        private readonly IRetainedGraphCanvasHost<TNode, TConnection> host;
-        private readonly VisualElement graphContent;
-        private readonly Label emptyState;
+        private readonly IRetainedGraphCanvasViewport viewport;
+        private readonly IRetainedGraphCanvasAppearance appearance;
+        private readonly IRetainedGraphCanvasSource<TNode, TConnection> source;
+        private readonly IRetainedGraphCanvasNodePresenter<TNode> nodePresenter;
+        private readonly IRetainedGraphCanvasInteraction<TNode> interaction;
+        private readonly IRetainedGraphCanvasConnectionRenderer<TNode, TConnection> connectionRenderer;
+        private readonly GraphEditorViewportController viewportController = new();
+        private VisualElement graphContent;
+        private Label emptyState;
         private readonly Dictionary<TNode, NodeElement> nodeElements = new();
-        private readonly List<ConnectionElement> connectionElements = new();
-        private TNode draggedNode;
+        private readonly Dictionary<TNode, Rect> nodeRects = new();
+        private readonly HashSet<TNode> nodesWithPendingGeometry = new();
+        private readonly GraphNodeVirtualizer<TNode> nodeVirtualizer = new();
+        private readonly List<TNode> nodesToRemove = new();
+        private RetainedGraphConnectionLayer<TNode, TConnection> connectionLayer;
+        private RetainedGraphConnectionLayer<TNode, TConnection> dragConnectionLayer;
+        private GridElement gridElement;
+        private readonly GraphNodeDragState<TNode> dragState = new();
         private bool rebuildScheduled;
-        private bool isPanning;
-        private int panPointerId = -1;
-        private Vector2 panStartPointer;
-        private Vector2 panStartOffset;
+        private bool geometryRefreshScheduled;
+        private bool connectionRefreshScheduled;
+        private bool visibleNodeCreationScheduled;
+        private bool connectionsNeedRefreshAfterVirtualizedCreation;
 
-        public RetainedGraphCanvas(IRetainedGraphCanvasHost<TNode, TConnection> host)
+        /// <summary>
+        /// Creates a canvas from independently-owned roles. Domain editors should use this
+        /// overload rather than making their window implement the compatibility host.
+        /// </summary>
+        public RetainedGraphCanvas(
+            IRetainedGraphCanvasViewport viewport,
+            IRetainedGraphCanvasAppearance appearance,
+            IRetainedGraphCanvasSource<TNode, TConnection> source,
+            IRetainedGraphCanvasNodePresenter<TNode> nodePresenter,
+            IRetainedGraphCanvasInteraction<TNode> interaction,
+            IRetainedGraphCanvasConnectionRenderer<TNode, TConnection> connectionRenderer)
         {
-            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.viewport = viewport ?? throw new ArgumentNullException(nameof(viewport));
+            this.appearance = appearance ?? throw new ArgumentNullException(nameof(appearance));
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.nodePresenter = nodePresenter ?? throw new ArgumentNullException(nameof(nodePresenter));
+            this.interaction = interaction ?? throw new ArgumentNullException(nameof(interaction));
+            this.connectionRenderer = connectionRenderer ?? throw new ArgumentNullException(nameof(connectionRenderer));
+            InitializeVisualTree();
+        }
+
+        private void InitializeVisualTree()
+        {
             name = "retained-graph-canvas";
             style.flexGrow = 1f;
             style.overflow = Overflow.Hidden;
 
             graphContent = new VisualElement { name = "retained-graph-content" };
+            // Panning and zooming move the entire graph on every pointer event. Keep this
+            // subtree out of the layout path and let UI Toolkit transform its cached mesh on
+            // the GPU instead.
+            graphContent.usageHints = UsageHints.DynamicTransform;
             graphContent.style.position = Position.Absolute;
+            graphContent.style.left = 0f;
+            graphContent.style.top = 0f;
             graphContent.style.width = WorkspaceWidth;
             graphContent.style.height = WorkspaceHeight;
             graphContent.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
@@ -129,7 +206,7 @@ namespace EditorTools
 
         public bool IsDraggingNode(TNode node)
         {
-            return ReferenceEquals(draggedNode, node);
+            return dragState.IsDragging(node);
         }
 
         public void RebuildNow()
@@ -137,48 +214,74 @@ namespace EditorTools
             rebuildScheduled = false;
             graphContent.Clear();
             nodeElements.Clear();
-            connectionElements.Clear();
-            host.ClearRetainedNodeRects();
+            nodeRects.Clear();
+            nodesWithPendingGeometry.Clear();
+            nodeVirtualizer.Clear();
+            nodesToRemove.Clear();
+            connectionLayer = null;
+            dragConnectionLayer = null;
+            gridElement = null;
+            dragState.Clear();
+            source.ClearRetainedNodeRects();
 
-            if (!host.RetainedGraphHasGraph)
+            if (!source.RetainedGraphHasGraph)
             {
                 emptyState.style.display = DisplayStyle.Flex;
                 RefreshGraphAppearance();
                 return;
             }
 
-            host.PrepareRetainedGraph();
+            source.PrepareRetainedGraph();
             emptyState.style.display = DisplayStyle.None;
-            graphContent.Add(new GridElement(host));
+            gridElement = new GridElement(this);
+            graphContent.Add(gridElement);
 
-            foreach (TNode node in host.GetRetainedGraphNodes())
+            foreach (TNode node in source.GetRetainedGraphNodes())
             {
                 if (node == null)
                 {
                     continue;
                 }
 
-                var nodeElement = new NodeElement(this, node);
-                nodeElements[node] = nodeElement;
-                graphContent.Add(nodeElement);
-                host.SetRetainedNodeRect(node, nodeElement.GetGraphRect());
+                Vector2 position = nodePresenter.GetRetainedNodePosition(node);
+                nodeRects[node] = new Rect(position, nodePresenter.RetainedGraphNodeSize);
+                nodePresenter.SetRetainedNodeRect(node, nodeRects[node]);
             }
 
-            foreach (RetainedGraphConnection<TNode, TConnection> connection in host.GetRetainedGraphConnections())
+            var connections = new List<RetainedGraphConnection<TNode, TConnection>>();
+            foreach (RetainedGraphConnection<TNode, TConnection> connection in source.GetRetainedGraphConnections())
             {
                 if (connection.Source == null || connection.Target == null || connection.Connection == null ||
-                    !nodeElements.ContainsKey(connection.Source) || !nodeElements.ContainsKey(connection.Target))
+                    !nodeRects.ContainsKey(connection.Source) || !nodeRects.ContainsKey(connection.Target))
                 {
                     continue;
                 }
 
-                var connectionElement = new ConnectionElement(this, connection);
-                connectionElements.Add(connectionElement);
-                graphContent.Insert(1, connectionElement);
+                connections.Add(connection);
             }
 
+            connectionLayer = CreateConnectionLayer(connections);
+            graphContent.Insert(1, connectionLayer);
+            dragConnectionLayer = CreateConnectionLayer(connections);
+            dragConnectionLayer.HideAll();
+            graphContent.Insert(2, dragConnectionLayer);
+
             ApplyViewTransform();
+            RefreshVisibleNodeElements();
             RefreshGraphAppearance();
+        }
+
+        private RetainedGraphConnectionLayer<TNode, TConnection> CreateConnectionLayer(
+            IReadOnlyList<RetainedGraphConnection<TNode, TConnection>> connections)
+        {
+            return new RetainedGraphConnectionLayer<TNode, TConnection>(
+                connections,
+                GetVisibleGraphRect,
+                node => nodeRects.TryGetValue(node, out Rect rect) ? rect : (Rect?)null,
+                IsDraggingNode,
+                connectionRenderer,
+                WorkspaceWidth,
+                WorkspaceHeight);
         }
 
         public void RequestRebuild()
@@ -194,14 +297,14 @@ namespace EditorTools
 
         public void RefreshGraphAppearance()
         {
-            style.backgroundColor = host.RetainedGraphCanvasColor;
-            emptyState.text = host.RetainedGraphEmptyStateMessage;
-            emptyState.style.backgroundColor = host.RetainedGraphPanelColor;
-            emptyState.style.color = host.RetainedGraphPanelColor.grayscale < 0.5f ? Color.white : Color.black;
-            emptyState.style.borderTopColor = host.RetainedGraphMinorGridColor;
-            emptyState.style.borderBottomColor = host.RetainedGraphMinorGridColor;
-            emptyState.style.borderLeftColor = host.RetainedGraphMinorGridColor;
-            emptyState.style.borderRightColor = host.RetainedGraphMinorGridColor;
+            style.backgroundColor = appearance.RetainedGraphCanvasColor;
+            emptyState.text = appearance.RetainedGraphEmptyStateMessage;
+            emptyState.style.backgroundColor = appearance.RetainedGraphPanelColor;
+            emptyState.style.color = appearance.RetainedGraphPanelColor.grayscale < 0.5f ? Color.white : Color.black;
+            emptyState.style.borderTopColor = appearance.RetainedGraphMinorGridColor;
+            emptyState.style.borderBottomColor = appearance.RetainedGraphMinorGridColor;
+            emptyState.style.borderLeftColor = appearance.RetainedGraphMinorGridColor;
+            emptyState.style.borderRightColor = appearance.RetainedGraphMinorGridColor;
 
             foreach (NodeElement nodeElement in nodeElements.Values)
             {
@@ -220,6 +323,19 @@ namespace EditorTools
             }
         }
 
+        /// <summary>
+        /// Requests a layout pass for one visible node after its IMGUI content changed its
+        /// desired size. The editor owns the domain-to-node lookup; this canvas owns the
+        /// retained visual lifecycle.
+        /// </summary>
+        public void RequestNodeLayoutRefresh(TNode node)
+        {
+            if (node != null && nodeElements.TryGetValue(node, out NodeElement nodeElement))
+            {
+                nodeElement.RequestContentLayoutRefresh();
+            }
+        }
+
         private void NotifyNodeGeometryChanged(NodeElement nodeElement)
         {
             if (!nodeElements.ContainsKey(nodeElement.Node))
@@ -227,15 +343,35 @@ namespace EditorTools
                 return;
             }
 
-            host.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
-            RefreshConnectionsFor(nodeElement.Node);
+            // Drag updates the graph rect directly. Ignore incidental layout notifications
+            // while the node is represented by a visual transform.
+            if (dragState.IsDragging(nodeElement.Node))
+            {
+                return;
+            }
+
+            nodePresenter.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
+            nodeRects[nodeElement.Node] = nodeElement.GetGraphRect();
+            connectionLayer?.UpdateConnectionsFor(nodeElement.Node);
+            dragConnectionLayer?.UpdateConnectionsFor(nodeElement.Node);
+            if (nodeVirtualizer.HasPendingNodes || visibleNodeCreationScheduled)
+            {
+                connectionsNeedRefreshAfterVirtualizedCreation = true;
+                return;
+            }
+            nodesWithPendingGeometry.Add(nodeElement.Node);
+            if (!geometryRefreshScheduled)
+            {
+                geometryRefreshScheduled = true;
+                schedule.Execute(FlushPendingGeometryChanges).ExecuteLater(0);
+            }
         }
 
         private void BeginNodeDrag(NodeElement nodeElement, PointerDownEvent evt)
         {
-            if (host.RetainedGraphIsSelectingTarget)
+            if (viewport.RetainedGraphIsSelectingTarget)
             {
-                if (host.TrySelectRetainedTarget(nodeElement.Node))
+                if (interaction.TrySelectRetainedTarget(nodeElement.Node))
                 {
                     RefreshTargetSelection();
                     RefreshConnections();
@@ -244,93 +380,141 @@ namespace EditorTools
                 return;
             }
 
-            draggedNode = nodeElement.Node;
-            host.SelectRetainedNode(nodeElement.Node);
-            RefreshConnections();
+            interaction.SelectRetainedNode(nodeElement.Node);
+            dragState.Begin(nodeElement.Node, nodePresenter.GetRetainedNodePosition(nodeElement.Node));
+            connectionLayer?.ExcludeNode(nodeElement.Node);
+            dragConnectionLayer?.IncludeNode(nodeElement.Node);
+            connectionLayer?.MarkDirtyRepaint();
+            dragConnectionLayer?.MarkDirtyRepaint();
             nodeElement.BeginDrag(evt);
         }
 
         private void MoveNode(NodeElement nodeElement, Vector2 graphPosition)
         {
-            if (!ReferenceEquals(draggedNode, nodeElement.Node))
+            if (!dragState.TrySetPreview(
+                    nodeElement.Node,
+                    graphPosition,
+                    nodePresenter.RetainedGraphNodeSize,
+                    WorkspaceWidth,
+                    WorkspaceHeight,
+                    NodeHeaderHeight,
+                    out Vector2 clampedPosition))
             {
                 return;
             }
 
-            Vector2 nodeSize = host.RetainedGraphNodeSize;
-            Vector2 clampedPosition = new(
-                Mathf.Clamp(graphPosition.x, 0f, WorkspaceWidth - nodeSize.x),
-                Mathf.Clamp(graphPosition.y, 0f, WorkspaceHeight - NodeHeaderHeight));
-            host.SetRetainedNodePosition(nodeElement.Node, clampedPosition);
-            nodeElement.SetGraphPosition(clampedPosition);
-            host.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
-            RefreshConnectionsFor(nodeElement.Node);
+            nodeElement.SetDragPosition(clampedPosition);
+            nodePresenter.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
+            nodeRects[nodeElement.Node] = nodeElement.GetGraphRect();
+            dragConnectionLayer?.MarkDirtyRepaint();
         }
 
         private void EndNodeDrag(NodeElement nodeElement)
         {
-            if (!ReferenceEquals(draggedNode, nodeElement.Node))
+            if (!dragState.IsDragging(nodeElement.Node))
             {
                 return;
             }
 
-            draggedNode = null;
-            host.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
-            host.MarkRetainedGraphDirty();
-            RefreshConnectionsFor(nodeElement.Node);
+            Vector2 committedPosition = dragState.GetCommittedPosition(nodePresenter.GetRetainedNodePosition(nodeElement.Node));
+            nodePresenter.SetRetainedNodePosition(nodeElement.Node, committedPosition);
+            nodeElement.CommitDragPosition(committedPosition);
+            nodePresenter.SetRetainedNodeRect(nodeElement.Node, nodeElement.GetGraphRect());
+            nodeRects[nodeElement.Node] = nodeElement.GetGraphRect();
+            connectionLayer?.UpdateConnectionsFor(nodeElement.Node);
+            dragConnectionLayer?.UpdateConnectionsFor(nodeElement.Node);
+            interaction.MarkRetainedNodePositionDirty();
+            dragState.Clear();
+            connectionLayer?.ClearNodeFilter();
+            dragConnectionLayer?.HideAll();
+            connectionLayer?.MarkDirtyRepaint();
+            dragConnectionLayer?.MarkDirtyRepaint();
         }
 
         private void RefreshConnectionsFor(TNode node)
         {
-            foreach (ConnectionElement connectionElement in connectionElements)
+            if (dragState.DraggedNode != null)
             {
-                if (connectionElement.IsConnectedTo(node))
+                if (dragState.IsDragging(node))
                 {
-                    connectionElement.MarkDirtyRepaint();
+                    dragConnectionLayer?.MarkDirtyRepaint();
                 }
+
+                return;
+            }
+
+            if (connectionLayer != null && connectionLayer.IsConnectedTo(node))
+            {
+                connectionLayer.MarkDirtyRepaint();
             }
         }
 
         private void RefreshConnections()
         {
-            foreach (ConnectionElement connectionElement in connectionElements)
+            connectionLayer?.MarkDirtyRepaint();
+            dragConnectionLayer?.MarkDirtyRepaint();
+        }
+
+        private void ScheduleConnectionRefresh()
+        {
+            if (connectionRefreshScheduled)
             {
-                connectionElement.MarkDirtyRepaint();
+                return;
             }
+
+            connectionRefreshScheduled = true;
+            schedule.Execute(() =>
+            {
+                connectionRefreshScheduled = false;
+                RefreshConnections();
+            }).ExecuteLater(16);
+        }
+
+        private void FlushPendingGeometryChanges()
+        {
+            geometryRefreshScheduled = false;
+            if (nodesWithPendingGeometry.Count == 0)
+            {
+                return;
+            }
+
+            nodesWithPendingGeometry.Clear();
+            connectionLayer?.MarkDirtyRepaint();
+            dragConnectionLayer?.MarkDirtyRepaint();
         }
 
         private void HandlePointerDown(PointerDownEvent evt)
         {
             if (evt.button == 0 && (evt.target == this || evt.target == graphContent))
             {
-                host.ClearRetainedNodeSelection();
+                interaction.ClearRetainedNodeSelection();
                 RefreshConnections();
                 return;
             }
 
-            if (evt.button != 1 || isPanning)
+            if (evt.button != 1 || viewportController.IsPanning)
             {
                 return;
             }
 
-            isPanning = true;
-            panPointerId = evt.pointerId;
-            panStartPointer = new Vector2(evt.position.x, evt.position.y);
-            panStartOffset = host.RetainedGraphPanOffset;
+            viewportController.BeginPan(
+                evt.pointerId,
+                new Vector2(evt.position.x, evt.position.y),
+                viewport.RetainedGraphPanOffset);
             this.CapturePointer(evt.pointerId);
             evt.StopPropagation();
         }
 
         private void HandlePointerMove(PointerMoveEvent evt)
         {
-            if (!isPanning || evt.pointerId != panPointerId || !this.HasPointerCapture(evt.pointerId))
+            if (!viewportController.IsPanning || !this.HasPointerCapture(evt.pointerId) ||
+                !viewportController.TryGetPannedOffset(evt.pointerId, new Vector2(evt.position.x, evt.position.y), out Vector2 offset))
             {
                 return;
             }
 
-            Vector2 pointerPosition = new(evt.position.x, evt.position.y);
-            host.RetainedGraphPanOffset = panStartOffset + (pointerPosition - panStartPointer);
-            host.ClampRetainedGraphPan(WorkspaceWidth, WorkspaceHeight);
+            viewport.RetainedGraphPanOffset = offset;
+            viewport.ClampRetainedGraphPan(WorkspaceWidth, WorkspaceHeight);
             ApplyViewTransform();
             evt.StopPropagation();
         }
@@ -347,7 +531,7 @@ namespace EditorTools
 
         private void EndPan(int pointerId)
         {
-            if (!isPanning || pointerId != panPointerId)
+            if (!viewportController.EndPan(pointerId))
             {
                 return;
             }
@@ -357,33 +541,107 @@ namespace EditorTools
                 this.ReleasePointer(pointerId);
             }
 
-            isPanning = false;
-            panPointerId = -1;
         }
 
         private void HandleWheel(WheelEvent evt)
         {
-            float oldZoom = host.RetainedGraphZoom;
-            float newZoom = Mathf.Clamp(oldZoom - evt.delta.y * 0.05f, ZoomMin, ZoomMax);
-            if (Mathf.Approximately(oldZoom, newZoom))
+            if (!GraphEditorViewportController.TryZoomToCursor(
+                    viewport.RetainedGraphZoom,
+                    viewport.RetainedGraphPanOffset,
+                    new Vector2(evt.mousePosition.x, evt.mousePosition.y),
+                    evt.delta.y,
+                    ZoomMin,
+                    ZoomMax,
+                    out float newZoom,
+                    out Vector2 newOffset))
             {
                 return;
             }
 
-            Vector2 mousePosition = new(evt.mousePosition.x, evt.mousePosition.y);
-            Vector2 graphPoint = (mousePosition - host.RetainedGraphPanOffset) / oldZoom;
-            host.RetainedGraphZoom = newZoom;
-            host.RetainedGraphPanOffset = mousePosition - graphPoint * newZoom;
-            host.ClampRetainedGraphPan(WorkspaceWidth, WorkspaceHeight);
+            viewport.RetainedGraphZoom = newZoom;
+            viewport.RetainedGraphPanOffset = newOffset;
+            viewport.ClampRetainedGraphPan(WorkspaceWidth, WorkspaceHeight);
             ApplyViewTransform();
             evt.StopPropagation();
         }
 
         private void ApplyViewTransform()
         {
-            graphContent.style.left = host.RetainedGraphPanOffset.x;
-            graphContent.style.top = host.RetainedGraphPanOffset.y;
-            graphContent.style.scale = new Scale(new Vector2(host.RetainedGraphZoom, host.RetainedGraphZoom));
+            graphContent.style.translate = new Translate(
+                viewport.RetainedGraphPanOffset.x,
+                viewport.RetainedGraphPanOffset.y);
+            graphContent.style.scale = new Scale(new Vector2(viewport.RetainedGraphZoom, viewport.RetainedGraphZoom));
+            gridElement?.MarkDirtyRepaint();
+            RefreshVisibleNodeElements();
+            ScheduleConnectionRefresh();
+        }
+
+        private Vector2 GetEffectiveNodePosition(TNode node)
+        {
+            return dragState.GetEffectivePosition(node, nodePresenter.GetRetainedNodePosition(node));
+        }
+
+        private Rect GetVisibleGraphRect()
+        {
+            float zoom = Mathf.Max(viewport.RetainedGraphZoom, 0.0001f);
+            Vector2 pan = viewport.RetainedGraphPanOffset;
+            Rect viewportRect = contentRect;
+            return new Rect(-pan.x / zoom, -pan.y / zoom, viewportRect.width / zoom, viewportRect.height / zoom);
+        }
+
+        private void RefreshVisibleNodeElements()
+        {
+            if (!source.RetainedGraphHasGraph)
+            {
+                return;
+            }
+
+            Rect visibleRect = GetVisibleGraphRect();
+            visibleRect.xMin -= VirtualizationMargin;
+            visibleRect.yMin -= VirtualizationMargin;
+            visibleRect.xMax += VirtualizationMargin;
+            visibleRect.yMax += VirtualizationMargin;
+
+            nodeVirtualizer.Reconcile(nodeRects, nodeElements, dragState.DraggedNode, visibleRect, nodesToRemove);
+
+            foreach (TNode node in nodesToRemove)
+            {
+                nodeElements[node].RemoveFromHierarchy();
+                nodeElements.Remove(node);
+            }
+
+            ScheduleVisibleNodeCreation();
+        }
+
+        private void ScheduleVisibleNodeCreation()
+        {
+            if (visibleNodeCreationScheduled || !nodeVirtualizer.HasPendingNodes)
+            {
+                return;
+            }
+
+            visibleNodeCreationScheduled = true;
+            schedule.Execute(CreatePendingVisibleNodes).ExecuteLater(0);
+        }
+
+        private void CreatePendingVisibleNodes()
+        {
+            visibleNodeCreationScheduled = false;
+            int created = 0;
+            while (created < VirtualizedNodeCreationBudget && nodeVirtualizer.TryTakeNext(nodeElements, out TNode node))
+            {
+                created++;
+                var nodeElement = new NodeElement(this, node);
+                nodeElements[node] = nodeElement;
+                graphContent.Add(nodeElement);
+            }
+
+            ScheduleVisibleNodeCreation();
+            if (!nodeVirtualizer.HasPendingNodes && connectionsNeedRefreshAfterVirtualizedCreation)
+            {
+                connectionsNeedRefreshAfterVirtualizedCreation = false;
+                RefreshConnections();
+            }
         }
 
         private sealed class NodeElement : VisualElement
@@ -396,14 +654,17 @@ namespace EditorTools
             private int dragPointerId = -1;
             private Vector2 dragStartPointer;
             private Vector2 dragStartPosition;
+            private Vector2 layoutPosition;
 
             public NodeElement(RetainedGraphCanvas<TNode, TConnection> canvas, TNode node)
             {
                 this.canvas = canvas;
                 Node = node;
                 name = "retained-graph-node";
-                Vector2 nodePosition = canvas.host.GetRetainedNodePosition(node);
-                Vector2 nodeSize = canvas.host.RetainedGraphNodeSize;
+                usageHints = UsageHints.DynamicTransform;
+                Vector2 nodePosition = canvas.GetEffectiveNodePosition(node);
+                layoutPosition = nodePosition;
+                Vector2 nodeSize = canvas.nodePresenter.RetainedGraphNodeSize;
                 style.position = Position.Absolute;
                 style.left = nodePosition.x;
                 style.top = nodePosition.y;
@@ -437,7 +698,7 @@ namespace EditorTools
                 title.style.textOverflow = TextOverflow.Ellipsis;
                 header.Add(title);
 
-                removeButton = new Button(() => canvas.host.DeleteRetainedNode(Node))
+                removeButton = new Button(() => canvas.interaction.DeleteRetainedNode(Node))
                 {
                     text = "×",
                     name = "retained-graph-node-remove"
@@ -448,7 +709,7 @@ namespace EditorTools
                 removeButton.style.paddingRight = 0f;
                 header.Add(removeButton);
 
-                content = new IMGUIContainer(() => canvas.host.DrawRetainedNode(Node))
+                content = new IMGUIContainer(() => canvas.nodePresenter.DrawRetainedNode(Node))
                 {
                     name = "retained-graph-node-content"
                 };
@@ -470,55 +731,72 @@ namespace EditorTools
 
             public Rect GetGraphRect()
             {
-                Vector2 nodeSize = canvas.host.RetainedGraphNodeSize;
+                Vector2 nodeSize = canvas.nodePresenter.RetainedGraphNodeSize;
                 float width = layout.width > 0f ? layout.width : nodeSize.x;
                 float height = layout.height > 0f ? layout.height : nodeSize.y;
-                return new Rect(canvas.host.GetRetainedNodePosition(Node), new Vector2(width, height));
+                return new Rect(canvas.GetEffectiveNodePosition(Node), new Vector2(width, height));
             }
 
             public void SetGraphPosition(Vector2 position)
             {
+                layoutPosition = position;
                 style.left = position.x;
                 style.top = position.y;
+                style.translate = new Translate(0f, 0f);
+            }
+
+            public void SetDragPosition(Vector2 position)
+            {
+                style.translate = new Translate(position.x - layoutPosition.x, position.y - layoutPosition.y);
+            }
+
+            public void CommitDragPosition(Vector2 position)
+            {
+                SetGraphPosition(position);
             }
 
             public void RefreshAppearance()
             {
-                title.text = canvas.host.GetRetainedNodeTitle(Node);
-                header.style.backgroundColor = canvas.host.GetRetainedNodeTint(Node);
+                title.text = canvas.nodePresenter.GetRetainedNodeTitle(Node);
+                header.style.backgroundColor = canvas.nodePresenter.GetRetainedNodeTint(Node);
                 header.style.color = Color.black;
-                style.backgroundColor = canvas.host.RetainedGraphPanelColor;
-                style.borderTopColor = canvas.host.RetainedGraphMinorGridColor;
-                style.borderBottomColor = canvas.host.RetainedGraphMinorGridColor;
-                style.borderLeftColor = canvas.host.RetainedGraphMinorGridColor;
-                style.borderRightColor = canvas.host.RetainedGraphMinorGridColor;
+                style.backgroundColor = canvas.appearance.RetainedGraphPanelColor;
+                style.borderTopColor = canvas.appearance.RetainedGraphMinorGridColor;
+                style.borderBottomColor = canvas.appearance.RetainedGraphMinorGridColor;
+                style.borderLeftColor = canvas.appearance.RetainedGraphMinorGridColor;
+                style.borderRightColor = canvas.appearance.RetainedGraphMinorGridColor;
                 content.MarkDirtyRepaint();
+            }
+
+            public void RequestContentLayoutRefresh()
+            {
+                content.MarkDirtyLayout();
             }
 
             public void RefreshTargetSelection()
             {
-                if (!canvas.host.RetainedGraphIsSelectingTarget)
+                if (!canvas.viewport.RetainedGraphIsSelectingTarget)
                 {
                     style.opacity = 1f;
-                    style.borderTopColor = canvas.host.RetainedGraphMinorGridColor;
-                    style.borderBottomColor = canvas.host.RetainedGraphMinorGridColor;
-                    style.borderLeftColor = canvas.host.RetainedGraphMinorGridColor;
-                    style.borderRightColor = canvas.host.RetainedGraphMinorGridColor;
+                    style.borderTopColor = canvas.appearance.RetainedGraphMinorGridColor;
+                    style.borderBottomColor = canvas.appearance.RetainedGraphMinorGridColor;
+                    style.borderLeftColor = canvas.appearance.RetainedGraphMinorGridColor;
+                    style.borderRightColor = canvas.appearance.RetainedGraphMinorGridColor;
                     return;
                 }
 
-                style.opacity = canvas.host.IsRetainedNodeTargetable(Node) ? 1f : 0.45f;
-                style.borderTopColor = canvas.host.RetainedGraphTargetBorderColor;
-                style.borderBottomColor = canvas.host.RetainedGraphTargetBorderColor;
-                style.borderLeftColor = canvas.host.RetainedGraphTargetBorderColor;
-                style.borderRightColor = canvas.host.RetainedGraphTargetBorderColor;
+                style.opacity = canvas.nodePresenter.IsRetainedNodeTargetable(Node) ? 1f : 0.45f;
+                style.borderTopColor = canvas.appearance.RetainedGraphTargetBorderColor;
+                style.borderBottomColor = canvas.appearance.RetainedGraphTargetBorderColor;
+                style.borderLeftColor = canvas.appearance.RetainedGraphTargetBorderColor;
+                style.borderRightColor = canvas.appearance.RetainedGraphTargetBorderColor;
             }
 
             public void BeginDrag(PointerDownEvent evt)
             {
                 dragPointerId = evt.pointerId;
                 dragStartPointer = new Vector2(evt.position.x, evt.position.y);
-                dragStartPosition = canvas.host.GetRetainedNodePosition(Node);
+                dragStartPosition = canvas.GetEffectiveNodePosition(Node);
                 header.CapturePointer(evt.pointerId);
             }
 
@@ -541,7 +819,7 @@ namespace EditorTools
                 }
 
                 Vector2 pointerPosition = new(evt.position.x, evt.position.y);
-                Vector2 graphPosition = dragStartPosition + (pointerPosition - dragStartPointer) / canvas.host.RetainedGraphZoom;
+                Vector2 graphPosition = dragStartPosition + (pointerPosition - dragStartPointer) / canvas.viewport.RetainedGraphZoom;
                 canvas.MoveNode(this, graphPosition);
                 evt.StopPropagation();
             }
@@ -574,58 +852,13 @@ namespace EditorTools
             }
         }
 
-        private sealed class ConnectionElement : VisualElement
-        {
-            private readonly RetainedGraphCanvas<TNode, TConnection> canvas;
-            private readonly RetainedGraphConnection<TNode, TConnection> connection;
-
-            public ConnectionElement(
-                RetainedGraphCanvas<TNode, TConnection> canvas,
-                RetainedGraphConnection<TNode, TConnection> connection)
-            {
-                this.canvas = canvas;
-                this.connection = connection;
-                name = "retained-graph-connection";
-                pickingMode = PickingMode.Ignore;
-                style.position = Position.Absolute;
-                style.left = 0f;
-                style.top = 0f;
-                style.width = WorkspaceWidth;
-                style.height = WorkspaceHeight;
-                generateVisualContent += DrawConnection;
-            }
-
-            public bool IsConnectedTo(TNode node)
-            {
-                return ReferenceEquals(connection.Source, node) || ReferenceEquals(connection.Target, node);
-            }
-
-            private void DrawConnection(MeshGenerationContext context)
-            {
-                if (!canvas.nodeElements.TryGetValue(connection.Source, out NodeElement sourceElement) ||
-                    !canvas.nodeElements.TryGetValue(connection.Target, out NodeElement targetElement))
-                {
-                    return;
-                }
-
-                canvas.host.DrawRetainedConnection(
-                    context.painter2D,
-                    connection.Connection,
-                    connection.Source,
-                    connection.Target,
-                    sourceElement.GetGraphRect(),
-                    targetElement.GetGraphRect(),
-                    canvas.IsDraggingNode(connection.Source) || canvas.IsDraggingNode(connection.Target));
-            }
-        }
-
         private sealed class GridElement : VisualElement
         {
-            private readonly IRetainedGraphCanvasHost<TNode, TConnection> host;
+            private readonly RetainedGraphCanvas<TNode, TConnection> canvas;
 
-            public GridElement(IRetainedGraphCanvasHost<TNode, TConnection> host)
+            public GridElement(RetainedGraphCanvas<TNode, TConnection> canvas)
             {
-                this.host = host;
+                this.canvas = canvas;
                 name = "retained-graph-grid";
                 pickingMode = PickingMode.Ignore;
                 style.position = Position.Absolute;
@@ -639,28 +872,43 @@ namespace EditorTools
             private void DrawGrid(MeshGenerationContext context)
             {
                 Painter2D painter = context.painter2D;
-                DrawGridLines(painter, 40f, host.RetainedGraphMinorGridColor, 1f);
-                DrawGridLines(painter, 200f, host.RetainedGraphMajorGridColor, 1.4f);
+                Rect visibleGraphRect = GetVisibleGraphRect();
+                DrawGridLines(painter, visibleGraphRect, 40f, canvas.appearance.RetainedGraphMinorGridColor, 1f);
+                DrawGridLines(painter, visibleGraphRect, 200f, canvas.appearance.RetainedGraphMajorGridColor, 1.4f);
             }
 
-            private static void DrawGridLines(Painter2D painter, float step, Color color, float width)
+            private Rect GetVisibleGraphRect()
+            {
+                float zoom = Mathf.Max(canvas.viewport.RetainedGraphZoom, 0.0001f);
+                Vector2 pan = canvas.viewport.RetainedGraphPanOffset;
+                Rect viewport = canvas.contentRect;
+                return new Rect(
+                    -pan.x / zoom,
+                    -pan.y / zoom,
+                    viewport.width / zoom,
+                    viewport.height / zoom);
+            }
+
+            private static void DrawGridLines(Painter2D painter, Rect visibleGraphRect, float step, Color color, float width)
             {
                 painter.strokeColor = color;
                 painter.lineWidth = width;
 
-                for (float x = 0f; x <= WorkspaceWidth; x += step)
+                float firstX = Mathf.Floor(visibleGraphRect.xMin / step) * step;
+                float firstY = Mathf.Floor(visibleGraphRect.yMin / step) * step;
+                for (float x = firstX; x <= visibleGraphRect.xMax + step; x += step)
                 {
                     painter.BeginPath();
-                    painter.MoveTo(new Vector2(x, 0f));
-                    painter.LineTo(new Vector2(x, WorkspaceHeight));
+                    painter.MoveTo(new Vector2(x, visibleGraphRect.yMin - step));
+                    painter.LineTo(new Vector2(x, visibleGraphRect.yMax + step));
                     painter.Stroke();
                 }
 
-                for (float y = 0f; y <= WorkspaceHeight; y += step)
+                for (float y = firstY; y <= visibleGraphRect.yMax + step; y += step)
                 {
                     painter.BeginPath();
-                    painter.MoveTo(new Vector2(0f, y));
-                    painter.LineTo(new Vector2(WorkspaceWidth, y));
+                    painter.MoveTo(new Vector2(visibleGraphRect.xMin - step, y));
+                    painter.LineTo(new Vector2(visibleGraphRect.xMax + step, y));
                     painter.Stroke();
                 }
             }
