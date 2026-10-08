@@ -113,7 +113,7 @@ MonoBehaviour:
     TypeName:
   autoRun: 1
   autoInjectGameObjects: []
-  botGoal: {fileID: 0}
+  botGoal: {fileID: 2389522154585707933}
   controller: {fileID: 8176184849838848579}
   bodyColliders:
   - {fileID: 8176184849838848579}
@@ -142,20 +142,9 @@ MonoBehaviour:
   - {fileID: 1400081817424832546}
   aimOrigin: {fileID: 1596642548385627558}
   animator: {fileID: 7789803627711000127}
-  navigationSettings:
-    AgentTypeId: 0
-    AreaMask: -1
-    PlayDemo: 1
-    RefillDemoAmmo: 1
-    RepathInterval: 0.4
-    ArrivalDistance: 0.2
-    CornerDistance: 0.25
-    SampleRadius: 1.5
-    TurnSpeed: 180
-    StuckTimeout: 1
-    DemoMoveDistance: 3
-    DemoStepDuration: 3
-  <ParentTransformForWeapon>k__BackingField: {fileID: 6444713294723154758}
+  navigationSettings: {fileID: 11400000, guid: 3f9d9054a0ed42ff9060d27aaf779e4a, type: 2}
+  controlProfile: {fileID: 11400000, guid: 7952ea6e91a849859a0ef8efcbc51279, type: 2}
+  parentTransformForWeapon: {fileID: 6444713294723154758}
 --- !u!143 &8176184849838848579
 CharacterController:
   m_ObjectHideFlags: 0

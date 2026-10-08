@@ -1456,6 +1456,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bot
       objectReference: {fileID: 0}
+    - target: {fileID: 1728858539788104334, guid: 15c818f869b34c540ad8658ebcb623c5, type: 3}
+      propertyPath: controlProfile
+      value:
+      objectReference: {fileID: 11400000, guid: 82a1d32e825742e082e00e569916cd8f, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

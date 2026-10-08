@@ -16,24 +16,19 @@ namespace Bot
         [SerializeField] private Rigidbody[] ragdollBodies;
         [SerializeField] private Transform aimOrigin;
         [SerializeField] private Animator animator;
-        [SerializeField] private BotNavigationSettings navigationSettings = new();
-        [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
+        [SerializeField] private BotNavigationSettings navigationSettings;
+        [SerializeField] private BotControlProfile controlProfile;
+        [SerializeField] private Transform parentTransformForWeapon;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            foreach (var collider in bodyColliders)
-            {
-                if (collider != controller && !collider.isTrigger)
-                    Physics.IgnoreCollision(controller, collider);
-            }
-            builder.RegisterCharacter(controller, transform, aimOrigin, ParentTransformForWeapon);
+            builder.RegisterCharacter(controller, transform, aimOrigin, parentTransformForWeapon);
             builder.RegisterCharacterTargets(bodyColliders);
             builder.RegisterInstance(new RagdollBodies(ragdollBodies));
-            // A null optional target is represented by the bot itself; demo Return uses its initial position.
-            builder.RegisterInstance(new BotGoal(botGoal != null ? botGoal : transform));
+            builder.RegisterInstance(new BotGoal(botGoal));
             builder.RegisterInstance(navigationSettings);
             builder.Register<BotNavigation>(Lifetime.Scoped);
-            builder.RegisterEntryPoint<BotControlSource>().AsSelf();
+            controlProfile.Register(builder);
             builder.RegisterEntryPoint<CharacterMotor>().AsSelf();
             builder.RegisterEntryPoint<BotAimOrigin>().AsSelf();
             builder.RegisterEntryPoint<InteractionController>().AsSelf();

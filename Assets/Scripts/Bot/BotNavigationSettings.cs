@@ -1,24 +1,19 @@
-using System;
 using UnityEngine;
 
 namespace Bot
 {
-    [Serializable]
-    public sealed class BotNavigationSettings
+    [CreateAssetMenu(fileName = "BotNavigationSettings", menuName = "configs/Bot/Navigation")]
+    public sealed class BotNavigationSettings : ScriptableObject
     {
-        [Tooltip("Must match the agent type used to bake the scene NavMesh.")]
-        public int AgentTypeId;
-        [Tooltip("Bit mask of NavMesh areas available to this bot; -1 allows every area.")]
-        public int AreaMask = -1;
-        public bool PlayDemo = true;
-        public bool RefillDemoAmmo = true;
-        [Min(0.05f)] public float RepathInterval = 0.4f;
-        [Min(0.05f)] public float ArrivalDistance = 0.2f;
-        [Min(0.05f)] public float CornerDistance = 0.25f;
-        [Min(0.1f)] public float SampleRadius = 1.5f;
-        [Min(1f)] public float TurnSpeed = 180f;
-        [Min(0.1f)] public float StuckTimeout = 1f;
-        [Min(0.1f)] public float DemoMoveDistance = 3f;
-        [Min(0.5f)] public float DemoStepDuration = 3f;
+        [field: Tooltip("Must match the agent type used to bake the scene NavMesh.")]
+        [field: SerializeField] public int AgentTypeId { get; private set; }
+        [field: Tooltip("Bit mask of NavMesh areas available to this bot; -1 allows every area.")]
+        [field: SerializeField] public int AreaMask { get; private set; } = -1;
+        [field: SerializeField, Min(0.05f)] public float RepathInterval { get; private set; } = 0.4f;
+        [field: SerializeField, Min(0.05f)] public float ArrivalDistance { get; private set; } = 0.2f;
+        [field: SerializeField, Min(0.05f)] public float CornerDistance { get; private set; } = 0.25f;
+        [field: SerializeField, Min(0.1f)] public float SampleRadius { get; private set; } = 1.5f;
+        [field: SerializeField, Min(1f)] public float TurnSpeed { get; private set; } = 180f;
+        [field: SerializeField, Min(0.1f)] public float StuckTimeout { get; private set; } = 1f;
     }
 }

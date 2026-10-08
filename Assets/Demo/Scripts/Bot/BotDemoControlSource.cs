@@ -1,4 +1,5 @@
 using System;
+using Bot;
 using Characters;
 using Dependencies;
 using MessagePipe;
@@ -8,10 +9,9 @@ using VContainer.Unity;
 using Weapon.Providers;
 using Weapon.Settings;
 
-namespace Bot
+namespace Demo.Bot
 {
-    // Temporary, deterministic command source. Disable PlayDemo to follow botGoal.
-    public sealed class BotControlSource : ITickable, IDisposable
+    public sealed class BotDemoControlSource : ITickable, IDisposable
     {
         private enum Action
         {
@@ -51,7 +51,7 @@ namespace Bot
         private readonly Transform transform;
         private readonly Transform goal;
         private readonly BotNavigation navigation;
-        private readonly BotNavigationSettings settings;
+        private readonly BotDemoProfile settings;
         private readonly CharacterState state;
         private readonly Inventory.Inventory inventory;
         private readonly WeaponProvider weapon;
@@ -73,8 +73,8 @@ namespace Bot
         private bool discreteActionSent;
         private bool disposed;
 
-        public BotControlSource(Transform transform, BotGoal goalReference,
-            BotNavigation navigation, BotNavigationSettings settings, CharacterState state,
+        public BotDemoControlSource(Transform transform, BotGoal goalReference,
+            BotNavigation navigation, BotDemoProfile settings, CharacterState state,
             Inventory.Inventory inventory, WeaponProvider weapon,
             IPublisher<MoveCommand> move, IPublisher<LookCommand> look,
             IPublisher<SprintCommand> sprint, IPublisher<CrouchCommand> crouch,
@@ -108,13 +108,6 @@ namespace Bot
         {
             if (disposed || !inventory.IsReady || !weapon.IsReady || Time.deltaTime <= 0f)
                 return;
-            if (!settings.PlayDemo)
-            {
-                ResetHeldActions();
-                if (goal != transform)
-                    Navigate(goal.position, false, false, true);
-                return;
-            }
             if (stepIndex < 0)
             {
                 origin = transform.position;
@@ -143,7 +136,7 @@ namespace Bot
             if (!discreteActionSent)
                 SendAction(step.Action);
 
-            var duration = Mathf.Max(0.5f, settings.DemoStepDuration);
+            var duration = Mathf.Max(0.5f, settings.StepDuration);
             if (elapsed < duration || weapon.IsReloading() || weapon.IsChangingWeapon)
                 return;
             BeginStep((stepIndex + 1) % Steps.Length);
@@ -210,14 +203,14 @@ namespace Bot
             discreteActionSent = false;
             var step = Steps[index];
             destination = transform.position + transform.TransformDirection(
-                new Vector3(step.Offset.x, 0f, step.Offset.y).normalized * settings.DemoMoveDistance);
+                new Vector3(step.Offset.x, 0f, step.Offset.y).normalized * settings.MoveDistance);
             if (step.Action == Action.Return)
                 destination = goal != transform ? goal.position : origin;
-            if (settings.RefillDemoAmmo && (step.Action == Action.Fire || step.Action == Action.AimFire)
+            if (settings.RefillAmmo && (step.Action == Action.Fire || step.Action == Action.AimFire)
                 && inventory.CurrentSlot.Item is Weapon.Weapon activeWeapon)
                 activeWeapon.TryChangeValue(activeWeapon.NeedAmmo());
             // Demo-only replenishment keeps the action loop observable indefinitely.
-            if (index == 0 && settings.RefillDemoAmmo)
+            if (index == 0 && settings.RefillAmmo)
             {
                 foreach (var slot in inventory.Slots)
                 {
