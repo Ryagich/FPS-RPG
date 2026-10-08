@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 528f8bba81aa44b68dab9cf6deb0be09, type: 3}
   m_Name: CharacterAnimationConfig
   m_EditorClassIdentifier:
+  <MovementSpeedSmoothingTime>k__BackingField: 0.08
+  <MovementDirectionSmoothingTime>k__BackingField: 0.12
   <TurnVelocitySmoothingTime>k__BackingField: 0.12
   <TurnBlendTime>k__BackingField: 0.18
   <TurnStartSpeed>k__BackingField: 12

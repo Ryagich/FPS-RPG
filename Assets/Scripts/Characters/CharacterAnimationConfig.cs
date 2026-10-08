@@ -5,6 +5,10 @@ namespace Characters
     [CreateAssetMenu(fileName = "CharacterAnimationConfig", menuName = "configs/Character/Animation")]
     public sealed class CharacterAnimationConfig : ScriptableObject
     {
+        [field: Header("Movement transitions")]
+        [field: SerializeField, Min(0f)] public float MovementSpeedSmoothingTime { get; private set; } = 0.08f;
+        [field: SerializeField, Min(0f)] public float MovementDirectionSmoothingTime { get; private set; } = 0.12f;
+
         [field: Header("Turning transitions")]
         [field: SerializeField, Min(0f)] public float TurnVelocitySmoothingTime { get; private set; } = 0.12f;
         [field: SerializeField, Min(0f)] public float TurnBlendTime { get; private set; } = 0.18f;

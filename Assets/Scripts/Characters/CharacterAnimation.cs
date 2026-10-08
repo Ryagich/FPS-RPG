@@ -21,6 +21,9 @@ namespace Characters
         private readonly float sprintSpeed;
         private readonly int rifleLayer;
         private readonly int pistolLayer;
+        private float blendedMovementSpeed;
+        private Vector2 lastMovementDirection = Vector2.up;
+        private Vector2 blendedMovementDirection = Vector2.up;
         private float filteredTurnSpeed;
         private float blendedTurnSpeed;
         private float turnPlaybackSpeed = 1f;
@@ -83,12 +86,7 @@ namespace Characters
         {
             if (!CanAnimate)
                 return;
-            // FPS_Win's blend trees expect speed / sprint speed and a unit local direction.
-            SetFloat(Speed, Mathf.Clamp01(state.HorizontalSpeed / sprintSpeed));
-            var direction = new Vector2(state.LocalVelocity.x, state.LocalVelocity.z);
-            direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.zero;
-            SetFloat(SpeedX, direction.x);
-            SetFloat(SpeedZ, direction.y);
+            UpdateMovementAnimation(Time.deltaTime);
             SetFloat(VerticalSpeed, state.Velocity.y);
             UpdateTurnAnimation(Time.deltaTime);
             SetFloat(VerticalAim, -state.Pitch / 90f);
@@ -96,6 +94,24 @@ namespace Characters
             SetState(Grounded, state.IsGrounded);
             SetState(Sprinting, state.IsSprinting.Value);
             SetState(Aiming, state.IsAiming);
+        }
+
+        private void UpdateMovementAnimation(float deltaTime)
+        {
+            // Smooth presentation independently of the responsive physical motor.
+            var speed = Mathf.Clamp01(state.HorizontalSpeed / sprintSpeed);
+            blendedMovementSpeed = Mathf.Lerp(blendedMovementSpeed, speed,
+                BlendFactor(animationConfig.MovementSpeedSmoothingTime, deltaTime));
+            var direction = new Vector2(state.LocalVelocity.x, state.LocalVelocity.z);
+            // Retain the stopping pose throughout the crossfade to idle.
+            if (direction.sqrMagnitude > 0.0025f)
+                lastMovementDirection = direction.normalized;
+            blendedMovementDirection = Vector2.Lerp(blendedMovementDirection, lastMovementDirection,
+                BlendFactor(animationConfig.MovementDirectionSmoothingTime, deltaTime));
+            // Do not normalize after blending: that would restore the snap on a 180-degree reversal.
+            SetFloat(Speed, blendedMovementSpeed);
+            SetFloat(SpeedX, blendedMovementDirection.x);
+            SetFloat(SpeedZ, blendedMovementDirection.y);
         }
 
         private void UpdateTurnAnimation(float deltaTime)
