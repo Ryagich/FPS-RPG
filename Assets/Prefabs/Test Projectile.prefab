@@ -252,9 +252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78cf90fcb7724ba4b306d51379e95e87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _timeToDeath: 2
-  distanceToUseShotPointRotation: 0.5
-  trailTime: 0.1
+  settings: {fileID: 11400000, guid: d72aeb2726df4492a06db3b371d805b5, type: 2}
   parentReference:
     TypeName:
   autoRun: 1
