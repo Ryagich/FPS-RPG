@@ -37,7 +37,8 @@ namespace Characters
             var horizontalVelocity = movement.GetVelocity(deltaTime);
             if (controller.isGrounded && verticalVelocity < 0f)
                 verticalVelocity = -2f;
-            if (commands.ConsumeJump() && controller.isGrounded && !state.IsCrouching.Value)
+            if (commands.ConsumeJump() && controller.isGrounded && !state.IsCrouching.Value
+                && state.CrouchProgress <= 0f)
                 verticalVelocity = Mathf.Sqrt(2f * Mathf.Max(0f, gravity.Gravity * config.JumpHeight));
             verticalVelocity -= gravity.Gravity * deltaTime;
             var collisions = controller.Move((horizontalVelocity + Vector3.up * verticalVelocity) * deltaTime);

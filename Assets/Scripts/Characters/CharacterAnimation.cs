@@ -85,7 +85,7 @@ namespace Characters
             SetFloat(VerticalSpeed, state.Velocity.y);
             SetFloat(RotationSpeed, state.YawRate * Time.deltaTime);
             SetFloat(VerticalAim, -state.Pitch / 90f);
-            SetState(Crouching, state.IsCrouching.Value);
+            SetFloat(Crouching, state.CrouchProgress);
             SetState(Grounded, state.IsGrounded);
             SetState(Sprinting, state.IsSprinting.Value);
             SetState(Aiming, state.IsAiming);

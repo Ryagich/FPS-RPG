@@ -17,6 +17,7 @@ namespace Characters
         public float MaxSpeed { get; internal set; }
         public float Pitch { get; internal set; }
         public float YawRate { get; internal set; }
+        public float CrouchProgress { get; internal set; }
         private readonly ReactiveProperty<bool> isSprinting = new();
         private readonly ReactiveProperty<bool> isCrouching = new();
         public IReadOnlyReactiveProperty<bool> IsSprinting => isSprinting;

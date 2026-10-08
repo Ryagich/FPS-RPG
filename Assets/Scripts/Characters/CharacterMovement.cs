@@ -31,18 +31,19 @@ namespace Characters
         {
             var crouching = state.CrouchRequested || !CanStandUp();
             state.SetCrouching(crouching);
-            var sprinting = controller.isGrounded && !crouching && state.SprintRequested
+            UpdateHeight(deltaTime);
+            var crouchActive = crouching || state.CrouchProgress > 0f;
+            var sprinting = controller.isGrounded && !crouchActive && state.SprintRequested
                 && state.MoveRequest.y > 0f && !weapon.IsShooting()
                 && !state.IsAiming && !weapon.IsReloading() && !weapon.IsChangingWeapon;
             state.SetSprinting(sprinting);
-            UpdateHeight(deltaTime);
-            state.MaxSpeed = GetSpeed(state.MoveRequest, crouching, sprinting);
+            state.MaxSpeed = GetSpeed(state.MoveRequest, crouchActive, sprinting);
             if (!controller.isGrounded)
                 return velocity;
 
             var direction = transform.forward * state.MoveRequest.y + transform.right * state.MoveRequest.x;
             var targetVelocity = direction * state.MaxSpeed;
-            var rates = crouching ? config.CrouchAccelerationRates
+            var rates = crouchActive ? config.CrouchAccelerationRates
                 : sprinting ? config.SprintAccelerationRates : config.WalkAccelerationRates;
             var acceleration = direction.sqrMagnitude > 0.001f ? rates.x : rates.y;
             velocity = Vector3.MoveTowards(velocity, targetVelocity, Mathf.Max(0f, acceleration) * deltaTime);
@@ -88,11 +89,14 @@ namespace Characters
 
         private void UpdateHeight(float deltaTime)
         {
+            var crouchingHeight = Mathf.Clamp(config.CrouchingHeight, controller.radius * 2f, standingHeight);
             var target = state.IsCrouching.Value
-                ? Mathf.Clamp(config.CrouchingHeight, controller.radius * 2f, standingHeight)
+                ? crouchingHeight
                 : standingHeight;
-            controller.height = Mathf.MoveTowards(controller.height, target, config.CrouchChangedSpeed * deltaTime);
+            controller.height = Mathf.MoveTowards(controller.height, target,
+                Mathf.Max(0f, config.CrouchChangedSpeed) * deltaTime);
             controller.center = standingCenter + Vector3.up * ((controller.height - standingHeight) * 0.5f);
+            state.CrouchProgress = Mathf.InverseLerp(standingHeight, crouchingHeight, controller.height);
         }
     }
 }

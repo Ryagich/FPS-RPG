@@ -25,8 +25,7 @@ namespace CameraScripts
 
         public void Tick()
         {
-            var target = state.IsCrouching.Value ? config.CameraPositionInCrouching - standingY : 0f;
-            var offset = Mathf.MoveTowards(appliedY, target, config.CrouchChangedSpeed * Time.deltaTime);
+            var offset = (config.CameraPositionInCrouching - standingY) * state.CrouchProgress;
             camera.localPosition += Vector3.up * (offset - appliedY);
             appliedY = offset;
         }
