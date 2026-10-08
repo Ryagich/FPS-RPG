@@ -26,7 +26,7 @@ namespace Weapon.Attachments
         [field: SerializeField, ShowIf(nameof(isScope)), AllowNesting] 
         public ScopeBaseSettings ScopeSettings { get; private set; }
         [field: SerializeField, ShowIf(nameof(isMuzzle)), AllowNesting] 
-        public MuzzleBaseSettings MuzzleBaseSettings { get; private set; }
+        public MuzzleBaseSettings MuzzleBaseSettings { get; private set; } = new();
         
         public string AttachmentName => NameKey.GetLocalizedStringCached();
         public bool isScope() => Type == AttachmentTypes.Scope;
@@ -52,7 +52,7 @@ namespace Weapon.Attachments
     [Serializable]
     public class MuzzleBaseSettings
     {
-        //Shot effect какой нибудь partical    
-        //shot sound
+        [field: SerializeField, Min(0)] public int ParticleCount { get; private set; } = 5;
+        [field: SerializeField, Min(0f)] public float FlashDuration { get; private set; }
     } 
 }

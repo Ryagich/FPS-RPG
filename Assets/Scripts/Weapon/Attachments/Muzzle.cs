@@ -7,8 +7,7 @@ namespace Weapon.Attachments
     {
         private readonly ParticleSystem particles;
         private readonly Light flashLight;
-        private readonly int particleCount;
-        private readonly float flashDuration;
+        private readonly MuzzleBaseSettings settings;
         private float flashTime;
         public AttachmentBaseInfo AttachmentBaseInfo { get; set; }
         public Transform Transform { get; }
@@ -16,24 +15,23 @@ namespace Weapon.Attachments
         public Transform ShotPoint { get; }
 
         public Muzzle(Transform transform, AttachmentBaseInfo info, Transform shotPoint,
-            ParticleSystem particles, Light flashLight, int particleCount, float flashDuration)
+            ParticleSystem particles, Light flashLight)
         {
             Transform = transform;
             AttachmentBaseInfo = info;
             ShotPoint = shotPoint;
             this.particles = particles;
             this.flashLight = flashLight;
-            this.particleCount = particleCount;
-            this.flashDuration = flashDuration;
+            settings = info.MuzzleBaseSettings;
         }
 
         public void Effect()
         {
             if (particles != null)
-                particles.Emit(particleCount);
+                particles.Emit(settings.ParticleCount);
             if (flashLight != null)
             {
-                flashTime = flashDuration;
+                flashTime = settings.FlashDuration;
                 flashLight.enabled = true;
             }
         }

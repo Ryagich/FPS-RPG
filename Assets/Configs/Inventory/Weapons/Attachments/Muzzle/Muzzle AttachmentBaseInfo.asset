@@ -34,6 +34,9 @@ MonoBehaviour:
   <Type>k__BackingField: 3
   <ScopeSettings>k__BackingField:
     <Zoom>k__BackingField: 1.5
+  <MuzzleBaseSettings>k__BackingField:
+    <ParticleCount>k__BackingField: 5
+    <FlashDuration>k__BackingField: 0
   references:
     version: 2
     RefIds: []

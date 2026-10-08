@@ -11,6 +11,7 @@ namespace Weapon.Attachments
 
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.RegisterInstance(AttachmentBaseInfo);
             var attachment = new Scope(transform, AttachmentBaseInfo, ScopeCamera, CenterTransform);
             Instance = attachment;
             builder.RegisterInstance(attachment);

@@ -10,13 +10,12 @@ namespace Weapon.Attachments
         [field: SerializeField] public Transform ShotPoint { get; private set; }
         [field: SerializeField] public ParticleSystem Particles { get; private set; }
         [field: SerializeField] private Light flashLight;
-        [field: SerializeField] private int flashParticlesCount = 5;
-        [field: SerializeField] private float flashLightDuration;
 
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.RegisterInstance(AttachmentBaseInfo);
             var muzzle = new Muzzle(transform, AttachmentBaseInfo, ShotPoint, Particles,
-                flashLight, flashParticlesCount, flashLightDuration);
+                flashLight);
             Instance = muzzle;
             builder.RegisterEntryPoint<Muzzle>(_ => muzzle, Lifetime.Scoped).AsSelf();
         }

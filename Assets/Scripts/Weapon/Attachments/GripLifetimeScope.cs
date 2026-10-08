@@ -10,6 +10,7 @@ namespace Weapon.Attachments
 
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.RegisterInstance(AttachmentBaseInfo);
             var attachment = new Grip(transform, AttachmentBaseInfo, LeftHandTarget);
             Instance = attachment;
             builder.RegisterInstance(attachment);

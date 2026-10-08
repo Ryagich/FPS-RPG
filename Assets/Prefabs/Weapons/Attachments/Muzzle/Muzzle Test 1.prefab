@@ -164,8 +164,6 @@ MonoBehaviour:
   <ShotPoint>k__BackingField: {fileID: 4450397733328384643}
   <Particles>k__BackingField: {fileID: 0}
   flashLight: {fileID: 0}
-  flashParticlesCount: 5
-  flashLightDuration: 0
   parentReference:
     TypeName:
   autoRun: 1
