@@ -15,11 +15,16 @@ namespace Characters
         private readonly Animator animator;
         private readonly CharacterState state;
         private readonly Inventory.Inventory inventory;
+        private readonly CharacterAnimationConfig animationConfig;
         private readonly Dictionary<int, AnimatorControllerParameterType> parameters = new();
         private readonly IDisposable subscriptions;
         private readonly float sprintSpeed;
         private readonly int rifleLayer;
         private readonly int pistolLayer;
+        private float filteredTurnSpeed;
+        private float blendedTurnSpeed;
+        private float turnPlaybackSpeed = 1f;
+        private bool isTurning;
         private static readonly int Speed = Animator.StringToHash("Speed");
         private static readonly int SpeedX = Animator.StringToHash("SpeedX");
         private static readonly int SpeedZ = Animator.StringToHash("SpeedZ");
@@ -27,13 +32,14 @@ namespace Characters
         private static readonly int Grounded = Animator.StringToHash("IsGrounded");
         private static readonly int Sprinting = Animator.StringToHash("IsSprinting");
         private static readonly int RotationSpeed = Animator.StringToHash("RotationSpeed");
+        private static readonly int TurnPlaybackSpeed = Animator.StringToHash("TurnPlaybackSpeed");
         private static readonly int VerticalSpeed = Animator.StringToHash("VerticalSpeed");
         private static readonly int VerticalAim = Animator.StringToHash("VerticalAim");
         private static readonly int Aiming = Animator.StringToHash("IsAiming");
         private static readonly int Reloading = Animator.StringToHash("IsReloading");
 
         public CharacterAnimation(Animator animator, CharacterState state, Inventory.Inventory inventory,
-            CharacterMovementConfig movementConfig,
+            CharacterMovementConfig movementConfig, CharacterAnimationConfig animationConfig,
             ISubscriber<ShotFiredMessage> shot, ISubscriber<ReloadStartedMessage> reload,
             ISubscriber<ReloadFinishedMessage> reloadFinished,
             ISubscriber<WeaponChangeStartedMessage> changeStarted,
@@ -42,6 +48,7 @@ namespace Characters
             this.animator = animator;
             this.state = state;
             this.inventory = inventory;
+            this.animationConfig = animationConfig;
             sprintSpeed = Mathf.Max(0.001f, movementConfig.SprintSpeed);
             if (animator.runtimeAnimatorController != null)
             {
@@ -83,13 +90,42 @@ namespace Characters
             SetFloat(SpeedX, direction.x);
             SetFloat(SpeedZ, direction.y);
             SetFloat(VerticalSpeed, state.Velocity.y);
-            SetFloat(RotationSpeed, state.YawRate * Time.deltaTime);
+            UpdateTurnAnimation(Time.deltaTime);
             SetFloat(VerticalAim, -state.Pitch / 90f);
             SetFloat(Crouching, state.CrouchProgress);
             SetState(Grounded, state.IsGrounded);
             SetState(Sprinting, state.IsSprinting.Value);
             SetState(Aiming, state.IsAiming);
         }
+
+        private void UpdateTurnAnimation(float deltaTime)
+        {
+            var velocityBlend = BlendFactor(animationConfig.TurnVelocitySmoothingTime, deltaTime);
+            filteredTurnSpeed = Mathf.Lerp(filteredTurnSpeed, state.IsGrounded ? state.YawRate : 0f, velocityBlend);
+            var speed = Mathf.Abs(filteredTurnSpeed);
+            var startSpeed = Mathf.Max(0.01f, animationConfig.TurnStartSpeed);
+            var stopSpeed = Mathf.Clamp(animationConfig.TurnStopSpeed, 0f, startSpeed);
+            // Hysteresis prevents small input changes from repeatedly entering/exiting the turn.
+            isTurning = state.IsGrounded && speed > (isTurning ? stopSpeed : startSpeed);
+            var referenceSpeed = Mathf.Max(0.01f, Mathf.Lerp(animationConfig.StandingTurnSpeed,
+                animationConfig.CrouchingTurnSpeed, state.CrouchProgress));
+            var targetBlend = isTurning ? Mathf.Sign(filteredTurnSpeed) * referenceSpeed : 0f;
+            blendedTurnSpeed = Mathf.Lerp(blendedTurnSpeed, targetBlend,
+                BlendFactor(animationConfig.TurnBlendTime, deltaTime));
+            SetFloat(RotationSpeed, blendedTurnSpeed);
+
+            // Blend controls the pose weight; playback controls the cadence of the steps.
+            var minPlaybackSpeed = Mathf.Max(0.01f, animationConfig.MinTurnPlaybackSpeed);
+            var maxPlaybackSpeed = Mathf.Max(minPlaybackSpeed, animationConfig.MaxTurnPlaybackSpeed);
+            var targetPlaybackSpeed = isTurning ? Mathf.Clamp(speed / referenceSpeed,
+                minPlaybackSpeed, maxPlaybackSpeed) : 1f;
+            turnPlaybackSpeed = Mathf.Lerp(turnPlaybackSpeed, targetPlaybackSpeed,
+                BlendFactor(animationConfig.TurnPlaybackSmoothingTime, deltaTime));
+            SetFloat(TurnPlaybackSpeed, turnPlaybackSpeed);
+        }
+
+        private static float BlendFactor(float smoothingTime, float deltaTime) => smoothingTime > 0f
+            ? 1f - Mathf.Exp(-Mathf.Max(0f, deltaTime) / smoothingTime) : 1f;
 
         private void OnSlotChanged(InventorySlot previous, InventorySlot current)
         {

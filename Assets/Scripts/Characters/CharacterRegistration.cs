@@ -55,9 +55,11 @@ namespace Characters
             return options;
         }
 
-        public static void RegisterCharacterAnimation(this IContainerBuilder builder, Animator animator)
+        public static void RegisterCharacterAnimation(this IContainerBuilder builder, Animator animator,
+            CharacterAnimationConfig animationConfig)
         {
             builder.RegisterInstance(animator);
+            builder.RegisterInstance(animationConfig);
             builder.RegisterEntryPoint<CharacterAnimation>().AsSelf();
         }
 

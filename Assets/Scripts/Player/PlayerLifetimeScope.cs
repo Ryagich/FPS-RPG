@@ -20,6 +20,7 @@ namespace Player
         [SerializeField] private Collider[] bodyColliders;
         [SerializeField] private Camera playerCamera;
         [SerializeField] private Animator animator;
+        [SerializeField] private CharacterAnimationConfig animationConfig;
         [field: SerializeField] public Transform CameraParentTransform { get; private set; } = null!;
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
         [field: SerializeField] public SoundConfig MovementSoundConfig { get; private set; } = null!;
@@ -38,7 +39,7 @@ namespace Player
             builder.Register<PlayerCamera>(Lifetime.Scoped);
             if (animator != null)
             {
-                builder.RegisterCharacterAnimation(animator);
+                builder.RegisterCharacterAnimation(animator, animationConfig);
             }
             
             builder.RegisterBuildCallback(container =>

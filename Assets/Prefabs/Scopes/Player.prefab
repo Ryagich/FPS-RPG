@@ -82,6 +82,7 @@ MonoBehaviour:
   - {fileID: 8076340133555317115}
   playerCamera: {fileID: 7397388090799849924}
   animator: {fileID: 900100000000000003}
+  animationConfig: {fileID: 11400000, guid: 98ca7c3ab57f437b8241621ea43e3659, type: 2}
   <CameraParentTransform>k__BackingField: {fileID: 3683176396944124172}
   <ParentTransformForWeapon>k__BackingField: {fileID: 8558349566660135326}
   <MovementSoundConfig>k__BackingField: {fileID: 11400000, guid: f68af6ef5db4bd44b95382b65de2ed07, type: 2}

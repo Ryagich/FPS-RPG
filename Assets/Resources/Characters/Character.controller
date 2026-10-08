@@ -75,13 +75,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 0
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7933428823885467360}
   m_Tag:
-  m_SpeedParameter:
+  m_SpeedParameter: TurnPlaybackSpeed
   m_MirrorParameter:
   m_CycleOffsetParameter:
   m_TimeParameter:
@@ -226,19 +226,46 @@ BlendTree:
   m_Name: Crouching Rotation
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: -203655887218126122, guid: 97df7c676d9b9e14f92fac26b8672df9,
+    m_Motion: {fileID: -203655887218126122, guid: 1560951c84d45894cabaefd0c8d51255,
       type: 3}
-    m_Threshold: 0
+    m_Threshold: -71.052632
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
-    m_DirectBlendParameter: Speed
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: 97df7c676d9b9e14f92fac26b8672df9,
+      type: 3}
+    m_Threshold: -5
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: 97df7c676d9b9e14f92fac26b8672df9,
+      type: 3}
+    m_Threshold: 5
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: fcdd2e9be42a372438fc34422862ae19,
+      type: 3}
+    m_Threshold: 71.052632
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
     m_Mirror: 0
   m_BlendParameter: RotationSpeed
   m_BlendParameterY: Blend
-  m_MinThreshold: 0
-  m_MaxThreshold: 1
-  m_UseAutomaticThresholds: 1
+  m_MinThreshold: -71.052632
+  m_MaxThreshold: 71.052632
+  m_UseAutomaticThresholds: 0
   m_NormalizedBlendValues: 0
   m_BlendType: 0
 --- !u!1107 &-6150898928419786355
@@ -309,9 +336,36 @@ BlendTree:
   m_Name: Stainging Rotation
   m_Childs:
   - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: b3a59f6b5940b0d478821c4448f1fa8b,
+      type: 3}
+    m_Threshold: -90
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
     m_Motion: {fileID: -203655887218126122, guid: ae516b5596b846a4fb577ae260550354,
       type: 3}
-    m_Threshold: 0
+    m_Threshold: -5
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: ae516b5596b846a4fb577ae260550354,
+      type: 3}
+    m_Threshold: 5
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: RotationSpeed
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: -203655887218126122, guid: 09f6d6d27cb58c948a752c25b1b53753,
+      type: 3}
+    m_Threshold: 90
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
@@ -319,8 +373,8 @@ BlendTree:
     m_Mirror: 0
   m_BlendParameter: RotationSpeed
   m_BlendParameterY: Blend
-  m_MinThreshold: 0
-  m_MaxThreshold: 0
+  m_MinThreshold: -90
+  m_MaxThreshold: 90
   m_UseAutomaticThresholds: 0
   m_NormalizedBlendValues: 0
   m_BlendType: 0
@@ -1121,6 +1175,12 @@ AnimatorController:
   m_Name: Character
   serializedVersion: 5
   m_AnimatorParameters:
+  - m_Name: TurnPlaybackSpeed
+    m_Type: 1
+    m_DefaultFloat: 1
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   - m_Name: Speed
     m_Type: 1
     m_DefaultFloat: 0

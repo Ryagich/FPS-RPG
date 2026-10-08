@@ -142,6 +142,7 @@ MonoBehaviour:
   - {fileID: 3890967798853023700}
   aimOrigin: {fileID: 1596642548385627558}
   animator: {fileID: 7789803627711000127}
+  animationConfig: {fileID: 11400000, guid: 98ca7c3ab57f437b8241621ea43e3659, type: 2}
   navigationSettings: {fileID: 11400000, guid: 3f9d9054a0ed42ff9060d27aaf779e4a, type: 2}
   controlProfile: {fileID: 11400000, guid: 7952ea6e91a849859a0ef8efcbc51279, type: 2}
   parentTransformForWeapon: {fileID: 6444713294723154758}

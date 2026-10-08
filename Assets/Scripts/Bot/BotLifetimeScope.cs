@@ -16,6 +16,7 @@ namespace Bot
         [SerializeField] private Rigidbody[] ragdollBodies;
         [SerializeField] private Transform aimOrigin;
         [SerializeField] private Animator animator;
+        [SerializeField] private CharacterAnimationConfig animationConfig;
         [SerializeField] private BotNavigationSettings navigationSettings;
         [SerializeField] private BotControlProfile controlProfile;
         [SerializeField] private Transform parentTransformForWeapon;
@@ -32,7 +33,7 @@ namespace Bot
             builder.RegisterEntryPoint<CharacterMotor>().AsSelf();
             builder.RegisterEntryPoint<BotAimOrigin>().AsSelf();
             builder.RegisterEntryPoint<InteractionController>().AsSelf();
-            builder.RegisterCharacterAnimation(animator);
+            builder.RegisterCharacterAnimation(animator, animationConfig);
             builder.RegisterEntryPoint<BotDeath>().AsSelf();
         }
     }
