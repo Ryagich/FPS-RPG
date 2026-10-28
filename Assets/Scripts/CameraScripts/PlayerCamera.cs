@@ -15,7 +15,12 @@ namespace CameraScripts
         public readonly Transform cameraParentTransform;
 
         private float XRotation { get; set; }
+        private float yawRotation;
         private Vector2 lookDelta;
+
+        /// <summary>Накопленные yaw/pitch для процедурных слоёв full-body анимации.</summary>
+        public Vector2 LookAngles => new(yawRotation, XRotation);
+        public Vector2 LastAppliedLookDelta { get; private set; }
         
         public PlayerCamera
             (
@@ -35,7 +40,10 @@ namespace CameraScripts
         public void Tick()
         {
             if (lookDelta == Vector2.zero)
+            {
+                LastAppliedLookDelta = Vector2.zero;
                 return;
+            }
 
             Rotate();
             lookDelta = Vector2.zero;
@@ -49,20 +57,24 @@ namespace CameraScripts
         public void Rotate()
         {
             var direction = lookDelta * playerMovementConfig.Sensitivity;
+            LastAppliedLookDelta = direction;
             XRotation -= direction.y;
             XRotation = Mathf.Clamp(XRotation, playerMovementConfig.cameraYClamp.x,playerMovementConfig.cameraYClamp.y);
             
             cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * direction.x);
+            yawRotation += direction.x;
         }
         
         public void RotateX(Vector2 delta)
         {
+            LastAppliedLookDelta = delta;
             XRotation -= delta.y;
             XRotation = Mathf.Clamp(XRotation, -90f, 90f);
             
             cameraParentTransform.localRotation = Quaternion.Euler(XRotation, 0f, 0f);
             playerBody.Rotate(Vector3.up * delta.x);
+            yawRotation += delta.x;
         }
     }
 }

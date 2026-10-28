@@ -13,17 +13,28 @@ MonoBehaviour:
   m_Name: PlayerMovementConfig
   m_EditorClassIdentifier: 
   <WalkSpeed>k__BackingField: {x: 3, y: 2.25, z: 1.5}
-  <SprintSpeed>k__BackingField: 10
-  <CrouchSpeed>k__BackingField: {x: 1.2, y: 0.9, z: 0.55}
+  <SprintSpeed>k__BackingField: 6.5
+  <CrouchSpeed>k__BackingField: {x: 1.1, y: 0.825, z: 0.5041667}
   <WalkAccelerationRates>k__BackingField: {x: 10, y: 20}
   <SprintAccelerationRates>k__BackingField: {x: 35, y: 45}
   <CrouchAccelerationRates>k__BackingField: {x: 15, y: 20}
+  <IdleAnimationSmoothing>k__BackingField: 6.5
+  <WalkAnimationSmoothing>k__BackingField: 5
+  <SprintAnimationSmoothing>k__BackingField: 3
+  <CrouchAnimationSmoothing>k__BackingField: 4
+  <ProneAnimationSmoothing>k__BackingField: 2
   <CrouchingHeight>k__BackingField: 1
   <CrouchChangedSpeed>k__BackingField: 4
   <CameraPositionInCrouching>k__BackingField: 0.9
   <CrouchCheckMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 1
+  <ProneSpeed>k__BackingField: {x: 0.6, y: 0.45, z: 0.3}
+  <ProneHeight>k__BackingField: 0.45
+  <CameraPositionInProne>k__BackingField: 0.38
+  <ProneChangedSpeed>k__BackingField: 3
+  <LeanAngle>k__BackingField: 25
+  <LeanMotion>k__BackingField: {fileID: 11400000, guid: a493caf2a32529d4d88aff9ccf78e181, type: 2}
   <JumpHeight>k__BackingField: 3
   <Sensitivity>k__BackingField: 1
   <cameraYClamp>k__BackingField: {x: -80, y: 80}

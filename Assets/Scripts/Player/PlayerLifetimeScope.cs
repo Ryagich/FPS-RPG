@@ -22,13 +22,21 @@ namespace Player
         [field: SerializeField] public Transform ParentTransformForWeapon { get; private set; } = null!;
         [field: SerializeField] public SoundConfig MovementSoundConfig { get; private set; } = null!;
     
-        private CanvasLifetimeScope canvasScope;
-
         protected override void Configure(IContainerBuilder builder)
         {
             var characterController = GetComponent<CharacterController>();
+            var avatarView = GetComponent<PlayerAvatarView>();
+            if (avatarView == null)
+                throw new MissingComponentException("Player prefab requires PlayerAvatarView.");
+            var cameraSocket = GetComponent<PlayerCameraSocket>();
+            if (cameraSocket == null)
+                throw new MissingComponentException("Player prefab requires PlayerCameraSocket.");
             builder.RegisterInstance(characterController).AsSelf();
+            builder.RegisterInstance(avatarView).AsSelf();
+            builder.RegisterInstance(cameraSocket).AsSelf();
             builder.RegisterInstance(transform).AsSelf();
+            builder.RegisterInstance<LifetimeScope>(this).Keyed("InventoryOwnerScope");
+            builder.RegisterInstance(true).Keyed("HasMeleeSlot");
             builder.RegisterInstance(CameraParentTransform).Keyed("CameraParentTransform");
             builder.RegisterInstance(ParentTransformForWeapon).Keyed("ParentTransformForWeapon");
             builder.RegisterInstance(MovementSoundConfig).Keyed("MovementSoundConfig");
@@ -53,21 +61,13 @@ namespace Player
             var options = builder.RegisterMessagePipe();
             builder.RegisterMessageBroker<DeathMessage>(options);
             
-            builder.RegisterBuildCallback(container =>
-                                          {
-                                              // GlobalMessagePipe.SetProvider(container.AsServiceProvider());
-                                              var canvasConfig = container.Resolve<CanvasConfig>();
-
-                                              canvasScope = CreateChildFromPrefab(canvasConfig.CanvasPrefab);
-                                              var canvasScopeT = canvasScope.transform;
-                                              canvasScopeT.SetParent(null);
-                                              canvasScopeT.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                                          });
-            
             builder.RegisterEntryPoint<InputHandler>().AsSelf();
             builder.RegisterEntryPoint<PlayerMotor>().AsSelf();
+            builder.RegisterEntryPoint<PlayerPoseController>().AsSelf();
+            builder.RegisterEntryPoint<PlayerAnimationDriver>().AsSelf();
             builder.RegisterEntryPoint<MovementSound>().AsSelf();
             builder.RegisterEntryPoint<PlayerCamera>().AsSelf();
+            builder.RegisterEntryPoint<KinemationLookInputBridge>().AsSelf();
             builder.RegisterEntryPoint<CameraFovController>().AsSelf();
             builder.RegisterEntryPoint<CameraRecoil>().AsSelf();
             builder.RegisterEntryPoint<CameraShaker>().AsSelf();

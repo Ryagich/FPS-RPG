@@ -28,7 +28,7 @@ MonoBehaviour:
   <StepOnGroundSoundConfig>k__BackingField: {fileID: 11400000, guid: 60a83bb468983de418177018ba27c728, type: 2}
   <StepOnWoodSoundConfig>k__BackingField: {fileID: 11400000, guid: c028806ae387e604a97381a16f327883, type: 2}
   <StepShakeDuration>k__BackingField: 0.3
-  <StepShakeAmplitude>k__BackingField: 2
+  <StepShakeAmplitude>k__BackingField: 0
   <StepShakeFrequency>k__BackingField: 0
   <StepShakeFalloff>k__BackingField:
     serializedVersion: 2
@@ -54,7 +54,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  <StepBobAmplitude>k__BackingField: 0.1
+  <StepBobAmplitude>k__BackingField: 0
   <StepBobCurve>k__BackingField:
     serializedVersion: 2
     m_Curve:

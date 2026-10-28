@@ -20,11 +20,11 @@ namespace CameraScripts
             (
                 CameraFovConfig cameraFovConfig,
                 MoveStates moveStates,
-                [Key("CameraParentTransform")] Transform cameraParentTransform
+                PlayerCameraSocket cameraSocket
             )
         {
             this.cameraFovConfig = cameraFovConfig;
-            сamera = cameraParentTransform.GetComponentInChildren<Camera>();
+            сamera = cameraSocket.PlayerCamera;
 
             moveStates.IsSprinting.Subscribe(ChangeRunFov);
 

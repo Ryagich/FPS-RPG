@@ -59,6 +59,8 @@ namespace Scopes
             builder.RegisterMessageBroker<JumpMessage>(options);
             builder.RegisterMessageBroker<ChangeSprintStateMessage>(options);
             builder.RegisterMessageBroker<ChangeCrouchingStateMessage>(options);
+            builder.RegisterMessageBroker<ChangeProneStateMessage>(options);
+            builder.RegisterMessageBroker<ChangeLeanStateMessage>(options);
             builder.RegisterMessageBroker<SwitchWeaponMessage>(options);
             builder.RegisterMessageBroker<ReloadingMessage>(options);
             builder.RegisterMessageBroker<SwitchFireMode>(options);

@@ -48,4 +48,4 @@ MonoBehaviour:
     TypeName: Scopes.ProjectLifetimeScope
   autoRun: 0
   autoInjectGameObjects: []
-  <PlayerPrefab>k__BackingField: {fileID: 6364146570288871173, guid: be2dc860275a8604da3ff9be317262b8, type: 3}
+  <PlayerPrefab>k__BackingField: {fileID: 919542700001, guid: aa03a9f50b384e342aeeb5902e9522c1, type: 3}
