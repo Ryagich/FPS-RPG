@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using Weapon.Settings;
+using Inventory;
 
 namespace Messages
 {
@@ -43,6 +43,20 @@ namespace Messages
         }
     }
 
+    /// <summary>Запрос переключить положение лёжа.</summary>
+    public readonly struct ChangeProneStateMessage { }
+
+    /// <summary>Направление наклона: -1 — влево, 0 — нейтральное положение, 1 — вправо.</summary>
+    public readonly struct ChangeLeanStateMessage
+    {
+        public readonly float Direction;
+
+        public ChangeLeanStateMessage(float direction)
+        {
+            Direction = direction;
+        }
+    }
+
     public readonly struct ClickMessage
     {
         public readonly bool State;
@@ -58,11 +72,11 @@ namespace Messages
 
     public readonly struct SwitchWeaponMessage
     {
-        public readonly WeaponRole Role;
+        public readonly EquipmentSlotId Slot;
 
-        public SwitchWeaponMessage(WeaponRole role)
+        public SwitchWeaponMessage(EquipmentSlotId slot)
         {
-            Role = role;
+            Slot = slot;
         }
     }
     public readonly struct ReloadingMessage { }

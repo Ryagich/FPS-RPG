@@ -3,7 +3,7 @@ using Messages;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
-using Weapon.Settings;
+using Inventory;
 
 namespace Input
 {
@@ -16,12 +16,16 @@ namespace Input
         private readonly IPublisher<JumpMessage> jumpMessagePublisher;
         private readonly IPublisher<ChangeSprintStateMessage> changeSprintStateMessagePublisher;
         private readonly IPublisher<ChangeCrouchingStateMessage> changeCrouchingStateMessagePublisher;
+        private readonly IPublisher<ChangeProneStateMessage> changeProneStateMessagePublisher;
+        private readonly IPublisher<ChangeLeanStateMessage> changeLeanStateMessagePublisher;
         private readonly IPublisher<ClickMessage> clickMessagePublisher;
         private readonly IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher;
         private readonly IPublisher<ReloadingMessage> reloadingMessagePublisher;
         private readonly IPublisher<SwitchFireMode> switchFireModePublisher;
         private readonly IPublisher<AimChangedMessage> aimChangedMessagePublisher;
         private readonly IPublisher<InteractableMessage> interactableMessagePublisher;
+        private bool isLeaningLeft;
+        private bool isLeaningRight;
 
         private InputHandler
             (
@@ -31,6 +35,8 @@ namespace Input
                 IPublisher<JumpMessage> jumpMessagePublisher,
                 IPublisher<ChangeSprintStateMessage> changeSprintStateMessagePublisher,
                 IPublisher<ChangeCrouchingStateMessage> changeCrouchingStateMessagePublisher,
+                IPublisher<ChangeProneStateMessage> changeProneStateMessagePublisher,
+                IPublisher<ChangeLeanStateMessage> changeLeanStateMessagePublisher,
                 IPublisher<ClickMessage> clickMessagePublisher,
                 IPublisher<SwitchWeaponMessage> switchWeaponMessagePublisher,
                 IPublisher<ReloadingMessage> reloadingMessagePublisher,
@@ -45,6 +51,8 @@ namespace Input
             this.jumpMessagePublisher = jumpMessagePublisher;
             this.changeSprintStateMessagePublisher = changeSprintStateMessagePublisher;
             this.changeCrouchingStateMessagePublisher = changeCrouchingStateMessagePublisher;
+            this.changeProneStateMessagePublisher = changeProneStateMessagePublisher;
+            this.changeLeanStateMessagePublisher = changeLeanStateMessagePublisher;
             this.clickMessagePublisher = clickMessagePublisher;
             this.switchWeaponMessagePublisher = switchWeaponMessagePublisher;
             this.reloadingMessagePublisher = reloadingMessagePublisher;
@@ -73,9 +81,16 @@ namespace Input
             
             inputConfig.CrouchInput.action.started += OnStartCrouching;
             inputConfig.CrouchInput.action.canceled += OnCancelCrouching;
+            inputConfig.ProneInput.action.started += OnToggleProne;
             
             inputConfig.FirstWeapon.action.started += SwitchToFirstWeapon;
             inputConfig.SecondWeapon.action.started += SwitchToSecondWeapon;
+            inputConfig.ThirdWeapon.action.started += SwitchToMeleeWeapon;
+
+            inputConfig.LeanLeft.action.started += StartLeanLeft;
+            inputConfig.LeanLeft.action.canceled += StopLeanLeft;
+            inputConfig.LeanRight.action.started += StartLeanRight;
+            inputConfig.LeanRight.action.canceled += StopLeanRight;
             
             inputConfig.Reloading.action.started += Reloading;
             inputConfig.FireMode.action.started += SwitchShootingMod;
@@ -126,12 +141,17 @@ namespace Input
         
         private void SwitchToFirstWeapon(InputAction.CallbackContext context)
         {
-            switchWeaponMessagePublisher.Publish(new SwitchWeaponMessage(WeaponRole.Primary));
+            switchWeaponMessagePublisher.Publish(new SwitchWeaponMessage(EquipmentSlotId.Primary));
         }
 
         private void SwitchToSecondWeapon(InputAction.CallbackContext context)
         {
-            switchWeaponMessagePublisher.Publish(new SwitchWeaponMessage(WeaponRole.Secondary));
+            switchWeaponMessagePublisher.Publish(new SwitchWeaponMessage(EquipmentSlotId.Secondary));
+        }
+
+        private void SwitchToMeleeWeapon(InputAction.CallbackContext context)
+        {
+            switchWeaponMessagePublisher.Publish(new SwitchWeaponMessage(EquipmentSlotId.Melee));
         }
 
         private void OnMove(InputAction.CallbackContext context)
@@ -169,6 +189,42 @@ namespace Input
         private void OnCancelCrouching(InputAction.CallbackContext context)
         {
             changeCrouchingStateMessagePublisher.Publish(new ChangeCrouchingStateMessage(false));
+        }
+
+        private void OnToggleProne(InputAction.CallbackContext context)
+        {
+            changeProneStateMessagePublisher.Publish(new ChangeProneStateMessage());
+        }
+
+        private void StartLeanLeft(InputAction.CallbackContext context)
+        {
+            isLeaningLeft = true;
+            PublishLeanDirection();
+        }
+
+        private void StopLeanLeft(InputAction.CallbackContext context)
+        {
+            isLeaningLeft = false;
+            PublishLeanDirection();
+        }
+
+        private void StartLeanRight(InputAction.CallbackContext context)
+        {
+            isLeaningRight = true;
+            PublishLeanDirection();
+        }
+
+        private void StopLeanRight(InputAction.CallbackContext context)
+        {
+            isLeaningRight = false;
+            PublishLeanDirection();
+        }
+
+        private void PublishLeanDirection()
+        {
+            // Kinemation interprets a positive LeanInput as a left lean.
+            var direction = (isLeaningLeft ? 1f : 0f) - (isLeaningRight ? 1f : 0f);
+            changeLeanStateMessagePublisher.Publish(new ChangeLeanStateMessage(direction));
         }
     }
 }

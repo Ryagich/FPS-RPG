@@ -25,11 +25,7 @@ namespace CameraScripts
             this.playerCamera = playerCamera;
             
             inventory.SlotChanged += OnSlotChanged;
-            if (inventory.CurrentSlot != null!)
-            {
-                var weapon = (Weapon.Weapon)inventory.CurrentSlot.Item;
-                settings = weapon.Config.ShakeSettings;
-            }
+            ConfigureForItem(inventory.CurrentSlot?.Item);
             
             recoilMessageSubscriber.Subscribe(OnRequestRecoil);
         }
@@ -41,7 +37,12 @@ namespace CameraScripts
         
         private void OnSlotChanged(InventorySlot was, InventorySlot now)
         {
-            settings = ((Weapon.Weapon)now.Item).Config.ShakeSettings;
+            ConfigureForItem(now.Item);
+        }
+
+        private void ConfigureForItem(IItem item)
+        {
+            settings = item is Weapon.Weapon weapon ? weapon.Config.ShakeSettings : null;
         }
 
         public void Tick()

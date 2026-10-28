@@ -88,7 +88,7 @@ namespace Player
         
         private void ChangeWeapon(SwitchWeaponMessage msg)
         {
-            weaponProvider.ChangeWeapon(msg.Role);
+            weaponProvider.ChangeWeapon(msg.Slot);
         }
         
         private void TryReload(ReloadingMessage msg)
@@ -117,7 +117,8 @@ namespace Player
                 && !weaponProvider.IsAiming() 
                 && !weaponProvider.IsReloading() 
                 && !moveStates.IsCrouching.Value
-                && moveStates.Direction.sqrMagnitude > 0.001f;
+                && !moveStates.IsProne.Value
+                && moveStates.DesiredDirection.sqrMagnitude > 0.001f;
         }
         
         private void OnMove(PlayerMoveMessage msg)

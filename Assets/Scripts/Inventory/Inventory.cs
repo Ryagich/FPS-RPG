@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Inventory.Ammo;
@@ -6,166 +6,195 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using Weapon;
+using Weapon.Melee;
 using Weapon.Settings;
 using Object = UnityEngine.Object;
 
 namespace Inventory
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class Inventory : IStartable
+    public sealed class Inventory : IStartable
     {
-        //was | now
         public event Action<Ammo.Ammo, Ammo.Ammo> AmmoChanged;
         public event Action<InventorySlot, InventorySlot> SlotChanged;
         public event Action<IEnumerable<InventorySlot>> SlotsCreated;
 
         private readonly InventoryConfig inventoryConfig;
-        private readonly LifetimeScope scope;
+        private readonly LifetimeScope ownerScope;
         private readonly AmmoStorage ammoStorage;
         private readonly Transform parentTransform;
-        
+        private readonly bool hasMeleeSlot;
+
         public List<InventorySlot> Slots { get; } = new();
         public InventorySlot CurrentSlot { get; private set; } = null!;
         public Ammo.Ammo CurrentAmmo { get; private set; } = null!;
+        public EquipmentSlotId LastFirearmSlot { get; private set; } = EquipmentSlotId.Primary;
 
-        // [SuppressMessage("ReSharper", "ParameterHidesMember")]
-        public Inventory
-            (
-               InventoryConfig inventoryConfig,
-               LifetimeScope scope,
-               AmmoStorage ammoStorage,
-               [Key("ParentTransformForWeapon")] Transform parentTransform
-            )
+        public Inventory(InventoryConfig inventoryConfig,
+                         [Key("InventoryOwnerScope")] LifetimeScope ownerScope,
+                         AmmoStorage ammoStorage,
+                         [Key("ParentTransformForWeapon")] Transform parentTransform,
+                         [Key("HasMeleeSlot")] bool hasMeleeSlot)
         {
             this.inventoryConfig = inventoryConfig;
-            this.scope = scope;
+            this.ownerScope = ownerScope;
             this.ammoStorage = ammoStorage;
             this.parentTransform = parentTransform;
+            this.hasMeleeSlot = hasMeleeSlot;
 
-            var primarySlot = new InventorySlot();
-            Slots.Add(primarySlot);
-
-            var secondarySlot = new InventorySlot();
-            Slots.Add(secondarySlot);
-
-            // SlotsCreated?.Invoke(Slots);
+            Slots.Add(new InventorySlot(EquipmentSlotId.Primary));
+            Slots.Add(new InventorySlot(EquipmentSlotId.Secondary));
+            Slots.Add(new InventorySlot(EquipmentSlotId.Melee));
         }
-        
+
         public async void Start()
         {
             await ammoStorage.Ready;
-            
-            CreateWeapon(WeaponRole.Primary, inventoryConfig.TestWeaponConfig1.WeaponPref);
-            CreateWeapon(WeaponRole.Secondary, inventoryConfig.TestWeaponConfig2.WeaponPref);
-            
-            SelectWeapon(WeaponRole.Primary);
+            if (inventoryConfig.TestWeaponConfig1 != null)
+                CreateWeapon(EquipmentSlotId.Primary, inventoryConfig.TestWeaponConfig1.WeaponPref);
+            if (inventoryConfig.TestWeaponConfig2 != null)
+                CreateWeapon(EquipmentSlotId.Secondary, inventoryConfig.TestWeaponConfig2.WeaponPref);
+            if (hasMeleeSlot && inventoryConfig.DefaultMeleeWeapon != null)
+                CreateMeleeWeapon(inventoryConfig.DefaultMeleeWeapon);
+
+            SelectSlot(hasMeleeSlot ? EquipmentSlotId.Melee : EquipmentSlotId.Primary);
+            SlotsCreated?.Invoke(Slots);
         }
 
-        public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weaponPrefab)
+        public void CreateWeapon(EquipmentSlotId slotId, WeaponLifetimeScope weaponPrefab)
         {
-            var weaponScope = scope.CreateChildFromPrefab(weaponPrefab);
-            
-            var weaponInstance = weaponScope.Container.Resolve<Weapon.Weapon>();
-            var weaponTrans = weaponScope.transform;
-            var pos = weaponTrans.localPosition;
-            weaponTrans.SetParent(parentTransform);
-            weaponTrans.localPosition = pos;
+            if (!IsFirearmSlot(slotId))
+                throw new ArgumentOutOfRangeException(nameof(slotId), "Firearms can only occupy Primary or Secondary.");
 
-            var slot = GetSlot(role);
-
-            slot.SetItem(weaponInstance);
-            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(weaponScope.Config.AmmoConfig.ID)));
+            var weaponScope = CreateScope(weaponPrefab);
+            var weapon = weaponScope.Container.Resolve<Weapon.Weapon>();
+            var slot = GetSlot(slotId);
+            slot.SetItem(weapon);
+            slot.SetAmmo(ammoStorage.Ammo.First(ammo => ammo.AmmoConfig.ID.Equals(weapon.Config.AmmoConfig.ID)));
             slot.Disable();
         }
 
-        private InventorySlot GetSlot(WeaponRole role)
+        public void CreateMeleeWeapon(MeleeWeaponConfig config)
         {
-            var id = role switch
-            {
-                WeaponRole.Primary => 0,
-                WeaponRole.Secondary => 1,
-                _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
-            };
+            if (config.WeaponPref == null)
+                throw new ArgumentException("Melee weapon config requires a lifetime-scope prefab.", nameof(config));
 
-            return Slots[id];
+            var meleeScope = CreateScope(config.WeaponPref);
+            var meleeWeapon = meleeScope.Container.Resolve<MeleeWeapon>();
+            var slot = GetSlot(EquipmentSlotId.Melee);
+            slot.SetItem(meleeWeapon);
+            slot.Disable();
+        }
+
+        public bool ReplaceFirearm(WeaponConfig weaponConfig)
+        {
+            var target = CurrentSlot?.Id == EquipmentSlotId.Melee ? LastFirearmSlot : ToSlotId(weaponConfig.Role);
+            var slot = GetSlot(target);
+            DestroyItem(slot, drop: true);
+            CreateWeapon(target, weaponConfig.WeaponPref);
+            return true;
+        }
+
+        public bool SelectSlot(EquipmentSlotId slotId)
+        {
+            var next = GetSlot(slotId);
+            if (next.Item == null)
+                return false;
+
+            if (CurrentSlot == null)
+            {
+                CurrentSlot = next;
+                CurrentSlot.Activate();
+                UpdateSelectionState(null!, next);
+                return true;
+            }
+
+            if (CurrentSlot.Id == slotId)
+                return true;
+            if (CurrentSlot.Item is IPrimaryActionItem { IsPrimaryActionInProgress: true })
+                return false;
+
+            var was = CurrentSlot;
+            was.Disable();
+            CurrentSlot = next;
+            next.Activate();
+            UpdateSelectionState(was, next);
+            return true;
         }
 
         public void DropWeapon()
         {
-            var slot = GetSlot(((Weapon.Weapon)CurrentSlot.Item).Config.Role);
-            if (slot.Item != null)
-            {
-                var itemObjTransform = slot.Item.GameObject.transform;
-                var dropItemPrefab = slot.Item.GetDropPrefab();
-                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
-                Object.Destroy(itemObjTransform.gameObject);
-                slot.SetItem(null);
-            }
+            if (CurrentSlot != null)
+                DestroyItem(CurrentSlot, drop: true);
         }
 
         public void ClearSlots()
         {
             foreach (var slot in Slots)
-            {
-                if (slot.Item != null)
-                {
-                    var itemObjTransform = slot.Item.GameObject.transform;
-                    Object.Destroy(itemObjTransform.gameObject);
-                    slot.SetItem(null);
-                }
-            }
+                DestroyItem(slot, drop: false);
         }
-        
-        public void ChangeWeapon(WeaponConfig weaponConfig)
+
+        // Compatibility until every caller is migrated to EquipmentSlotId.
+        public void ChangeWeapon(WeaponConfig weaponConfig) => ReplaceFirearm(weaponConfig);
+        public void SelectWeapon(WeaponRole role) => SelectSlot(ToSlotId(role));
+        public void CreateWeapon(WeaponRole role, WeaponLifetimeScope weaponPrefab) => CreateWeapon(ToSlotId(role), weaponPrefab);
+
+        private LifetimeScope CreateScope(LifetimeScope prefab)
         {
-            var slot = GetSlot(weaponConfig.Role);
-            if (slot.Item != null)
-            {
-                var itemObjTransform = slot.Item.GameObject.transform;
-                var dropItemPrefab = slot.Item.GetDropPrefab();
-                Object.Instantiate(dropItemPrefab,itemObjTransform.position, itemObjTransform.rotation);
-                Object.Destroy(itemObjTransform.gameObject);
-            }
-            CreateWeapon(weaponConfig.Role, weaponConfig.WeaponPref);
-            // SelectWeapon(weaponConfig.Role);
+            var itemScope = ownerScope.CreateChildFromPrefab(prefab);
+            var itemTransform = itemScope.transform;
+            var localPosition = itemTransform.localPosition;
+            itemTransform.SetParent(parentTransform);
+            itemTransform.localPosition = localPosition;
+            return itemScope;
         }
-        
-        public void SelectWeapon(WeaponRole role)
+
+        private void UpdateSelectionState(InventorySlot was, InventorySlot now)
         {
-            if (CurrentSlot is null)
+            if (IsFirearmSlot(now.Id))
             {
-                CurrentSlot = GetSlot(role);
-                CurrentSlot.Activate();
-                CurrentAmmo = ammoStorage.Ammo
-                                         .First(ammo => ammo.AmmoConfig.ID.Equals(((Weapon.Weapon)CurrentSlot.Item).Config.AmmoConfig.ID));
-                
-                SlotChanged?.Invoke(null, CurrentSlot);
-                
-                return;
+                LastFirearmSlot = now.Id;
+                ChangeCurrentAmmo(now.Ammo);
             }
-            
-            if (((Weapon.Weapon)CurrentSlot.Item).IsShooting)
+            else
             {
-                return;
+                var previousAmmo = CurrentAmmo;
+                CurrentAmmo = null!;
+                AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
             }
 
-            var was = CurrentSlot;
-            CurrentSlot.Disable();
-
-            CurrentSlot = GetSlot(role);
-            CurrentSlot.Activate();
-
-            ChangeCurrentAmmo(((Weapon.Weapon)CurrentSlot.Item).Config.AmmoConfig);
-            SlotChanged?.Invoke(was, CurrentSlot);
+            SlotChanged?.Invoke(was, now);
         }
 
-        private void ChangeCurrentAmmo(AmmoConfig ammoConfig)
+        private void ChangeCurrentAmmo(Ammo.Ammo ammo)
         {
             var was = CurrentAmmo;
-            var ammo = ammoStorage.Ammo.FirstOrDefault(a => a.AmmoConfig.ID.Equals(ammoConfig.ID));
-
-            CurrentAmmo = ammo ?? throw new ArgumentException("Пришел тип патронов не записанный в инвентарь");
+            CurrentAmmo = ammo;
             AmmoChanged?.Invoke(was, CurrentAmmo);
         }
+
+        private void DestroyItem(InventorySlot slot, bool drop)
+        {
+            if (slot.Item == null)
+                return;
+
+            if (drop && slot.Item is IDroppableItem droppable)
+            {
+                var itemTransform = slot.Item.GameObject.transform;
+                Object.Instantiate(droppable.GetDropPrefab(), itemTransform.position, itemTransform.rotation);
+            }
+
+            Object.Destroy(slot.Item.GameObject);
+            slot.SetItem(null!);
+        }
+
+        private InventorySlot GetSlot(EquipmentSlotId id) => Slots.First(slot => slot.Id == id);
+        private static bool IsFirearmSlot(EquipmentSlotId id) => id is EquipmentSlotId.Primary or EquipmentSlotId.Secondary;
+
+        private static EquipmentSlotId ToSlotId(WeaponRole role) => role switch
+        {
+            WeaponRole.Primary => EquipmentSlotId.Primary,
+            WeaponRole.Secondary => EquipmentSlotId.Secondary,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
+        };
     }
 }

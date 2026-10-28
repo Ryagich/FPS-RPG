@@ -2,6 +2,7 @@
 using Inventory.Pools.Impact;
 using UnityEngine;
 using Weapon;
+using Weapon.Melee;
 using Weapon.Settings;
 
 namespace Inventory
@@ -20,5 +21,6 @@ namespace Inventory
 
         [field: SerializeField] public WeaponConfig TestWeaponConfig1 { get; private set; }
         [field: SerializeField] public WeaponConfig TestWeaponConfig2 { get; private set; }
+        [field: SerializeField] public MeleeWeaponConfig DefaultMeleeWeapon { get; private set; } = null!;
         }
 }

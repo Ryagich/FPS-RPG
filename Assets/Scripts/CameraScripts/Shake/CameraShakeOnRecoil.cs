@@ -22,15 +22,15 @@ namespace CameraScripts.Shake
             this.cameraShaker = cameraShaker;
 
             inventory.SlotChanged += OnSlotChanged;
-            if (inventory.CurrentSlot != null)
-                settings = ((Weapon.Weapon)inventory.CurrentSlot.Item).Config.ShakeSettings;
+            if (inventory.CurrentSlot?.Item is Weapon.Weapon weapon)
+                settings = weapon.Config.ShakeSettings;
 
             recoilSubscriber.Subscribe(OnRecoil);
         }
 
         private void OnSlotChanged(InventorySlot was, InventorySlot now)
         {
-            settings = ((Weapon.Weapon)now.Item).Config.ShakeSettings;
+            settings = now.Item is Weapon.Weapon weapon ? weapon.Config.ShakeSettings : null;
         }
 
         private void OnRecoil(RecoilMessage msg)

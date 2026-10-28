@@ -42,6 +42,8 @@ namespace Bot
             builder.Register<StatsController>(Lifetime.Scoped).AsSelf();
 
             builder.RegisterInstance(transform).Keyed("self");
+            builder.RegisterInstance<LifetimeScope>(this).Keyed("InventoryOwnerScope");
+            builder.RegisterInstance(false).Keyed("HasMeleeSlot");
             builder.RegisterInstance(botGoal).Keyed("botGoal");
             builder.RegisterInstance(visionOrigin).Keyed("visionOrigin");
             builder.RegisterInstance(spine).Keyed("spine");

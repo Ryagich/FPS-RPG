@@ -14,7 +14,7 @@ using Random = UnityEngine.Random;
 namespace Weapon
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Weapon : ITickable, IFixedTickable, IItem
+    public class Weapon : ITickable, IFixedTickable, IItem, IDroppableItem, IPrimaryActionItem
     {
         public event Action<int> ValueChanged;
         public event Action<ShootingMode> ShootingModChanged;
@@ -43,6 +43,7 @@ namespace Weapon
 
         public int Value { get; private set; }
         public bool IsShooting { get; private set; }
+        public bool IsPrimaryActionInProgress => IsShooting;
         public ShootingMode ShootingMode { get; private set; }
         public float CurrentSpread { get; private set; }
 
@@ -81,7 +82,7 @@ namespace Weapon
                                    : ShootingMode.Burst;
             ShootingModChanged?.Invoke(ShootingMode);
 
-            timeBetweenShots = 60.0f / config.GetRPM();
+            timeBetweenShots = config.GetAttackInterval();
             //CurrentSpread = _config.GetCurrentRecoilSettings(bobbing.isAim).RecoilChillCoefficient; //???
             Value = Config.GetMaxCapacity();
         }
@@ -287,6 +288,15 @@ namespace Weapon
         {
             IsShooting = false;
         }
+
+        public bool TryStartPrimaryAction()
+        {
+            var wasShooting = IsShooting;
+            StartShoot();
+            return !wasShooting && IsShooting;
+        }
+
+        public void StopPrimaryAction() => StopShoot();
 
 #endregion
 

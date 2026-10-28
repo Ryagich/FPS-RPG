@@ -11,12 +11,16 @@ namespace Inventory
         public event Action Activated = null!;
         public event Action Disabled = null!;
 
+        public EquipmentSlotId Id { get; }
         public IItem Item { get; private set; } = null!;
         public Ammo.Ammo Ammo { get; private set; } = null!;
         
-        public InventorySlot() { }
+        public InventorySlot(EquipmentSlotId id)
+        {
+            Id = id;
+        }
         
-        public InventorySlot(IItem item, Ammo.Ammo ammo)
+        public InventorySlot(EquipmentSlotId id, IItem item, Ammo.Ammo ammo) : this(id)
         {
             SetItem(item);
             SetAmmo(ammo);

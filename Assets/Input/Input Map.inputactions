@@ -52,6 +52,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Prone",
+                    "type": "Button",
+                    "id": "468f7549-6ed2-476b-b6ca-d6f5b4780ecf",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Click",
                     "type": "Button",
                     "id": "7c006e66-4ac1-4807-b067-398aa50ac441",
@@ -82,6 +91,33 @@
                     "name": "Second Weapon",
                     "type": "Button",
                     "id": "d0038d42-b639-43e1-b7d7-32288b032890",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Third Weapon",
+                    "type": "Button",
+                    "id": "8a12a679-7b69-4856-8e46-a95b6c23ed82",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Lean Left",
+                    "type": "Button",
+                    "id": "29ff0c68-261d-4f32-b166-97c1f531319a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Lean Right",
+                    "type": "Button",
+                    "id": "e824d5b3-45d6-433f-990b-8ddf46c05c59",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -217,6 +253,17 @@
                 },
                 {
                     "name": "",
+                    "id": "8be0524f-3f28-4c68-8508-26a00fcc7335",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Prone",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "b38d2318-6992-49c2-ad72-acf8ff485489",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
@@ -256,6 +303,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "Second Weapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c75c11a-dea4-471e-926e-68b6ed59ce6b",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Third Weapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5d507979-2f6e-49cb-bc6c-df4f8a3e9bc8",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Lean Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8d1e1764-4766-466f-af6a-f633644c1d63",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Lean Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

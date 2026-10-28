@@ -10,15 +10,12 @@ using Weapon.Drop;
 namespace Weapon.Settings
 {
     [CreateAssetMenu(fileName = "WeaponConfig", menuName = "configs/Weapons/WeaponConfig")]
-    public class WeaponConfig : ScriptableObject
+    public class WeaponConfig : WeaponConfigBase
     {
-        [field: SerializeField] public string ID { get; private set; } = "Weapon ID";
-        [field: SerializeField] public DamageSettings DamageSettings { get; private set; }
         [field: SerializeField] public WeaponRole Role { get; private set; }
         [field: SerializeField] public WeaponType Type { get; private set; }
         [field: SerializeField] public List<ShootingMode> Modes { get; private set; } = new();
         [field: SerializeField] public AmmoConfig AmmoConfig { get; private set; }
-        [field: SerializeField] public int RPM { get; private set; } = 600; // скорострельность
         [field: SerializeField] public int MaxAmmo { get; private set; } = 30; // Как перенесу аттачменты - закину это туда
         [field: Tooltip("Временная переменная, пока не имеем анимаций")] 
         [field: SerializeField] public float ReloadingTime { get; private set; } = 2.0f;
@@ -52,11 +49,14 @@ namespace Weapon.Settings
         public AttachmentInfo GetActiveMagazine() => GetActiveAttachments().First(att => att.BaseInfo.isMagazine());
         public RecoilSettings GetCurrentRecoilSettings(bool isAim) => isAim ? AimRecoilSettings : RecoilSettings;
     
-        public float GetRPM(AttachmentInfo exception = null!)
-            => RPM + AttachmentSections
+        public float GetAttackInterval(AttachmentInfo exception = null!)
+        {
+            var attacksPerMinute = 60f / AttackInterval + AttachmentSections
                     .Select(attachmentSection => attachmentSection.CurrentAttachmentInfos.First())
                     .Where(info => info != exception)
                     .Sum(info => info.BaseInfo.RPM);
+            return 60f / Mathf.Max(1f, attacksPerMinute);
+        }
         
         public int GetMaxCapacity(AttachmentInfo exception = null!)
             => AttachmentSections

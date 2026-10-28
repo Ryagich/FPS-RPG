@@ -1,5 +1,19 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2377395696971136027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Prone
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  m_ActionId: 468f7549-6ed2-476b-b6ca-d6f5b4780ecf
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18,9 +32,55 @@ MonoBehaviour:
   <LookInput>k__BackingField: {fileID: -4100025885040081811, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <SprintInput>k__BackingField: {fileID: 2940890243988094034, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <CrouchInput>k__BackingField: {fileID: 4810699650447843739, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <ProneInput>k__BackingField: {fileID: -2377395696971136027}
   <JumpInput>k__BackingField: {fileID: 2617688993766685301, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <FirstWeapon>k__BackingField: {fileID: 2365815839281479674, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <SecondWeapon>k__BackingField: {fileID: 8411847979806114029, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  <ThirdWeapon>k__BackingField: {fileID: -651238765987654321}
+  <LeanLeft>k__BackingField: {fileID: -651238765987654320}
+  <LeanRight>k__BackingField: {fileID: -651238765987654319}
   <Reloading>k__BackingField: {fileID: 5277871658054977469, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <FireMode>k__BackingField: {fileID: 2336233423833798957, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
   <Interactable>k__BackingField: {fileID: -137719234405875534, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+--- !u!114 &-651238765987654321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Third Weapon
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  m_ActionId: 8a12a679-7b69-4856-8e46-a95b6c23ed82
+--- !u!114 &-651238765987654320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Lean Left
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  m_ActionId: 29ff0c68-261d-4f32-b166-97c1f531319a
+--- !u!114 &-651238765987654319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Lean Right
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 800f8153ed29c6141bfbb07ecc3d563f, type: 3}
+  m_ActionId: e824d5b3-45d6-433f-990b-8ddf46c05c59

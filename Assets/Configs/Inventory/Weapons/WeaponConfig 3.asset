@@ -43,7 +43,7 @@ MonoBehaviour:
   <Type>k__BackingField: 1
   <Modes>k__BackingField: 000102
   <AmmoConfig>k__BackingField: {fileID: 11400000, guid: acf712bfe996d274aadd9b2ab64d37c1, type: 2}
-  <RPM>k__BackingField: 600
+  <AttackInterval>k__BackingField: 0.1
   <MaxAmmo>k__BackingField: 30
   <ReloadingTime>k__BackingField: 0.2
   <ShakeSettings>k__BackingField:
