@@ -10,7 +10,7 @@ namespace Player
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly GravityConfig gravityConfig;
-        private readonly CharacterController controller;
+        private readonly PlayerGrounding grounding;
 
         private float verticalVelocity;
 
@@ -18,23 +18,24 @@ namespace Player
             (
                 PlayerMovementConfig playerMovementConfig,
                 GravityConfig gravityConfig,
-                CharacterController controller,
+                PlayerGrounding grounding,
                 ISubscriber<JumpMessage> jumpSubscriber
             )
         {
             this.playerMovementConfig = playerMovementConfig;
             this.gravityConfig = gravityConfig;
-            this.controller = controller;
+            this.grounding = grounding;
 
             jumpSubscriber.Subscribe(OnJump);
         }
 
         private void OnJump(JumpMessage msg)
         {
-            if (!controller.isGrounded)
+            if (!grounding.HasGroundSupport)
                 return;
 
             verticalVelocity = Mathf.Sqrt(2f * gravityConfig.Gravity * playerMovementConfig.JumpHeight);
+            grounding.BeginJump();
         }
 
         public Vector3 GetVelocity()

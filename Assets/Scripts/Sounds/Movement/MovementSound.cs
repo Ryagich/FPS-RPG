@@ -19,6 +19,7 @@ namespace Sounds.Movement
         private readonly Transform transform;
         private readonly PlayerMovement playerMovement;
         private readonly CharacterController characterController;
+        private readonly PlayerGrounding grounding;
 
         private float distanceAccumulated;
         private Vector3 lastPosition;
@@ -30,6 +31,7 @@ namespace Sounds.Movement
                 Transform transform,
                 PlayerMovement playerMovement,
                 CharacterController characterController,
+                PlayerGrounding grounding,
                 CameraShakeOnStep cameraShakeOnStep,
                 MoveStates moveStates
             )
@@ -40,6 +42,7 @@ namespace Sounds.Movement
             this.transform = transform;
             this.playerMovement = playerMovement;
             this.characterController = characterController;
+            this.grounding = grounding;
             this.cameraShakeOnStep = cameraShakeOnStep;
             this.moveStates = moveStates;
 
@@ -48,7 +51,7 @@ namespace Sounds.Movement
 
         public void Tick()
         {
-            if (!characterController.isGrounded)
+            if (!grounding.HasGroundSupport)
                 return;
 
             var currentPosition = transform.position;

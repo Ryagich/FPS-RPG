@@ -51,7 +51,8 @@ namespace Player
             builder.Register<IMovementDataProvider>(c =>
                                                         new CharacterControllerMovementProvider(
                                                              c.Resolve<CharacterController>(),
-                                                             c.Resolve<Transform>()
+                                                             c.Resolve<Transform>(),
+                                                             c.Resolve<PlayerGrounding>()
                                                             ),
                                                     Lifetime.Scoped
                                                    );
@@ -62,9 +63,12 @@ namespace Player
             builder.RegisterMessageBroker<DeathMessage>(options);
             
             builder.RegisterEntryPoint<InputHandler>().AsSelf();
+            builder.RegisterEntryPoint<FootGroundContactReader>().AsSelf();
+            builder.RegisterEntryPoint<PlayerGrounding>().AsSelf();
             builder.RegisterEntryPoint<PlayerMotor>().AsSelf();
             builder.RegisterEntryPoint<PlayerPoseController>().AsSelf();
             builder.RegisterEntryPoint<PlayerAnimationDriver>().AsSelf();
+            builder.RegisterEntryPoint<PlayerBodyAnimationController>().AsSelf();
             builder.RegisterEntryPoint<MovementSound>().AsSelf();
             builder.RegisterEntryPoint<PlayerCamera>().AsSelf();
             builder.RegisterEntryPoint<KinemationLookInputBridge>().AsSelf();

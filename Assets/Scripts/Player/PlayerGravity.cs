@@ -6,24 +6,24 @@ namespace Player
     // ReSharper disable once ClassNeverInstantiated.Global
     public class PlayerGravity
     {
-        private readonly CharacterController controller;
+        private readonly PlayerGrounding grounding;
         private readonly GravityConfig config;
 
         private float verticalVelocity;
 
         public PlayerGravity
             (
-                CharacterController controller,
+                PlayerGrounding grounding,
                 GravityConfig config
             )
         {
-            this.controller = controller;
+            this.grounding = grounding;
             this.config = config;
         }
 
         public Vector3 GetVelocity()
         {
-            if (controller.isGrounded)
+            if (grounding.HasGroundSupport)
             {
                 verticalVelocity = 0f;
             }

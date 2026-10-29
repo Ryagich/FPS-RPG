@@ -509,7 +509,57 @@ MonoBehaviour:
   - {fileID: 3972945897790656797}
   - {fileID: -304065281060014548}
   - {fileID: -2317223720160936067}
+  - {fileID: 4815162342000000001}
   - {fileID: -7925720672939176101}
+--- !u!114 &4815162342000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da6c49c572d40f48a91157abb302cbf, type: 3}
+  m_Name: FootPlacementLayerSettings
+  m_EditorClassIdentifier:
+  rigAsset: {fileID: 11400000, guid: 20c86149126a2b24cb88e9fc185cbd50, type: 2}
+  alpha: 1
+  curveBlending: []
+  linkDynamically: 0
+  isStandalone: 0
+  pelvis:
+    name: Hips
+    index: 1
+    isVirtual: 0
+  rightFootTarget:
+    name: IK RightFoot
+    index: 86
+    isVirtual: 0
+  leftFootTarget:
+    name: IK LeftFoot
+    index: 88
+    isVirtual: 0
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: -65
+  footRadius: 0.08
+  footHeight: 0.06
+  rayOffset: 0.55
+  rayDistance: 2
+  maxFootOffset: 1.4
+  pelvisMaxOffset: 0.35
+  interpolationSpeed: 18
+  flatSurfaceHeightTolerance: 0.025
+  flatSurfaceAngleTolerance: 1
+  plantLiftStart: 0.025
+  plantLiftEnd: 0.1
+  contactWeightSmoothing: 16
+  landingStateName: JumpEnd
+  forceFootPlacementOnLanding: 1
+  landingStepDuration: 0.18
+  landingLeadFootWeight: 1
+  landingFollowFootWeight: 1
 --- !u!114 &3481693133941454373
 MonoBehaviour:
   m_ObjectHideFlags: 3

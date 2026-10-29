@@ -8,31 +8,33 @@ namespace Player
     {
         private readonly PlayerMovementConfig playerMovementConfig;
         private readonly Transform playerTransform;
-        private readonly CharacterController characterController;
+        private readonly PlayerGrounding grounding;
         private readonly InputProvider inputProvider;
         private readonly MoveStates moveStates;
 
         private Vector3 currentVelocity;
 
+        public bool IsMoving => currentVelocity.sqrMagnitude > .001f;
+
         public PlayerMovement
             (
                 PlayerMovementConfig playerMovementConfig,
                 Transform playerTransform,
-                CharacterController characterController,
+                PlayerGrounding grounding,
                 InputProvider inputProvider,
                 MoveStates moveStates
             )
         {
             this.playerMovementConfig = playerMovementConfig;
             this.playerTransform = playerTransform;
-            this.characterController = characterController;
+            this.grounding = grounding;
             this.inputProvider = inputProvider;
             this.moveStates = moveStates;
         }
         
         public Vector3 GetVelocity()
         {
-            if (!characterController.isGrounded)
+            if (grounding.IsFalling)
             {
                 moveStates.IsSprinting.Value = false;
                 return currentVelocity * Time.deltaTime;

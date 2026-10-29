@@ -35,6 +35,21 @@ MonoBehaviour:
   <ProneChangedSpeed>k__BackingField: 3
   <LeanAngle>k__BackingField: 25
   <LeanMotion>k__BackingField: {fileID: 11400000, guid: a493caf2a32529d4d88aff9ccf78e181, type: 2}
+  <CrouchMotion>k__BackingField: {fileID: 11400000, guid: fa23e63ff38a3bb4f9f7bca500ced7ce, type: 2}
+  <JumpMotion>k__BackingField: {fileID: 11400000, guid: 93be04a77e31740498d5c7d7e8286ab5, type: 2}
+  <StopMotion>k__BackingField: {fileID: 11400000, guid: df1c50775e86cd04d81a570dca084893, type: 2}
   <JumpHeight>k__BackingField: 3
+  <AirborneCapsuleHeight>k__BackingField: 1.5
+  <AirborneCapsuleChangeSpeed>k__BackingField: 4
+  <AirborneCapsuleCenter>k__BackingField: {x: 0, y: 2, z: 0}
+  <AirborneCapsuleCenterChangeSpeed>k__BackingField: 1
+  <LandingCapsuleRecoverySpeed>k__BackingField: 1
+  <LandingCapsuleCenterRecoverySpeed>k__BackingField: 1
+  <GroundCheckMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967231
+  <GroundProbeDistance>k__BackingField: 0.1
+  <GroundProbeRadiusScale>k__BackingField: 0.9
+  <FallDelay>k__BackingField: 0.12
   <Sensitivity>k__BackingField: 1
   <cameraYClamp>k__BackingField: {x: -80, y: 80}
